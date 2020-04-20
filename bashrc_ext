@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# find where this repository is placed by getting this file's directory
+instal_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# add the bin directory to the current path
+export PATH=$instal_dir/Delphes/Delphes-3.4.2/:$PATH
+
+# save the repository directory, variable used in some scripts
+export DL_for_HTT=$instal_dir
