@@ -1,0 +1,76 @@
+! 1) Settings used in the main program.
+Main:numberOfEvents = 1000         ! number of events to generate
+Main:timesAllowErrors = 3          ! how many aborts before run stops
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = on  ! list changed particle data
+Next:numberCount = 100             ! print message every n events
+Next:numberShowInfo = 1            ! print event information n times
+Next:numberShowProcess = 1         ! print process record n times
+Next:numberShowEvent = 0           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 13000.                 ! CM energy of collision = 13 TeV
+
+! 4) Settings for the hard-process generation.
+! SM processes
+HiggsSM:ffbar2H = on               ! Scattering f fbar -> H^0, where f sums over available flavours except top.
+HiggsSM:gg2H = on                  ! Higgs production by gluon-gluon fusion
+HiggsSM:gmgm2H = on                ! gamma gamma -> H^0 via loop contributions primarily from top and W. 
+HiggsSM:ffbar2HZ = on              ! f fbar -> H^0 Z^0 via s-channel Z^0 exchange.
+HiggsSM:ffbar2HW = on              ! f fbar -> H^0 W^+- via s-channel W^+- exchange.
+HiggsSM:ff2Hff(t:ZZ) = on          ! f f' -> H^0 f f' via Z^0 Z^0 fusion.
+HiggsSM:ff2Hff(t:WW) = on          ! f_1 f_2 -> H^0 f_3 f_4 via W^+ W^- fusion. 
+!HiggsSM:gg2Httbar = on             ! g g -> H^0 t tbar via t tbar fusion SLOW
+!HiggsSM:qqbar2Httbar = on          ! q qbar -> H^0 t tbar via t tbar fusion SLOW
+
+! A number of further production processes has been implemented, that are specializations of some of the above ones to the high-pT region. The sets therefore could not be used simultaneously without unphysical double-counting, as further explained below. They are not switched on by the HiggsSM:all flag, but have to be switched on for each separate process after due consideration.
+!HiggsSM:qg2Hq = on                 ! q g -> H^0 q : first-order corrections to the f fbar -> H^0 one above, and should only be used to study the high-pT tail
+!HiggsSM:gg2Hbbbar = on             ! g g -> H^0 b bbar. This process is yet one order higher of the b bbar -> H^0 and b g -> H^0 b chain SLOW
+!HiggsSM:qqbar2Hbbbar = on          ! q qbar -> H^0 b bbar via an s-channel gluon, so closely related to the previous one SLOW
+
+! The second set of processes are predominantly first-order corrections to the g g -> H^0 process, again dominated by the top loop. We here only provide the kinematical expressions obtained in the limit that the top quark goes to infinity, but scaled to the finite-top-mass coupling in g g -> H^0. (Complete loop expressions are available e.g. in PYTHIA 6.4 but are very lengthy.) This provides a reasonably accurate description for "intermediate" pT values, but fails when the pT scale approaches the top mass. 
+!HiggsSM:gg2Hg(l:t) = on            ! g g -> H^0 g via loop contributions primarily from top.
+!HiggsSM:qg2Hq(l:t) = on            ! q g -> H^0 q Not to be confused with HiggsSM:qg2Hq with its direct fermion-to-Higgs coupling. 
+!HiggsSM:qqbar2Hg(l:t) = on         ! q qbar -> H^0 g via an s-channel gluon
+
+! 5) Tau decays settings
+25:0:bRatio  = 0.0                 ! H -> d dbar
+25:1:bRatio  = 0.0                 ! H -> u ubar
+25:2:bRatio  = 0.0                 ! H -> s sbar
+25:3:bRatio  = 0.0                 ! H -> c cbar
+25:4:bRatio  = 0.0                 ! H -> b bbar
+25:5:bRatio  = 0.0                 ! H -> t tbar
+25:6:bRatio  = 0.0                 ! H -> e+ e-
+25:7:bRatio  = 0.0                 ! H -> mu+ mu-
+25:8:bRatio  = 1.0                 ! H -> tau+ tau-
+25:9:bRatio  = 0.0                 ! H -> g g
+25:10:bRatio = 0.0                 ! H -> gamma gamma
+25:11:bRatio = 0.0                 ! H -> gamma Z
+25:12:bRatio = 0.0                 ! H -> Z0 Z0
+25:13:bRatio = 0.0                 ! H -> W+ W-
+25:0:meMode  = 100                 ! set meMode = 100 so that
+25:1:meMode  = 100                 ! branching ratios are not
+25:2:meMode  = 100                 ! overwritten at initialization
+25:3:meMode  = 100
+25:4:meMode  = 100
+25:5:meMode  = 100
+25:6:meMode  = 100
+25:7:meMode  = 100
+25:8:meMode  = 100
+25:9:meMode  = 100
+25:10:meMode = 100
+25:11:meMode = 100
+25:12:meMode = 100
+25:13:meMode = 100
+
+TauDecays:externalMode = 1          ! Decays of tau leptons can be performed using helicity information from the tau production process
+
+! 6) Other settings. Can be expanded as desired.
+#Tune:preferLHAPDF = off            ! use internal PDFs when LHAPDF not linked
+Tune:pp = 6                        ! use Tune 4Cx
+ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
+ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
