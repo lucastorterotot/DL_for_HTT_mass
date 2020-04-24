@@ -30,11 +30,6 @@ if options.Nmax is None:
 else:
     Nmax = min([int(options.Nmax), tree.GetEntries()])
 
-#tmp
-Nmax = 2
-#
-Nevt = 0
-
 def find_HTT(evt):
     ''' Find the Higgs boson in the generated particles,
     check that it decays in tau leptons,
@@ -99,17 +94,28 @@ def find_tau_decays(evt, tau):
         neutrinos = [neutrino for neutrino in decays if abs(neutrino.PID) in [12, 14, 16]]
         if len(neutrinos) > 1:
             string = "Hadronic tau with more than 1 neutrino at generator level??"
-            print(string)
+            #print(string)
+            import pdb; pdb.set_trace()
             #raise RuntimeError(string)
         pi0s = [pi0 for pi0 in decays if abs(pi0.PID) in [111]]
         photons = [p for p in decays if abs(p.PID) == 22]
-        prongs = [p for p in decays if p not in neutrinos+pi0s+photons]
+        prongs = [p for p in decays if p.Charge != 0]
         DM = "{}prong{}pi0".format(len(prongs), len(pi0s))
         if not len(prongs) % 2:
             print(DM)
             import pdb; pdb.set_trace()
     return decays, channel, DM
                         
+Nevt = 0
+channel_stats = {
+    "tt":0,
+    "mt":0,
+    "et":0,
+    "mm":0,
+    "ee":0,
+    "em":0,
+}
+
 for evt in tree:
     Nevt += 1
     print("\nEvent {}:".format(Nevt))
@@ -129,6 +135,8 @@ for evt in tree:
     elif channel == "tm":
         channel = "mt"
 
+    channel_stats[channel] += 1
+        
     print("\tChannel: {}".format(channel))
 
     if any(DM != None for DM in [DM1, DM2]):
@@ -150,5 +158,7 @@ for evt in tree:
     print("")
     if Nevt >= Nmax:
         break
-    
+
 print("Processed on {Nevt} events.".format(Nevt=Nevt))
+for channel in channel_stats:
+    print("\t{} proportion: {} +/- {} pct".format(channel, 100*channel_stats[channel]/Nevt, 100*channel_stats[channel]**.5/Nevt))
