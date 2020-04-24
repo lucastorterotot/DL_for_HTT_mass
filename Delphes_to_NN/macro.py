@@ -51,13 +51,13 @@ def find_HTT(evt):
 def DR2(ptc1, ptc2):
     return (ptc1.Eta - ptc2.Eta)**2 + (ptc1.Phi - ptc2.Phi)**2
                         
-def match(ptc1, ptc2):
+def match(ptc1, ptc2, dR = .5):
     ''' Check that two particles instance can be linked to the same physic object.'''
     if ptc1.PID != ptc2.PID:
         return False
     # if abs((ptc1.PT - ptc2.PT)/ptc1.PT) > .1:
     #     return False
-    if DR2(ptc1, ptc2)**.5 > .5:
+    if DR2(ptc1, ptc2)**.5 > dR:
         return False
     return True
 
