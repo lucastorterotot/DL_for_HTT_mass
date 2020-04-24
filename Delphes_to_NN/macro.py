@@ -73,19 +73,36 @@ def get_daughters(evt, ptc):
         else:
             daughters.append(D2)
     return list(set(daughters))
-        
+
+def check_decays_from(decays, ptc):
+    final_decays = []
+    correct_decays = set()
+    bad_decays = set()
+    for decay in decays:
+        chain = []
+        matched = False
+        index = decay.M1
+        while index != -1 and not matched:
+            previous_decay = evt.Particle.At(index)
+            if previous_decay in bad_decays:
+                break
+            chain.append(previous_decay)
+            index = previous_decay.M1
+            if previous_decay == ptc or previous_decay in correct_decays:
+                matched = True
+        if matched:
+            final_decays.append(decay)
+            correct_decays.update(chain)
+        else:
+            bad_decays.update(chain)
+    return final_decays
+    
 def find_tau_decays(evt, tau):
     decays = []
     channel = "t"
     DM = None
-    for ptc in evt.Particle:
-        if ptc.M1 != -1:
-            mother = evt.Particle.At(ptc.M1)
-            if match(ptc, tau):
-                decays += get_daughters(evt, ptc)
-            elif match(mother, tau):
-                decays.append(ptc)
-    decays = list(set(decays))
+    decays = check_decays_from(evt.Particle, tau)
+    decays = [p for p in set(decays) if p.PID != tau.PID]
     if any(abs(ptc.PID) == 11 for ptc in decays):
         channel = "e"
     elif any(abs(ptc.PID) == 13 for ptc in decays):
