@@ -5,6 +5,8 @@ instal_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # add the bin directory to the current path
 export PATH=$instal_dir/Delphes/Delphes-3.4.2/:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$instal_dir/Delphes/Delphes-3.4.2/
+export ROOT_INCLUDE_PATH=$ROOT_INCLUDE_PATH:$instal_dir/Delphes/Delphes-3.4.2/external/
 
 # save the repository directory, variable used in some scripts
 export DL_for_HTT=$instal_dir

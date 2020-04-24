@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 from optparse import OptionParser
@@ -23,3 +23,5 @@ import libPyROOT as _root
 ROOT.gSystem.Load("libDelphes")
 
 input_file = ROOT.TFile(input_file_str, "READ")
+
+print "OK"
