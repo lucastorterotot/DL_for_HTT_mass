@@ -119,12 +119,13 @@ def HTT_analysis(evt, verbose = 0):
         print("")
         print("\tleg2:")
         print("\ttau pT: {}, eta: {}, phi: {}, E: {}".format(tau2.PT, tau2.Eta, tau2.Phi, tau2.E))
-        
+
     output = {
         "Higgs" : Higgs,
         "channel" : channel,
         "leg1" : (tau1, decays1, DM1),
         "leg2" : (tau2, decays2, DM2),
+        "MET" : evt.GenMissingET[0],
     }
 
     return output
