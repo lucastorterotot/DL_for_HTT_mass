@@ -30,10 +30,6 @@ if options.Nmax is None:
     Nmax = tree.GetEntries()
 else:
     Nmax = min([int(options.Nmax), tree.GetEntries()])
-
-
-def DR2(ptc1, ptc2):
-    return (ptc1.Eta - ptc2.Eta)**2 + (ptc1.Phi - ptc2.Phi)**2
                         
 def match(ptc1, ptc2, dR = .5):
     ''' Check that two particles instance can be linked to the same physic object.'''
@@ -46,6 +42,7 @@ def match(ptc1, ptc2, dR = .5):
     return True
 
 Nevt = 0
+
 channel_stats_gen = {
     "tt":0,
     "mt":0,
@@ -54,16 +51,17 @@ channel_stats_gen = {
     "ee":0,
     "em":0,
 }
-channel_stats_reco = {
-    "tt":0,
-    "mt":0,
-    "et":0,
-    "mm":0,
-    "ee":0,
-    "em":0,
-}
 
-from analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
+channel_stats_reco = {}
+channel_identification = {}
+
+for c1 in channel_stats_gen.keys():
+    channel_stats_reco[c1] = 0
+    for c2 in channel_stats_gen.keys():
+        channel_identification["{} as {}".format(c1, c2)] = 0
+
+from Delphes_to_NN.analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
+from Delphes_to_NN.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
 
 for evt in tree:
     Nevt += 1
@@ -73,6 +71,14 @@ for evt in tree:
     gen_analysis = HTT_analysis_gen(evt, verbose = options.verbose)
     channel_stats_gen[gen_analysis["channel"]] += 1
 
+    reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
+    if reco_analysis != {}:
+        channel_stats_reco[reco_analysis["channel"]] += 1
+        channel_identification["{} as {}".format(
+            gen_analysis["channel"],
+            reco_analysis["channel"]
+            )] += 1
+
     if options.verbose > 0:
         print("")
     if Nevt >= Nmax:
@@ -81,3 +87,9 @@ for evt in tree:
 print("Processed on {Nevt} events.".format(Nevt=Nevt))
 for channel in channel_stats_gen:
     print("\t{} proportion: {} +/- {} pct".format(channel, 100*channel_stats_gen[channel]/Nevt, 100*channel_stats_gen[channel]**.5/Nevt))
+    print("\t\t{} found = {} pct eff".format(channel_stats_reco[channel], 100*channel_stats_reco[channel]/channel_stats_gen[channel]))
+
+for c1 in channel_stats_gen.keys():
+    for c2 in channel_stats_gen.keys():
+        channel_identification["{} as {}".format(c1, c2)] *= 1./(channel_stats_gen[c1])
+print channel_identification
