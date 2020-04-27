@@ -1,5 +1,6 @@
 from Delphes_to_NN.modules.utils import DR2
 import itertools
+from math import cos, sin, sqrt
 
 def select_tauh_tt(tau):
     return all([
@@ -74,7 +75,7 @@ def select_electron_et(ele):
         ])
 
 def select_electron_em(ele):
-        return all([
+    return all([
             ele.PT > 13,
             abs(ele.Eta) < 2.5,
             #abs(ele.dxy) < 0.045,
@@ -155,12 +156,26 @@ def find_tau_DM(tau):
         Npi0s = len(towers)
     DM = "{}prong{}pi0".format(Nprongs, Npi0s)
     return DM
+
+def get_sigma_et(ptc):
+    return get_MET_resolution(ptc, "ET")
+
+def get_sigma_tan(ptc):
+    return get_MET_resolution(ptc, "PHI")
+
+def get_MET_resolution(ptc, type):
+    et = ptc.PT
+    if type == "ET":
+        par = (0.05, 0, 0)
+        return et * sqrt((par[2] * par[2]) + (par[1] * par[1] / et) + (par[0] * par[0] / (et * et)))
+    if type == "PHI":
+        par = 0.002
+        return par * et
     
 def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0):
     # retreive objects for event
     
     MET = evt.MissingET
-    #rho = evt.Rho.Rho
     photons = [p for p in evt.Photon]
     electrons = [e for e in evt.Electron]
     muons = [m for m in evt.Muon]
@@ -257,11 +272,45 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         DM1 = find_tau_DM(tau1)
     if channel[1] == "t":
         DM2 = find_tau_DM(tau2)
-    
+
+
+    # MET and METcov
+    MET = evt.MissingET[0]
+    METcov = [[0, 0], [0, 0]]
+
+    xmet_ = 0#MET.MET * cos(MET.Phi)
+    ymet_ = 0#MET.MET * sin(MET.Phi)
+
+    # photons = [p for p in evt.Photon]
+    # electrons = [e for e in evt.Electron]
+    # muons = [m for m in evt.Muon]
+    # jets = [j for j in evt.Jet if not j.TauTag]
+    # taus = [j for j in evt.Jet if j.TauTag]
+    for ptc in list(evt.Photon)+list(evt.Electron)+list(evt.Muon)+list(evt.Jet):
+        et_tmp = ptc.PT
+        phi_tmp = ptc.Phi
+        sigma_et = get_sigma_et(ptc)
+        sigma_tan = get_sigma_tan(ptc)
+        cosphi = cos(phi_tmp)
+        sinphi = sin(phi_tmp)
+        
+        xmet_ -= et_tmp * cosphi
+        ymet_ -= et_tmp * sinphi
+
+        sigma0_2 = sigma_et * sigma_et
+        sigma1_2 = sigma_tan * sigma_tan
+
+        METcov[0][0] += sigma0_2 * cosphi * cosphi + sigma1_2 * sinphi * sinphi
+        METcov[0][1] += cosphi * sinphi * (sigma0_2 - sigma1_2)
+        METcov[1][0] += cosphi * sinphi * (sigma0_2 - sigma1_2)
+        METcov[1][1] += sigma1_2 * cosphi * cosphi + sigma0_2 * sinphi * sinphi
+        
     output = {
         "channel" : channel,
         "leg1" : (tau1, decays1, DM1),
         "leg2" : (tau2, decays2, DM2),
+        "MET" : MET,
+        "METcov" : METcov,
     }
 
     return output
