@@ -29,13 +29,13 @@ Gen or reco dict:
       + DM
       + vis decays
       - neutrinos
-    + channel (fct sur vis decay leg1 leg2)
+    + channel
     + MET
       + MET
       + METcov
-    + other ele
-    + other mu
-    + jets
+    + other ele?
+    + other mu?
+    + jets?
     + rho
 
 ________________________________________________________________
