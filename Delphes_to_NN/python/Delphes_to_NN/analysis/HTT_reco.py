@@ -304,6 +304,16 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         METcov[0][1] += cosphi * sinphi * (sigma0_2 - sigma1_2)
         METcov[1][0] += cosphi * sinphi * (sigma0_2 - sigma1_2)
         METcov[1][1] += sigma1_2 * cosphi * cosphi + sigma0_2 * sinphi * sinphi
+
+    # Store two leading jets
+    jets.sort(key = lambda j : j.PT, reverse = True)
+
+    jet1 = None
+    jet2 = None
+    if len(jets) > 0:
+        jet1 = jets[0]
+    if len(jets) > 1:
+        jet2 = jets[1]
         
     output = {
         "channel" : channel,
@@ -311,6 +321,8 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         "leg2" : (tau2, decays2, DM2),
         "MET" : MET,
         "METcov" : METcov,
+        "jet1" : jet1,
+        "jet2" : jet2,
     }
 
     return output
