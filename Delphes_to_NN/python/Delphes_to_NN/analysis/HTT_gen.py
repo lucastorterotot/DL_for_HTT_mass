@@ -168,7 +168,7 @@ def HTT_analysis(evt, verbose = 0):
         "DM1" : DM1,
         "DM2" : DM2,
         "MET_PT" : MET.MET,
-        "MET_PHI" : MET.Phi,
+        "MET_Phi" : MET.Phi,
     }
     store_vars.store_gen_ptc(output, "Higgs", Higgs)
     store_vars.store_gen_ptc(output, "tau1", tau1)
