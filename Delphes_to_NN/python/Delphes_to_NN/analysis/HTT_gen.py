@@ -1,3 +1,4 @@
+import Delphes_to_NN.modules.store_vars as store_vars
 from Delphes_to_NN.modules.utils import DR2
 from math import sin, cos
 
@@ -107,7 +108,7 @@ def HTT_analysis(evt, verbose = 0):
         print("\tHiggs energy is {} GeV.".format(Higgs.E))
 
     other_products = find_Higgs_production_final_state(evt, Higgs)
-    print [p.PID for p in other_products]
+
     other_products.sort(key = lambda p : p.PT, reverse = True)
     jet1 = None
     jet2 = None
@@ -161,14 +162,17 @@ def HTT_analysis(evt, verbose = 0):
         print("\tleg2:")
         print("\ttau pT: {}, eta: {}, phi: {}, E: {}".format(tau2.PT, tau2.Eta, tau2.Phi, tau2.E))
 
+    MET = evt.GenMissingET[0]
     output = {
-        "Higgs" : Higgs,
         "channel" : channel,
-        "leg1" : (tau1, decays1, DM1),
-        "leg2" : (tau2, decays2, DM2),
-        "MET" : evt.GenMissingET[0],
-        "jet1" : jet1,
-        "jet2" : jet2,
+        "DM1" : DM1,
+        "DM2" : DM2,
+        "MET_PT" : MET.MET,
+        "MET_PHI" : MET.Phi,
     }
-
+    store_vars.store_gen_ptc(output, "Higgs", Higgs)
+    store_vars.store_gen_ptc(output, "tau1", tau1)
+    store_vars.store_gen_ptc(output, "tau2", tau2)
+    store_vars.store_jet(output, "jet1", jet1)
+    store_vars.store_jet(output, "jet2", jet2)
     return output

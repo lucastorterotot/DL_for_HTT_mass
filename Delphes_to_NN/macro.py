@@ -41,7 +41,10 @@ def match(ptc1, ptc2, dR = .5):
         return False
     return True
 
-Nevt = 0
+Nevt_in = 0
+Nevt_out_gen= 0
+Nevt_out_reco= 0
+Nevt_out_gen_and_reco= 0
 
 channel_stats_gen = {
     "tt":0,
@@ -63,33 +66,71 @@ for c1 in channel_stats_gen.keys():
 from Delphes_to_NN.analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
 from Delphes_to_NN.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
 
+analysis_results = []
+
 for evt in tree:
-    Nevt += 1
-    if options.verbose > 0:
-        print("\nEvent {}:".format(Nevt))
+    Nevt_in += 1
+    passed_gen = False
+    passed_reco = False
+    
+    if options.verbose > 0 and Nevt_in%10 == 0:
+        print("\nEvent {}:".format(Nevt_in))
 
     gen_analysis = HTT_analysis_gen(evt, verbose = options.verbose)
-    channel_stats_gen[gen_analysis["channel"]] += 1
-
+    if gen_analysis != {}:
+        passed_gen = True
+        Nevt_out_gen += 1
+        channel_stats_gen[gen_analysis["channel"]] += 1
+        
     reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
     if reco_analysis != {}:
+        passed_reco = True
+        Nevt_out_reco += 1
         channel_stats_reco[reco_analysis["channel"]] += 1
+
+    if passed_gen and passed_reco:
         channel_identification["{} as {}".format(
             gen_analysis["channel"],
             reco_analysis["channel"]
-            )] += 1
+        )] += 1
 
+        analysis_results.append({"gen" : gen_analysis, "reco" : reco_analysis})
+    
     if options.verbose > 0:
         print("")
-    if Nevt >= Nmax:
+    if Nevt_in >= Nmax:
         break
 
-print("Processed on {Nevt} events.".format(Nevt=Nevt))
-for channel in channel_stats_gen:
-    print("\t{} proportion: {} +/- {} pct".format(channel, 100*channel_stats_gen[channel]/Nevt, 100*channel_stats_gen[channel]**.5/Nevt))
-    print("\t\t{} found = {} pct eff".format(channel_stats_reco[channel], 100*channel_stats_reco[channel]/channel_stats_gen[channel]))
+print("Processed on {Nevt_in} events.".format(Nevt_in=Nevt_in))
+# for channel in channel_stats_gen:
+#     print("\t{} amount: {}".format(channel, channel_stats_gen[channel]))
+# for channel in channel_stats_gen:
+#     print("\t{} proportion: {} +/- {} pct".format(channel, 100*channel_stats_gen[channel]/Nevt_in, 100*channel_stats_gen[channel]**.5/Nevt_in))
+#     if channel_stats_gen[channel] > 0:
+#         print("\t\t{} found = {} pct eff".format(channel_stats_reco[channel], 100*channel_stats_reco[channel]/channel_stats_gen[channel]))
 
-for c1 in channel_stats_gen.keys():
-    for c2 in channel_stats_gen.keys():
-        channel_identification["{} as {}".format(c1, c2)] *= 1./(channel_stats_gen[c1])
-print channel_identification
+# for c1 in channel_stats_gen.keys():
+#     for c2 in channel_stats_gen.keys():
+#         channel_identification["{} as {}".format(c1, c2)] *= 1./(channel_stats_gen[c1])
+# print channel_identification
+
+
+data = {}
+for analysis_result in analysis_results:
+    for ana in analysis_result:
+        for k in analysis_result[ana]:
+            key = "_".join([k, ana])
+            if key not in data:
+                data[key] = []
+            data[key].append(analysis_result[ana][k])
+
+file = open('{}.txt'.format(output_file_str), 'w')
+cols = list(data.keys())
+cols.sort()
+cols = ["Event"] + cols
+s = "\t".join(cols)
+file.write(s+"\n")
+for k in range(len(data[cols[1]])):
+    s= "\t".join([str(k+1)]+[str(data[c][k]) for c in cols[1:]])
+    file.write(s+"\n")
+file.close()
