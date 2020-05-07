@@ -128,9 +128,9 @@ file = open('{}.txt'.format(output_file_str), 'w')
 cols = list(data.keys())
 cols.sort()
 cols = ["Event"] + cols
-s = "\t".join(cols)
+s = " ".join(cols)
 file.write(s+"\n")
 for k in range(len(data[cols[1]])):
-    s= "\t".join([str(k+1)]+[str(data[c][k]) for c in cols[1:]])
+    s= " ".join([str(k+1)]+[str(data[c][k]) for c in cols[1:]])
     file.write(s+"\n")
 file.close()
