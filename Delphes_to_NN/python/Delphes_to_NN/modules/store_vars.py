@@ -19,19 +19,22 @@ default_jet_attrs = ["Mass", "PT", "Eta", "Phi", "Flavor", "BTag"]
 def store_jet(dic, name, jet, attrs = default_jet_attrs):
     store(dic, name, jet, attrs = attrs)
 
-def store_real_tau_decays(dic, name, decays, type=None):
+default_real_tau_decays_attrs = list(set(default_attrs+["Charge"]+default_jet_attrs))
+default_real_tau_decays_attrs.remove("Flavor")
+default_real_tau_decays_attrs.remove("BTag")
+def store_real_tau_decays(dic, name, decays, type=None, attrs = default_real_tau_decays_attrs):
     if type == "t":
-        store_tauh(dic, name, decays)
+        store_tauh(dic, name, decays, attrs=attrs)
     elif type == "m":
-        store_muon(dic, name, decays)
+        store_muon(dic, name, decays, attrs=attrs)
     elif type =="e":
-        store_electron(dic, name, decays)
+        store_electron(dic, name, decays, attrs=attrs)
 
 default_tauh_attrs = default_jet_attrs
 default_tauh_attrs.remove("Flavor")
 default_tauh_attrs.remove("BTag")
-def store_tauh(dic, name, jet):
-    store_jet(dic, name, jet, attrs = default_tauh_attrs)
+def store_tauh(dic, name, jet,  attrs = default_tauh_attrs):
+    store_jet(dic, name, jet, attrs = attrs)
 
 def store_muon(dic, name, muon, attrs = default_attrs+["Charge"]):
     store(dic, name, muon, attrs = attrs)
