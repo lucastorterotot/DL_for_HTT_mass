@@ -90,7 +90,7 @@ def find_tau_decays(evt, tau):
         if len(neutrinos) > 1:
             string = "Hadronic tau with more than 1 neutrino at generator level??"
             #print(string)
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             #raise RuntimeError(string)
         pi0s = [pi0 for pi0 in decays if abs(pi0.PID) in [111]]
         photons = [p for p in decays if abs(p.PID) == 22]
@@ -98,7 +98,7 @@ def find_tau_decays(evt, tau):
         DM = "{}prong{}pi0".format(len(prongs), len(pi0s))
         if not len(prongs) % 2:
             print(DM)
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
     return decays, channel, DM
                         
 def HTT_analysis(evt, verbose = 0):
