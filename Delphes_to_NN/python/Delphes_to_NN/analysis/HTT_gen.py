@@ -102,12 +102,26 @@ def find_tau_decays(evt, tau):
             #import pdb; pdb.set_trace()
     return decays, channel, DM
                         
-def HTT_analysis(evt, verbose = 0):
+def HTT_analysis(evt, verbose = 0, fast=True):
+    output = {}
     Higgs, tau1, tau2 = find_HTT(evt)
+    if not Higgs :
+        return output
+    #print(Higgs.PID)
+    store_vars.store_gen_ptc(output, "Higgs", Higgs)
+    store_vars.store_gen_ptc(output, "tau1", tau1)
+    store_vars.store_gen_ptc(output, "tau2", tau2)
 
     if verbose > 2:
         print("\tHiggs energy is {} GeV.".format(Higgs.E))
 
+    MET = evt.GenMissingET[0]
+    output["MET_PT"] = MET.MET
+    output["MET_Phi"] = MET.Phi
+
+    if fast:
+        return output
+    
     other_products = find_Higgs_production_final_state(evt, Higgs)
 
     other_products.sort(key = lambda p : p.PT, reverse = True)
@@ -163,17 +177,11 @@ def HTT_analysis(evt, verbose = 0):
         print("\tleg2:")
         print("\ttau pT: {}, eta: {}, phi: {}, E: {}".format(tau2.PT, tau2.Eta, tau2.Phi, tau2.E))
 
-    MET = evt.GenMissingET[0]
     output = {
         "channel" : channel,
         "DM1" : DM1,
         "DM2" : DM2,
-        "MET_PT" : MET.MET,
-        "MET_Phi" : MET.Phi,
     }
-    store_vars.store_gen_ptc(output, "Higgs", Higgs)
-    store_vars.store_gen_ptc(output, "tau1", tau1)
-    store_vars.store_gen_ptc(output, "tau2", tau2)
     store_vars.store_jet(output, "jet1", jet1)
     store_vars.store_jet(output, "jet2", jet2)
     return output
