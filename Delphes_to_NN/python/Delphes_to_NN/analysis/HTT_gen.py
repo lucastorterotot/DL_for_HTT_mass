@@ -7,13 +7,22 @@ def find_HTT(evt):
     check that it decays in tau leptons,
     return the Higgs and the two taus.'''
     Higgs_IDs = [25, 35, 36]
-    for ptc in evt.Particle:
-        if abs(ptc.PID) in Higgs_IDs:
-            if ptc.D1 != -1:
-                if abs(evt.Particle.At(ptc.D1).PID) == 15:
-                    if ptc.D2 != -1:
-                        if evt.Particle.At(ptc.D2).PID == - evt.Particle.At(ptc.D1).PID:
-                            return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
+    Higgs = [p for p in evt.Particle if abs(p.PID) in Higgs_IDs]
+    evt_Higgs = {}
+    for PID in Higgs_IDs:
+        evt_Higgs[PID] = [p for p in Higgs if abs(p.PID) == PID]
+    if 25 in evt_Higgs.keys() and (35 in evt_Higgs.keys() or 36 in evt_Higgs.keys()):
+        # BSM Higgs decaying to SM Higgs, ignore event
+        if any(evt.Particle.At(h.M1) in evt_Higgs[35]+evt_Higgs[36] for h in evt_Higgs[25]):
+            return None, None, None
+        elif any(evt.Particle.At(h.M2) in evt_Higgs[35]+evt_Higgs[36] for h in evt_Higgs[25]):
+            return None, None, None
+    for ptc in Higgs:
+        if ptc.D1 != -1:
+            if abs(evt.Particle.At(ptc.D1).PID) == 15:
+                if ptc.D2 != -1:
+                    if evt.Particle.At(ptc.D2).PID == - evt.Particle.At(ptc.D1).PID:
+                        return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
     return None, None, None
 
 def find_Higgs_production_final_state(evt, Higgs):
