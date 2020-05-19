@@ -6,7 +6,7 @@ def find_HTT(evt):
     ''' Find the Higgs boson in the generated particles,
     check that it decays in tau leptons,
     return the Higgs and the two taus.'''
-    Higgs_IDs = [25, 35, 36, 37]
+    Higgs_IDs = [25, 35, 36]
     for ptc in evt.Particle:
         if abs(ptc.PID) in Higgs_IDs:
             if ptc.D1 != -1:
@@ -14,6 +14,7 @@ def find_HTT(evt):
                     if ptc.D2 != -1:
                         if evt.Particle.At(ptc.D2).PID == - evt.Particle.At(ptc.D1).PID:
                             return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
+    return None, None, None
 
 def find_Higgs_production_final_state(evt, Higgs):
     #Higgs_mother = evt.Particle.At(Higgs.M1)
