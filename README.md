@@ -51,6 +51,6 @@ DelphesPythia8 delphes_card_CMS.tcl event_gen_cfgs/Higgs_to_tau_tau.cmnd SM_HTT.
 Analyse them to get a NN-friendly input. It takes roughly 1 hour for 100000 generated events. Selections leave around 10 percent of them in the final output.
 ```
 cd $DL_for_HTT/Delphes_to_NN/
-./macro.py ../Event_generation_with_Delphes/SM_HTT.root SM_HTT
+HTT_Delphes_tree_analysis ../Event_generation_with_Delphes/SM_HTT.root SM_HTT
 ```
 Then you have a table in `$DL_for_HTT/Delphes_to_NN/SM_HTT.txt` that you can import in a python script using `numpy`, `pandas`, etc.
