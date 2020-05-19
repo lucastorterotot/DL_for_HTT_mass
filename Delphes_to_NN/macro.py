@@ -80,40 +80,25 @@ for evt in tree:
     if gen_analysis != {}:
         passed_gen = True
         Nevt_out_gen += 1
-        channel_stats_gen[gen_analysis["channel"]] += 1
-        
-    reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
+
+    reco_analysis = {}
+    if passed_gen:
+        reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
+
     if reco_analysis != {}:
         passed_reco = True
         Nevt_out_reco += 1
-        channel_stats_reco[reco_analysis["channel"]] += 1
+
 
     if passed_gen and passed_reco:
-        channel_identification["{} as {}".format(
-            gen_analysis["channel"],
-            reco_analysis["channel"]
-        )] += 1
-
         analysis_results.append({"gen" : gen_analysis, "reco" : reco_analysis})
-    
+        
     if options.verbose > 0:
         print("")
     if Nevt_in >= Nmax:
         break
 
 print("Processed on {Nevt_in} events.".format(Nevt_in=Nevt_in))
-# for channel in channel_stats_gen:
-#     print("\t{} amount: {}".format(channel, channel_stats_gen[channel]))
-# for channel in channel_stats_gen:
-#     print("\t{} proportion: {} +/- {} pct".format(channel, 100*channel_stats_gen[channel]/Nevt_in, 100*channel_stats_gen[channel]**.5/Nevt_in))
-#     if channel_stats_gen[channel] > 0:
-#         print("\t\t{} found = {} pct eff".format(channel_stats_reco[channel], 100*channel_stats_reco[channel]/channel_stats_gen[channel]))
-
-# for c1 in channel_stats_gen.keys():
-#     for c2 in channel_stats_gen.keys():
-#         channel_identification["{} as {}".format(c1, c2)] *= 1./(channel_stats_gen[c1])
-# print channel_identification
-
 
 data = {}
 for analysis_result in analysis_results:
