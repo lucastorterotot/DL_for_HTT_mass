@@ -1,0 +1,133 @@
+! 1) Settings used in the main program.
+Main:numberOfEvents = NUMBEROFEVENTS         ! number of events to generate
+Main:timesAllowErrors = 3          ! how many aborts before run stops
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = on  ! list changed particle data
+Next:numberCount = 100             ! print message every n events
+Next:numberShowInfo = 1            ! print event information n times
+Next:numberShowProcess = 1         ! print process record n times
+Next:numberShowEvent = 0           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 13000.                 ! CM energy of collision = 13 TeV
+
+! 4) Settings for the hard-process generation.
+HiggsSM:all = off
+Higgs:useBSM = on
+HiggsBSM:all = on
+HiggsBSM:allH1 = off
+HiggsBSM:allH+- = off
+
+! 5) Higgs mass and Tau decays settings
+25:m0 = h_mass_GeV
+25:mWidth = 0.00374
+25:0:bRatio  = 0.0                 ! h -> d dbar
+25:1:bRatio  = 0.0                 ! h -> u ubar
+25:2:bRatio  = 0.0                 ! h -> s sbar
+25:3:bRatio  = 0.0                 ! h -> c cbar
+25:4:bRatio  = 0.0                 ! h -> b bbar
+25:5:bRatio  = 0.0                 ! h -> t tbar
+25:6:bRatio  = 0.0                 ! h -> e+ e-
+25:7:bRatio  = 0.0                 ! h -> mu+ mu-
+25:8:bRatio  = 1.0                 ! h -> tau+ tau-
+25:9:bRatio  = 0.0                 ! h -> g g
+25:10:bRatio = 0.0                 ! h -> gamma gamma
+25:11:bRatio = 0.0                 ! h -> gamma Z
+25:12:bRatio = 0.0                 ! h -> Z0 Z0
+25:13:bRatio = 0.0                 ! h -> W+ W-
+25:0:meMode  = 100                 ! set meMode = 100 so that
+25:1:meMode  = 100                 ! branching ratios are not
+25:2:meMode  = 100                 ! overwritten at initialization
+25:3:meMode  = 100
+25:4:meMode  = 100
+25:5:meMode  = 100
+25:6:meMode  = 100
+25:7:meMode  = 100
+25:8:meMode  = 100
+25:9:meMode  = 100
+25:10:meMode = 100
+25:11:meMode = 100
+25:12:meMode = 100
+25:13:meMode = 100
+
+35:m0 = H_mass_GeV
+35:mWidth = 8.38842
+35:0:bRatio  = 0.0                 ! H -> d dbar
+35:1:bRatio  = 0.0                 ! H -> u ubar
+35:2:bRatio  = 0.0                 ! H -> s sbar
+35:3:bRatio  = 0.0                 ! H -> c cbar
+35:4:bRatio  = 0.0                 ! H -> b bbar
+35:5:bRatio  = 0.0                 ! H -> t tbar
+35:6:bRatio  = 0.0                 ! H -> e+ e-
+35:7:bRatio  = 0.0                 ! H -> mu+ mu-
+35:8:bRatio  = 1.0                 ! H -> tau+ tau-
+35:9:bRatio  = 0.0                 ! H -> g g
+35:10:bRatio = 0.0                 ! H -> gamma gamma
+35:11:bRatio = 0.0                 ! H -> gamma Z
+35:12:bRatio = 0.0                 ! H -> Z0 Z0
+35:13:bRatio = 0.0                 ! H -> W+ W-
+35:23:bRatio = 0.0                 ! H -> Z
+35:25:bRatio = 0.0                 ! H -> h
+35:0:meMode  = 100                 ! set meMode = 100 so that
+35:1:meMode  = 100                 ! branching ratios are not
+35:2:meMode  = 100                 ! overwritten at initialization
+35:3:meMode  = 100
+35:4:meMode  = 100
+35:5:meMode  = 100
+35:6:meMode  = 100
+35:7:meMode  = 100
+35:8:meMode  = 100
+35:9:meMode  = 100
+35:10:meMode = 100
+35:11:meMode = 100
+35:12:meMode = 100
+35:13:meMode = 100
+35:23:meMode = 100
+35:25:meMode = 100
+
+36:m0 = A_mass_GeV
+36:mWidth = 3.37520
+36:0:bRatio  = 0.0                 ! A -> d dbar
+36:1:bRatio  = 0.0                 ! A -> u ubar
+36:2:bRatio  = 0.0                 ! A -> s sbar
+36:3:bRatio  = 0.0                 ! A -> c cbar
+36:4:bRatio  = 0.0                 ! A -> b bbar
+36:5:bRatio  = 0.0                 ! A -> t tbar
+36:6:bRatio  = 0.0                 ! A -> e+ e-
+36:7:bRatio  = 0.0                 ! A -> mu+ mu-
+36:8:bRatio  = 1.0                 ! A -> tau+ tau-
+36:9:bRatio  = 0.0                 ! A -> g g
+36:10:bRatio = 0.0                 ! A -> gamma gamma
+36:11:bRatio = 0.0                 ! A -> gamma Z
+36:12:bRatio = 0.0                 ! A -> Z0 Z0
+36:13:bRatio = 0.0                 ! A -> W+ W-
+36:23:bRatio = 0.0                 ! A -> Z
+36:25:bRatio = 0.0                 ! A -> h
+36:0:meMode  = 100                 ! set meMode = 100 so that
+36:1:meMode  = 100                 ! branching ratios are not
+36:2:meMode  = 100                 ! overwritten at initialization
+36:3:meMode  = 100
+36:4:meMode  = 100
+36:5:meMode  = 100
+36:6:meMode  = 100
+36:7:meMode  = 100
+36:8:meMode  = 100
+36:9:meMode  = 100
+36:10:meMode = 100
+36:11:meMode = 100
+36:12:meMode = 100
+36:13:meMode = 100
+36:23:meMode = 100
+36:25:meMode = 100
+
+TauDecays:externalMode = 1          ! Decays of tau leptons can be performed using helicity information from the tau production process
+
+! 6) Other settings. Can be expanded as desired.
+#Tune:preferLHAPDF = off            ! use internal PDFs when LHAPDF not linked
+Tune:pp = 6                        ! use Tune 4Cx
+ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
+ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
