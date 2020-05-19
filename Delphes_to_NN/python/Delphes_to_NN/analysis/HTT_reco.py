@@ -161,7 +161,6 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     # retreive objects for event
     
     MET = evt.MissingET
-    photons = [p for p in evt.Photon]
     electrons = [e for e in evt.Electron]
     muons = [m for m in evt.Muon]
     jets = [j for j in evt.Jet if not j.TauTag]
