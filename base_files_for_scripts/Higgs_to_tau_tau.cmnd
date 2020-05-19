@@ -18,8 +18,10 @@ Beams:eCM = 13000.                 ! CM energy of collision = 13 TeV
 ! 4) Settings for the hard-process generation.
 HiggsSM:all = off
 Higgs:useBSM = on
-HiggsBSM:all = on
+HiggsBSM:all = off
 HiggsBSM:allH1 = off
+HiggsBSM:allH2 = on
+HiggsBSM:allA3 = on
 HiggsBSM:allH+- = off
 
 ! 5) Higgs mass and Tau decays settings
