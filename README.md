@@ -41,3 +41,16 @@ cd $DL_for_HTT/Delphes/Delphes-3.4.2/ && make HAS_PYTHIA8=true
 cd $DL_for_HTT/Delphes
 ./DelphesPythia8 cards/delphes_card_CMS.tcl examples/Pythia8/configNoLHE.cmnd delphes_nolhe.root
 ```
+
+## HTT events generation and analysis
+Generate HTT events. It takes roughly 1 hour for 100000 events, try with 1000:
+```
+cd $DL_for_HTT/Event_generation_with_Delphes
+DelphesPythia8 delphes_card_CMS.tcl event_gen_cfgs/Higgs_to_tau_tau.cmnd SM_HTT.root
+```
+Analyse them to get a NN-friendly input. It takes roughly 1 hour for 100000 generated events. Selections leave around 10 percent of them in the final output.
+```
+cd $DL_for_HTT/Delphes_to_NN/
+HTT_Delphes_tree_analysis ../Event_generation_with_Delphes/SM_HTT.root SM_HTT
+```
+Then you have a table in `$DL_for_HTT/Delphes_to_NN/SM_HTT.txt` that you can import in a python script using `numpy`, `pandas`, etc.

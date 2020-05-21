@@ -1,3 +1,4 @@
+import Delphes_to_NN.modules.store_vars as store_vars
 from Delphes_to_NN.modules.utils import DR2
 from math import sin, cos
 
@@ -5,14 +6,24 @@ def find_HTT(evt):
     ''' Find the Higgs boson in the generated particles,
     check that it decays in tau leptons,
     return the Higgs and the two taus.'''
-    Higgs_IDs = [25, 35, 36, 37]
-    for ptc in evt.Particle:
-        if abs(ptc.PID) in Higgs_IDs:
-            if ptc.D1 != -1:
-                if abs(evt.Particle.At(ptc.D1).PID) == 15:
-                    if ptc.D2 != -1:
-                        if evt.Particle.At(ptc.D2).PID == - evt.Particle.At(ptc.D1).PID:
-                            return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
+    Higgs_IDs = [25, 35, 36]
+    Higgs = [p for p in evt.Particle if abs(p.PID) in Higgs_IDs]
+    evt_Higgs = {}
+    for PID in Higgs_IDs:
+        evt_Higgs[PID] = [p for p in Higgs if abs(p.PID) == PID]
+    if 25 in evt_Higgs.keys() and (35 in evt_Higgs.keys() or 36 in evt_Higgs.keys()):
+        # BSM Higgs decaying to SM Higgs, ignore event
+        if any(evt.Particle.At(h.M1) in evt_Higgs[35]+evt_Higgs[36] for h in evt_Higgs[25]):
+            return None, None, None
+        elif any(evt.Particle.At(h.M2) in evt_Higgs[35]+evt_Higgs[36] for h in evt_Higgs[25]):
+            return None, None, None
+    for ptc in Higgs:
+        if ptc.D1 != -1:
+            if abs(evt.Particle.At(ptc.D1).PID) == 15:
+                if ptc.D2 != -1:
+                    if evt.Particle.At(ptc.D2).PID == - evt.Particle.At(ptc.D1).PID:
+                        return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
+    return None, None, None
 
 def find_Higgs_production_final_state(evt, Higgs):
     #Higgs_mother = evt.Particle.At(Higgs.M1)
@@ -89,7 +100,7 @@ def find_tau_decays(evt, tau):
         if len(neutrinos) > 1:
             string = "Hadronic tau with more than 1 neutrino at generator level??"
             #print(string)
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             #raise RuntimeError(string)
         pi0s = [pi0 for pi0 in decays if abs(pi0.PID) in [111]]
         photons = [p for p in decays if abs(p.PID) == 22]
@@ -97,17 +108,31 @@ def find_tau_decays(evt, tau):
         DM = "{}prong{}pi0".format(len(prongs), len(pi0s))
         if not len(prongs) % 2:
             print(DM)
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
     return decays, channel, DM
                         
-def HTT_analysis(evt, verbose = 0):
+def HTT_analysis(evt, verbose = 0, fast=True):
+    output = {}
     Higgs, tau1, tau2 = find_HTT(evt)
+    if not Higgs :
+        return output
+    #print(Higgs.PID)
+    store_vars.store_gen_ptc(output, "Higgs", Higgs)
+    store_vars.store_gen_ptc(output, "tau1", tau1)
+    store_vars.store_gen_ptc(output, "tau2", tau2)
 
     if verbose > 2:
         print("\tHiggs energy is {} GeV.".format(Higgs.E))
 
+    MET = evt.GenMissingET[0]
+    output["MET_PT"] = MET.MET
+    output["MET_Phi"] = MET.Phi
+
+    if fast:
+        return output
+    
     other_products = find_Higgs_production_final_state(evt, Higgs)
-    print [p.PID for p in other_products]
+
     other_products.sort(key = lambda p : p.PT, reverse = True)
     jet1 = None
     jet2 = None
@@ -162,13 +187,10 @@ def HTT_analysis(evt, verbose = 0):
         print("\ttau pT: {}, eta: {}, phi: {}, E: {}".format(tau2.PT, tau2.Eta, tau2.Phi, tau2.E))
 
     output = {
-        "Higgs" : Higgs,
         "channel" : channel,
-        "leg1" : (tau1, decays1, DM1),
-        "leg2" : (tau2, decays2, DM2),
-        "MET" : evt.GenMissingET[0],
-        "jet1" : jet1,
-        "jet2" : jet2,
+        "DM1" : DM1,
+        "DM2" : DM2,
     }
-
+    store_vars.store_jet(output, "jet1", jet1)
+    store_vars.store_jet(output, "jet2", jet2)
     return output
