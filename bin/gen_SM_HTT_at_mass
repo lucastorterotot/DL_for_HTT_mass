@@ -1,0 +1,32 @@
+#!/bin/bash
+
+higgsSM_mass_GeV=125
+N_events=100000
+tcl_cfg=$DL_for_HTT/Event_generation_with_Delphes/delphes_card_CMS.tcl
+
+while getopts ":h:N:c:" opt
+do
+    case $opt in
+        h) higgsSM_mass_GeV="$OPTARG"
+            ;;
+        N) N_events="$OPTARG"
+           ;;
+        c) tcl_cfg="$OPTARG"
+           ;;
+        \?) echo "Invalid option -$OPTARG" >&2
+            ;;
+    esac
+done
+
+HTT_gen_file_name=SM_HTT_h${higgsSM_mass_GeV}.cmnd
+HTT_out_root_name=SM_HTT_h${higgsSM_mass_GeV}.root
+
+mkdir -p $DL_for_HTT/Event_generation_with_Delphes/SM_HTT/
+cd $DL_for_HTT/Event_generation_with_Delphes/SM_HTT/
+
+cp $DL_for_HTT/base_files_for_scripts/SM_Higgs_to_tau_tau.cmnd ./$HTT_gen_file_name
+sed -i "s|NUMBEROFEVENTS|$N_events|g" ./$HTT_gen_file_name
+sed -i "s|h_mass_GeV|${higgsSM_mass_GeV}.000|g" ./$HTT_gen_file_name
+
+rm -f ./$HTT_out_root_name
+DelphesPythia8 $tcl_cfg ./$HTT_gen_file_name ./$HTT_out_root_name
