@@ -1,9 +1,9 @@
 \#*#
 .#*
 *~
-__init__*
 *.pyc
 *.root
 Delphes/
 Pythia8/
 Event_generation_with_Delphes/HTT/
+DLHiggsClassification_Ece/
