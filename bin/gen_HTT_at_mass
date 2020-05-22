@@ -38,3 +38,4 @@ sed -i "s|A_mass_GeV|${HiggsA_mass_GeV}.000|g" ./$HTT_gen_file_name
 
 rm -f ./$HTT_out_root_name
 DelphesPythia8 $tcl_cfg ./$HTT_gen_file_name ./$HTT_out_root_name
+rm ./$HTT_gen_file_name
