@@ -109,13 +109,41 @@ for analysis_result in analysis_results:
                 data[key] = []
             data[key].append(analysis_result[ana][k])
 
-file = open('{}.txt'.format(output_file_str), 'w')
+
+def clean_useless_data(names):
+    to_remove = [
+        'Higgs_Charge_gen',
+        'Higgs_D0_gen',
+        'Higgs_DZ_gen',
+        'Higgs_IsPU_gen',
+        'tau1_D0_gen',
+        'tau1_DZ_gen',
+        'tau1_IsPU_gen',
+        'tau1_Mass_gen',
+        'tau1_PID_gen',
+        'tau2_D0_gen',
+        'tau2_DZ_gen',
+        'tau2_IsPU_gen',
+        'tau2_Mass_gen',
+        'tau2_PID_gen',
+    ]
+
+    for var in to_remove:
+        if var in names:
+            names.remove(var)
+
 cols = list(data.keys())
-cols.sort()
-cols = ["Event"] + cols
+clean_useless_data(cols)
+
+# import pandas as pd
+# df = pd.DataFrame(data, columns = cols)
+# df.to_hdf("hdftest_{}.h5".format(output_file_str), df.keys())
+
+file = open('{}.txt'.format(output_file_str), 'w')
+#cols = ["Event"] + cols
 s = " ".join(cols)
 file.write(s+"\n")
 for k in range(len(data[cols[1]])):
-    s= " ".join([str(k+1)]+[str(data[c][k]) for c in cols[1:]])
+    s= " ".join([str(data[c][k]) for c in cols])
     file.write(s+"\n")
 file.close()
