@@ -74,6 +74,7 @@ HiggsBSM:allH+- = off
 35:13:bRatio = 0.0                 ! H -> W+ W-
 35:23:bRatio = 0.0                 ! H -> Z
 35:25:bRatio = 0.0                 ! H -> h
+HiggsH2:coup2H1H1 = 0.0
 35:0:meMode  = 100                 ! set meMode = 100 so that
 35:1:meMode  = 100                 ! branching ratios are not
 35:2:meMode  = 100                 ! overwritten at initialization
@@ -109,6 +110,7 @@ HiggsBSM:allH+- = off
 36:13:bRatio = 0.0                 ! A -> W+ W-
 36:23:bRatio = 0.0                 ! A -> Z
 36:25:bRatio = 0.0                 ! A -> h
+HiggsA3:coup2H1Z = 0.0
 36:0:meMode  = 100                 ! set meMode = 100 so that
 36:1:meMode  = 100                 ! branching ratios are not
 36:2:meMode  = 100                 ! overwritten at initialization
