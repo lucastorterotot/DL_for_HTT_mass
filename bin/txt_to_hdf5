@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <input txt file> <output file name>"
+parser = OptionParser(usage=usage)
+parser.add_option("-d", "--delimiter", dest = "delimiter",
+                  default=" ")
+
+(options,args) = parser.parse_args()
+
+input_file_str = args[0]
+output_file_str = args[1]
+
+import pandas as pd
+import numpy as np
+df = pd.read_csv(input_file_str, delimiter=options.delimiter)
+df.to_hdf("{}.h5".format(output_file_str), key='df')
+
+for k in df:
+    if df[k].dtype == 'float64':
+        df[k] = df[k].astype('float32')
+    elif df[k].dtype == 'int64' and ("_Charge_" in k or "_PID_" in k):
+        df[k] = df[k].astype('int8')
+    elif df[k].dtype == 'int64':
+        df[k] = df[k].astype('int16')
+df.to_hdf("{}32.h5".format(output_file_str), key='df')
+
