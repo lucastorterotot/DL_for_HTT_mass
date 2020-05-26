@@ -134,6 +134,7 @@ def clean_useless_data(names):
 
 cols = list(data.keys())
 clean_useless_data(cols)
+cols.sort()
 
 # import pandas as pd
 # df = pd.DataFrame(data, columns = cols)
