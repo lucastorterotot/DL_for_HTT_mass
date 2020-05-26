@@ -15,7 +15,7 @@ output_file_str = args[1]
 import pandas as pd
 import numpy as np
 df = pd.read_csv(input_file_str, delimiter=options.delimiter)
-df.to_hdf("{}.h5".format(output_file_str), key='df')
+#df.to_hdf("{}.h5".format(output_file_str), key='df')
 
 for k in df:
     if df[k].dtype == 'float64':
@@ -24,5 +24,5 @@ for k in df:
         df[k] = df[k].astype('int8')
     elif df[k].dtype == 'int64':
         df[k] = df[k].astype('int16')
-df.to_hdf("{}32.h5".format(output_file_str), key='df')
+df.to_hdf("{}.h5".format(output_file_str), key='df')
 
