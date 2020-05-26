@@ -39,7 +39,8 @@ default_tauh_attrs.remove("Flavor")
 default_tauh_attrs.remove("BTag")
 def store_tauh(dic, name, jet,  attrs = default_tauh_attrs):
     store_jet(dic, name, jet, attrs = attrs)
-    dic["{}_{}".format(name, "Mass")] = 1776.86*10**(-3)
+    if dic["{}_{}".format(name, "Mass")] == None:
+        dic["{}_{}".format(name, "Mass")] = 1776.86*10**(-3)
 
 def store_muon(dic, name, muon, attrs = default_attrs+["Charge"]):
     store(dic, name, muon, attrs = attrs)
