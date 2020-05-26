@@ -17,7 +17,11 @@ def store_gen_ptc(dic, name, gen_ptc, attrs = default_gen_ptc_attrs):
     
 default_jet_attrs = ["Mass", "PT", "Eta", "Phi", "Flavor", "BTag"]
 def store_jet(dic, name, jet, attrs = default_jet_attrs):
-    store(dic, name, jet, attrs = attrs)
+    if jet is None:
+        for attr in attrs:
+            dic["{}_{}".format(name, attr)] = 0
+    else:
+        store(dic, name, jet, attrs = attrs)
 
 default_real_tau_decays_attrs = list(set(default_attrs+["Charge"]+default_jet_attrs))
 default_real_tau_decays_attrs.remove("Flavor")
@@ -35,9 +39,12 @@ default_tauh_attrs.remove("Flavor")
 default_tauh_attrs.remove("BTag")
 def store_tauh(dic, name, jet,  attrs = default_tauh_attrs):
     store_jet(dic, name, jet, attrs = attrs)
+    dic["{}_{}".format(name, "Mass")] = 1776.86*10**(-3)
 
 def store_muon(dic, name, muon, attrs = default_attrs+["Charge"]):
     store(dic, name, muon, attrs = attrs)
+    dic["{}_{}".format(name, "Mass")] = 105.6583745*10**(-3)
 
 def store_electron(dic, name, electron, attrs = default_attrs+["Charge"]):
     store(dic, name, electron, attrs = attrs)
+    dic["{}_{}".format(name, "Mass")] = 0.5109989461*10**(-3)

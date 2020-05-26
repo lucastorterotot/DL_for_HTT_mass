@@ -250,7 +250,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     channel = possible_channels[0]
     tau1, tau2 = dilepton[channel]
     decays1, decays2 = tau1, tau2
-    DM1, DM2 = None, None
+    DM1, DM2 = "1prong0pi0", "1prong0pi0"
 
     if channel[0] == "t":
         DM1 = find_tau_DM(tau1)
