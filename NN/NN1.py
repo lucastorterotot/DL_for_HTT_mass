@@ -31,6 +31,9 @@ import matplotlib.pyplot as plt
 data_file = "../Delphes_to_NN/prod/merged.h5"
 df = pd.read_hdf(data_file)
 
+# select only good points
+df = df.loc[(df['Higgs_Mass_gen'] >= 100) & (df['Higgs_Mass_gen'] <= 200)]
+
 # define target and input variables
 target = "Higgs_Mass_gen"
 inputs = list(df.keys())
@@ -40,6 +43,21 @@ inputs = [i for i in inputs if not "_gen" == i[-4:]]
 inputs = [i for i in inputs if not "METcov" in i]
 inputs = [i for i in inputs if not "DM" == i[:2]]
 inputs = [i for i in inputs if not "channel" == i[:7]]
+
+# look for variables distributions
+df.hist(figsize = (24,20))
+plt.plot()
+plt.savefig("variables.png")
+C_mat = df.corr()
+fig = plt.figure(figsize = (15,15))
+import seaborn as sb
+sb.heatmap(C_mat, vmax = .8, square = True)
+fig.savefig("correlations.png")
+plt.clf()
+
+# use correlated inputs
+# correlated_inputs = ["MET_PT_reco", "jet1_PT_reco", "tau1_PT_reco", "tau2_PT_reco"]
+# inputs = [i for i in inputs if i in correlated_inputs]
 
 # Normalize entries
 # for i in inputs:
@@ -96,10 +114,10 @@ arr_y_test  = np.r_[df_y_test[target]]
 
 # Create model
 NN_model = Sequential()
-NN_model.add(Dense(100, activation="linear", input_shape=(len(df_x_train.keys()),)))
-NN_model.add(Dense(200, activation="linear"))
-NN_model.add(Dense(100, activation="linear"))
-NN_model.add(Dense(50, activation="linear"))
+NN_model.add(Dense(10, activation="linear", input_shape=(len(df_x_train.keys()),)))
+NN_model.add(Dense(256, activation="relu"))
+NN_model.add(Dense(256, activation="relu"))
+NN_model.add(Dense(256, activation="relu"))
 NN_model.add(Dense(1, activation="linear"))
 print(NN_model.summary())
 NN_model.compile(loss='mean_squared_error',
@@ -155,16 +173,21 @@ def plot_hist(h, xsize=6, ysize=10):
     plt.legend(['Train', 'Validation'], loc='upper left')
     
     # Plot it all in IPython (non-interactive)
-    plt.draw()
-    plt.show()
+    # plt.draw()
+    # plt.show()
     
-    return
+    fig.savefig("history.png")
 
-#plot_hist(history.history, xsize=8, ysize=12)
+plot_hist(history.history, xsize=8, ysize=12)
 
+plt.clf()
+plt.rcParams["figure.figsize"] = [16, 10]
+fig, ax = plt.subplots()
 predictions, answers = NN_model.predict(arr_x_test), arr_y_test
-plt.scatter(answers, predictions, color="C0")
-plt.plot(answers, answers, color="C3")
+ax.scatter(answers, predictions, color="C0")
+ax.plot(answers, answers, color="C3")
 plt.xlabel("Generated Higgs Mass (GeV)")
-plt.y_label("Predicted Higgs Mass (GeV)")
-plt.show()
+plt.ylabel("Predicted Higgs Mass (GeV)")
+#plt.show()
+fig.savefig("predicted_vs_answers.png")
+
