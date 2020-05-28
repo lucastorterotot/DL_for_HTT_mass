@@ -31,8 +31,17 @@ import matplotlib.pyplot as plt
 data_file = "../Delphes_to_NN/prod/merged.h5"
 df = pd.read_hdf(data_file)
 
+df = df[df.Higgs_PID_gen != 25]
+
+# make transverse masses
+for ana in ["reco", "gen"]:
+    df["mT1_{ana}".format(ana=ana)] = (2*df["tau1_PT_{ana}".format(ana=ana)]*df["MET_PT_{ana}".format(ana=ana)]*(1-np.cos(df["tau1_Phi_{ana}".format(ana=ana)]-df["MET_Phi_{ana}".format(ana=ana)])))**.5
+    df["mT2_{ana}".format(ana=ana)] = (2*df["tau2_PT_{ana}".format(ana=ana)]*df["MET_PT_{ana}".format(ana=ana)]*(1-np.cos(df["tau2_Phi_{ana}".format(ana=ana)]-df["MET_Phi_{ana}".format(ana=ana)])))**.5
+    df["mTtt_{ana}".format(ana=ana)] = (2*df["tau1_PT_{ana}".format(ana=ana)]*df["tau2_PT_{ana}".format(ana=ana)]*(1-np.cos(df["tau1_Phi_{ana}".format(ana=ana)]-df["tau2_Phi_{ana}".format(ana=ana)])))**.5
+    df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)]**2+df["mTtt_{ana}".format(ana=ana)]**2)**.5
+
 # select only good points
-df = df.loc[(df['Higgs_Mass_gen'] >= 100) & (df['Higgs_Mass_gen'] <= 200)]
+#df = df.loc[(df['Higgs_Mass_gen'] >= 100) & (df['Higgs_Mass_gen'] <= 200)]
 
 # define target and input variables
 target = "Higgs_Mass_gen"
@@ -50,8 +59,10 @@ plt.plot()
 plt.savefig("variables.png")
 C_mat = df.corr()
 fig = plt.figure(figsize = (15,15))
+mask = np.zeros_like(C_mat)
+mask[np.triu_indices_from(mask)] = True
 import seaborn as sb
-sb.heatmap(C_mat, vmax = .8, square = True)
+sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
 fig.savefig("correlations.png")
 plt.clf()
 
@@ -60,10 +71,13 @@ plt.clf()
 # inputs = [i for i in inputs if i in correlated_inputs]
 
 # Normalize entries
-# for i in inputs:
-#     print(i, np.mean(df[i]), np.std(df[i]))
-#     df[i] = (df[i] - np.mean(df[i]))/np.std(df[i])
-#     print(i, np.mean(df[i]), np.std(df[i]))
+# for key in df.keys():
+#     if key == target:
+#         continue
+#     elif "_PT_" in key or "Mass" in key or "mT" in key:
+#         df[key] *= 1/1000
+#     elif "_Eta" in key in key:
+#         df[key] *= 1/5
 
 # Split index ranges into training and testing parts with shuffle
 train_size = .7
@@ -105,19 +119,27 @@ print('Size of training set: ', len(df_x_train))
 print('Size of valid set: ', len(df_x_valid))
 print('Size of test set:     ', len(df_x_test))
 
-arr_x_train = np.c_[df_x_train]
+arr_x_train = np.r_[df_x_train]
 arr_y_train = np.r_[df_y_train[target]]
-arr_x_valid = np.c_[df_x_valid]
+arr_x_valid = np.r_[df_x_valid]
 arr_y_valid = np.r_[df_y_valid[target]]
-arr_x_test  = np.c_[df_x_test]
+arr_x_test  = np.r_[df_x_test]
 arr_y_test  = np.r_[df_y_test[target]]
+
+min_in = 0
+max_in = 0
+for k in inputs:
+    min_in = min([min_in, df_x_train[k].min()])
+    max_in = max([max_in, df_x_train[k].max()])
+
+print("Training inputs ranges from {} to {}".format(min_in, max_in))
 
 # Create model
 NN_model = Sequential()
-NN_model.add(Dense(10, activation="linear", input_shape=(len(df_x_train.keys()),)))
-NN_model.add(Dense(256, activation="relu"))
-NN_model.add(Dense(256, activation="relu"))
-NN_model.add(Dense(256, activation="relu"))
+NN_model.add(Dense(1, activation="linear", input_shape=(len(df_x_train.keys()),)))
+NN_model.add(Dense(50, activation="linear"))
+NN_model.add(Dense(50, activation="linear"))
+NN_model.add(Dense(50, activation="linear"))
 NN_model.add(Dense(1, activation="linear"))
 print(NN_model.summary())
 NN_model.compile(loss='mean_squared_error',
@@ -125,7 +147,7 @@ NN_model.compile(loss='mean_squared_error',
            metrics=[metrics.mae])
 
 # Train model
-epochs = 50
+epochs = 30 # 500
 batch_size = 128
 print('Epochs: ', epochs)
 print('Batch size: ', batch_size)
@@ -183,11 +205,67 @@ plot_hist(history.history, xsize=8, ysize=12)
 plt.clf()
 plt.rcParams["figure.figsize"] = [16, 10]
 fig, ax = plt.subplots()
+predictions, answers = NN_model.predict(arr_x_train), arr_y_train
+ax.scatter(answers, predictions, color="C1", label="Training")
+predictions, answers = NN_model.predict(arr_x_valid), arr_y_valid
+ax.scatter(answers, predictions, color="C2", label="Validation")
 predictions, answers = NN_model.predict(arr_x_test), arr_y_test
-ax.scatter(answers, predictions, color="C0")
+ax.scatter(answers, predictions, color="C0", label="Test")
 ax.plot(answers, answers, color="C3")
 plt.xlabel("Generated Higgs Mass (GeV)")
 plt.ylabel("Predicted Higgs Mass (GeV)")
+
+# linear regression on trained output
+xerr_for_reg = 1
+yerr_for_reg = 1
+# linear function to adjust
+def f(x,p):
+    a,b = p
+    return a*x+b
+
+# its derivative
+def Dx_f(x,p):
+    a,b = p
+    return a
+
+# difference to data
+def residual(p, y, x):
+    return (y-f(x,p))/np.sqrt(yerr_for_reg**2 + (Dx_f(x,p)*xerr_for_reg)**2)
+
+# initial estimation
+# usually OK but sometimes one need to give a different
+# starting point to make it converge
+p0 = np.array([0,0])
+# minimizing algorithm
+import scipy.optimize as spo
+x, y = answers, np.r_[predictions][:,0]
+try:
+    result = spo.leastsq(residual, p0, args=(y, x), full_output=True)
+except:
+    import pdb; pdb.set_trace()
+# optimized parameters a and b
+popt = result[0];
+# variance-covariance matrix
+pcov = result[1];
+# uncetainties on parameters (1 sigma)
+uopt = np.sqrt(np.abs(np.diagonal(pcov)))
+x_aj = np.linspace(min(x),max(x),100)
+y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
+
+ax.plot(x_aj, y_aj, color="C4")
+y_info = 0.95
+x_info = 0.025
+multialignment='left'
+horizontalalignment='left'
+verticalalignment='top'
+ax.text(x_info, y_info,
+        '\n'.join([
+            '$f(x) = ax+b$',
+            '$a = {{ {0:.2e} }}$'.format(popt[0]),
+            '$b = {{ {0:.2e} }}$'.format(popt[1])
+        ]),
+        transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+
 #plt.show()
 fig.savefig("predicted_vs_answers.png")
 
