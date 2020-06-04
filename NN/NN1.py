@@ -13,17 +13,29 @@ from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from keras.utils import plot_model
 from keras.models import load_model
 
-from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
-config = tf.config
-for device in tf.config.list_physical_devices('GPU'):
-    config.experimental.set_visible_devices(device, 'GPU')
-    config.experimental.set_memory_growth(device, True)  # dynamically grow the memory used on the GPU
-config.log_device_placement = True  # to log device placement (on which device the operation ran)
+import keras.backend.tensorflow_backend as tfback
 
-sess = tf.compat.v1.Session()
+def _get_available_gpus():
+    """Get a list of available gpu devices (formatted as strings).
+    # Source of this function: https://github.com/keras-team/keras/issues/13684
+    # Returns
+    A list of available GPU devices.
+    """
+    #global _LOCAL_DEVICES
+    if tfback._LOCAL_DEVICES is None:
+        devices = tf.config.list_logical_devices()
+        tfback._LOCAL_DEVICES = [x.name for x in devices]
+    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
 
-#set_session(sess)  # set this TensorFlow session as the default session for Keras
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(gpus[0], True)
+tf.config.set_visible_devices(gpus[0], 'GPU')
+
+tfback._get_available_gpus = _get_available_gpus
+print(_get_available_gpus())
+
+import pdb; pdb.set_trace()
 
 import matplotlib.pyplot as plt
 
