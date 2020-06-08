@@ -193,22 +193,24 @@ def plot_hist(h, xsize=6, ysize=10):
     fig, axes = plt.subplots(nrows=4, ncols=4, sharex=True)
     
     # summarize history for MAE
-    plt.subplot(211)
+    ax=plt.subplot(211)
     plt.plot(h['mean_absolute_error'])
     plt.plot(h['val_mean_absolute_error'])
     plt.title('Training vs Validation MAE')
     plt.ylabel('MAE')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper left')
+    ax.set_yscale('log')
     
     # summarize history for loss
-    plt.subplot(212)
+    ax=plt.subplot(212)
     plt.plot(h['loss'])
     plt.plot(h['val_loss'])
     plt.title('Training vs Validation Loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper left')
+    ax.set_yscale('log')
     
     # Plot it all in IPython (non-interactive)
     # plt.draw()
