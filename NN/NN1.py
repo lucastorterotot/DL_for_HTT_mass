@@ -153,9 +153,9 @@ print("Training inputs ranges from {} to {}".format(min_in, max_in))
 # Create model
 NN_model = Sequential()
 NN_model.add(Dense(1, activation="linear", input_shape=(len(df_x_train.keys()),)))
-NN_model.add(Dense(50, activation="linear"))
-NN_model.add(Dense(50, activation="linear"))
-NN_model.add(Dense(50, activation="linear"))
+NN_model.add(Dense(50, activation="relu"))
+NN_model.add(Dense(50, activation="relu"))
+NN_model.add(Dense(50, activation="relu"))
 NN_model.add(Dense(1, activation="linear"))
 print(NN_model.summary())
 NN_model.compile(loss='mean_squared_error',
