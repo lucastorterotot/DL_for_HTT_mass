@@ -220,15 +220,21 @@ def plot_hist(h, xsize=6, ysize=10):
 
 plot_hist(history.history, xsize=8, ysize=12)
 
+# Plot predicted vs answer on a test sample
 plt.clf()
 plt.rcParams["figure.figsize"] = [16, 10]
 fig, ax = plt.subplots()
-predictions, answers = NN_model.predict(arr_x_train), arr_y_train
-ax.scatter(answers, predictions, color="C1", label="Training")
-predictions, answers = NN_model.predict(arr_x_valid), arr_y_valid
-ax.scatter(answers, predictions, color="C2", label="Validation")
 predictions, answers = NN_model.predict(arr_x_test), arr_y_test
-ax.scatter(answers, predictions, color="C0", label="Test")
+# Calculate the point density
+from matplotlib.colors import Normalize
+from scipy.interpolate import interpn
+data , x_e, y_e = np.histogram2d( answers, predictions[:,0], bins = [30,30], density = True )
+z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([answers, predictions[:,0]]).T , method = "splinef2d", bounds_error = False)
+z[np.where(np.isnan(z))] = 0.0
+# Sort the points by density, so that the densest points are plotted last
+idx = z.argsort()
+x, y, z = answers[idx], predictions[idx,0], z[idx]
+ax.scatter(x,y, c=z, edgecolor='', label="Test")
 ax.plot(answers, answers, color="C3")
 plt.xlabel("Generated Higgs Mass (GeV)")
 plt.ylabel("Predicted Higgs Mass (GeV)")
