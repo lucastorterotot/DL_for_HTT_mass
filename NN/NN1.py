@@ -4,16 +4,20 @@
 import pandas as pd
 import numpy as np
 
-from keras import metrics
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Activation
-from keras.layers import Conv2D, MaxPooling2D
-from keras.optimizers import Adam, RMSprop
-from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from keras.utils import plot_model
-from keras.models import load_model
-
 import tensorflow as tf
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import tensorflow.keras as keras
+from sklearn.preprocessing import StandardScaler
+from keras.models import Sequential
+from keras import layers, optimizers, regularizers
+from keras.layers import Flatten , Activation
+from keras.layers import Dense
+from keras.utils import multi_gpu_model
+
 import keras.backend.tensorflow_backend as tfback
 
 def _get_available_gpus():
@@ -34,8 +38,6 @@ tf.config.set_visible_devices(gpus[0], 'GPU')
 
 tfback._get_available_gpus = _get_available_gpus
 print(_get_available_gpus())
-
-import pdb; pdb.set_trace()
 
 import matplotlib.pyplot as plt
 
@@ -155,8 +157,8 @@ NN_model.add(Dense(50, activation="linear"))
 NN_model.add(Dense(1, activation="linear"))
 print(NN_model.summary())
 NN_model.compile(loss='mean_squared_error',
-           optimizer=Adam(),
-           metrics=[metrics.mae])
+           optimizer=optimizers.Adam(),
+           metrics=[keras.metrics.mae])
 
 # Train model
 epochs = 30 # 500
@@ -164,7 +166,7 @@ batch_size = 128
 print('Epochs: ', epochs)
 print('Batch size: ', batch_size)
 
-keras_callbacks = [EarlyStopping(monitor='val_mean_absolute_error', patience=20, verbose=0)]
+keras_callbacks = [keras.callbacks.EarlyStopping(monitor='val_mean_absolute_error', patience=20, verbose=0)]
 
 history = NN_model.fit(arr_x_train, arr_y_train,
                        batch_size=batch_size,
