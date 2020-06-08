@@ -70,7 +70,7 @@ inputs = [i for i in inputs if not "DM" == i[:2]]
 inputs = [i for i in inputs if not "channel" == i[:7]]
 
 # look for variables distributions
-df.hist(figsize = (24,20))
+df.hist(figsize = (24,20), bins = 500, log=True)
 plt.plot()
 plt.savefig("variables.png")
 C_mat = df.corr()
