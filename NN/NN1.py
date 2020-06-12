@@ -160,7 +160,7 @@ NN_model.compile(loss='mean_squared_error',
            metrics=[keras.metrics.mae])
 
 # Train model
-epochs = 30 # 500
+epochs = 500
 batch_size = 128
 print('Epochs: ', epochs)
 print('Batch size: ', batch_size)
