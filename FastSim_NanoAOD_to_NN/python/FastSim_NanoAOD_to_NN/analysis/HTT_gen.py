@@ -1,6 +1,4 @@
 import FastSim_NanoAOD_to_NN.modules.store_vars as store_vars
-from FastSim_NanoAOD_to_NN.modules.utils import DR2
-from math import sin, cos
 
 def find_HTT(evt):
     ''' Find the Higgs boson in the generated particles,
@@ -13,108 +11,13 @@ def find_HTT(evt):
     if len(gen_taus_indexes) == 2 and Higgs_decaying_into_taus_indexes[0] == Higgs_decaying_into_taus_indexes[1]:
         return Higgs_decaying_into_taus_indexes[0], gen_taus_indexes[0], gen_taus_indexes[1]
     return None, None, None
-
-def find_Higgs_production_final_state(evt, Higgs):
-    #Higgs_mother = evt.Particle.At(Higgs.M1)
-    Higgs_first = Higgs
-    Higgs_mother1 = Higgs
-    Higgs_mother2 = Higgs
-    import pdb; pdb.set_trace()
-    while Higgs_mother1.PID == Higgs.PID and Higgs_mother1 == Higgs_mother2:
-        Higgs_first = Higgs_mother1
-        Higgs_mother1 = evt.Particle.At(Higgs_first.M1)
-        if Higgs_first.M2 != -1:
-            Higgs_mother2 =evt.Particle.At(Higgs_first.M2)
-        else:
-            Higgs_mother2 = Higgs_mother1
-
-    other_products = [p for p in evt.Particle if (p.M1 in [Higgs_first.M1, Higgs_first.M2] or p.M2 in [Higgs_first.M1, Higgs_first.M2]) and p != Higgs_first]
-    return other_products
-
-def find_jets_from(evt, ptc):
-    return [j for j in evt.Jet if DR2(j, ptc)**.5 < 1]
-
-def get_daughters(evt, ptc):
-    ''' Sometime a gen ptc decays into a particle and itself (software feature),
-    so this function tries to get the real decays.'''
-    import pdb; pdb.set_trace()
-    daughters = []
-    if ptc.D1 != -1:
-        D1 = evt.Particle.At(ptc.D1)
-        if D1.PID == ptc.PID:
-            daughters += get_daughters(evt, D1)
-        else:
-            daughters.append(D1)
-    if ptc.D2 != -1:
-        D2 = evt.Particle.At(ptc.D2)
-        if D2.PID == ptc.PID:
-            daughters += get_daughters(evt, D2)
-        else:
-            daughters.append(D2)
-    return list(set(daughters))
-
-def check_decays_from(evt, decays, ptc):
-    final_decays = []
-    correct_decays = set()
-    bad_decays = set()
-    import pdb; pdb.set_trace()
-    for decay in decays:
-        chain = []
-        matched = False
-        index = decay.M1
-        while index != -1 and not matched:
-            previous_decay = evt.Particle.At(index)
-            if previous_decay in bad_decays:
-                break
-            chain.append(previous_decay)
-            index = previous_decay.M1
-            if previous_decay == ptc or previous_decay in correct_decays:
-                matched = True
-        if matched:
-            final_decays.append(decay)
-            correct_decays.update(chain)
-        else:
-            bad_decays.update(chain)
-    return final_decays
-    
-def find_tau_decays(evt, tau):
-    decays = []
-    channel = "t"
-    DM = None
-    import pdb; pdb.set_trace()
-    decays = check_decays_from(evt, evt.Particle, tau)
-    decays = [p for p in set(decays) if p.PID != tau.PID]
-    if any(abs(ptc.PID) == 11 for ptc in decays):
-        channel = "e"
-    elif any(abs(ptc.PID) == 13 for ptc in decays):
-        channel = "m"
-    if channel == "t":
-        neutrinos = [neutrino for neutrino in decays if abs(neutrino.PID) in [12, 14, 16]]
-        if len(neutrinos) > 1:
-            string = "Hadronic tau with more than 1 neutrino at generator level??"
-            #print(string)
-            #import pdb; pdb.set_trace()
-            #raise RuntimeError(string)
-        pi0s = [pi0 for pi0 in decays if abs(pi0.PID) in [111]]
-        photons = [p for p in decays if abs(p.PID) == 22]
-        prongs = [p for p in decays if p.Charge != 0]
-        DM = "{}prong{}pi0".format(len(prongs), len(pi0s))
-        if not len(prongs) % 2:
-            print(DM)
-            #import pdb; pdb.set_trace()
-    return decays, channel, DM
                         
 def HTT_analysis(evt, verbose = 0, fast=True):
     output = {}
     Higgs, tau1, tau2 = find_HTT(evt)
     if not Higgs :
         return output
-    # if abs(Higgs.PID) == 25:
-    #     print("{}".format(Higgs.PID))
-    # elif abs(Higgs.PID) == 35:
-    #     print("\t{}".format(Higgs.PID))
-    # elif abs(Higgs.PID) == 36:
-    #     print("\t\t{}".format(Higgs.PID))
+
     store_vars.store_gen_ptc(evt, output, "Higgs", Higgs)
     store_vars.store_gen_ptc(evt, output, "tau1", tau1)
     store_vars.store_gen_ptc(evt, output, "tau2", tau2)
@@ -124,69 +27,4 @@ def HTT_analysis(evt, verbose = 0, fast=True):
 
     store_vars.store_gen_MET(evt, output)
 
-    if fast:
-        return output
-    
-    other_products = find_Higgs_production_final_state(evt, Higgs)
-
-    other_products.sort(key = lambda p : p.PT, reverse = True)
-    jet1 = None
-    jet2 = None
-    if len(other_products) > 0:
-        jet1_cands = find_jets_from(evt, other_products[0])
-        if len(jet1_cands) > 1:
-            jet1_cands.sort(key = lambda j : len(check_decays_from(evt, j.Particles, other_products[0])), reverse = True)
-        if len(jet1_cands) > 0:
-            jet1 = jet1_cands[0]
-    if len(other_products) > 1:
-        jet2_cands = find_jets_from(evt, other_products[1])
-        if len(jet2_cands) > 1:
-            jet2_cands.sort(key = lambda j : len(check_decays_from(evt, j.Particles, other_products[1])), reverse = True)
-        if len(jet2_cands) > 0:
-            jet2 = jet2_cands[0]
-    if jet1 and jet2:
-        if jet1.PT < jet2.PT:
-            jet1, jet2 = jet2, jet1
-    
-    decays1, channel1, DM1 = find_tau_decays(evt, tau1)
-    decays2, channel2, DM2 = find_tau_decays(evt, tau2)
-
-    channel = channel1+channel2
-    if channel in ["tt", "ee", "mm"]:
-        if tau1.PT < tau2.PT:
-            decays1, DM1, decays2, DM2 = decays2, DM2, decays1, DM1
-            tau1, tau2 = tau2, tau1
-    elif channel in ["me", "te", "tm"]:
-        decays1, DM1, decays2, DM2 = decays2, DM2, decays1, DM1
-        tau1, tau2 =tau2, tau1
-        channel1, channel2 = channel2, channel1
-        channel = channel1+channel2
-
-    if verbose > 0:
-        print("\tChannel: {}".format(channel))
-
-    if verbose > 1:
-        if any(DM != None for DM in [DM1, DM2]):
-            DMstr = "\ttauh decay modes:"
-            for DM in [DM1, DM2]:
-                if DM is not None:
-                    DMstr += " {}".format(DM)
-            print(DMstr)
-
-    if verbose >0:
-        print("")
-        print("\tleg1:")
-        print("\ttau pT: {}, eta: {}, phi: {}, E: {}".format(tau1.PT, tau1.Eta, tau1.Phi, tau1.E))
-
-        print("")
-        print("\tleg2:")
-        print("\ttau pT: {}, eta: {}, phi: {}, E: {}".format(tau2.PT, tau2.Eta, tau2.Phi, tau2.E))
-
-    output = {
-        "channel" : channel,
-        "DM1" : DM1,
-        "DM2" : DM2,
-    }
-    store_vars.store_jet(output, "jet1", jet1)
-    store_vars.store_jet(output, "jet2", jet2)
     return output

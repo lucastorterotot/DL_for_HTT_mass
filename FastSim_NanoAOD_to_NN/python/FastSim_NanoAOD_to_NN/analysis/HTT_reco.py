@@ -1,5 +1,4 @@
 import FastSim_NanoAOD_to_NN.modules.store_vars as store_vars
-from FastSim_NanoAOD_to_NN.modules.utils import DR2, get_MET_and_METcov
 import itertools
 
 def select_tauh_tt(evt, index):
