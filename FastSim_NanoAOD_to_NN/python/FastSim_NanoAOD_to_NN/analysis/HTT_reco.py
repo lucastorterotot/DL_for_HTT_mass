@@ -349,8 +349,8 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     }
 
     # legs
-    store_vars.store_HTT_leg(evt, output, "leg1", tau1, type=channel[0])
-    store_vars.store_HTT_leg(evt, output, "leg2", tau2, type=channel[1])
+    store_vars.store_HTT_leg(evt, output, "tau1", tau1, type=channel[0])
+    store_vars.store_HTT_leg(evt, output, "tau2", tau2, type=channel[1])
     
     # MET and METcov
     store_vars.store_reco_MET(evt, output)
