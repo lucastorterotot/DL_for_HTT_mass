@@ -209,7 +209,7 @@ def find_tau_DM(tau):
     DM = "{}prong{}pi0".format(Nprongs, Npi0s)
     return DM
 
-def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0):
+def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0, cutflow_stats = {}):
     # retreive objects for event
     nElectron = int(evt.GetLeaf("nElectron").GetValue(0))
     nMuon = int(evt.GetLeaf("nMuon").GetValue(0))
@@ -239,7 +239,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
                 continue
 
     if len(possible_channels) == 0:
-        return {}
+        return {}, cutflow_stats
 
     # construc dilepton
     dilepton = {}
@@ -337,7 +337,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     if len(possible_channels) > 1:
         raise RuntimeError("More than one channel is still possible, please check!")
     elif len(possible_channels) == 0:
-        return {}
+        return {}, cutflow_stats
         
     channel = possible_channels[0]
     tau1, tau2 = dilepton[channel]
@@ -356,7 +356,9 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     store_vars.store_reco_MET(evt, output)
 
     # Up to two leading jets
+    store_vars.store_none(output, "jet1", type="jet")
+    store_vars.store_none(output, "jet2", type="jet")
     for k in range(int(min([2, evt.GetLeaf("Jet_pt").GetLen()]))):
         store_vars.store_jet(evt, output, "jet{}".format(k+1), k)
 
-    return output
+    return output, cutflow_stats
