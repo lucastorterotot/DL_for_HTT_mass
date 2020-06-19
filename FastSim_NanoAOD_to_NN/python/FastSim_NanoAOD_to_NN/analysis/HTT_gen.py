@@ -6,10 +6,14 @@ def find_HTT(evt):
     return the Higgs and the two taus.'''
     Higgs_IDs = [25, 35, 36]
     tau_ID = 15
-    gen_taus_indexes = [k for k in range(int(evt.GetLeaf("nGenPart").GetValue(0))) if abs(evt.GetLeaf("GenPart_pdgId").GetValue(k)) == tau_ID]
-    Higgs_decaying_into_taus_indexes = [int(evt.GetLeaf("GenPart_genPartIdxMother").GetValue(k)) for k in gen_taus_indexes]
-    if len(gen_taus_indexes) == 2 and Higgs_decaying_into_taus_indexes[0] == Higgs_decaying_into_taus_indexes[1]:
-        return Higgs_decaying_into_taus_indexes[0], gen_taus_indexes[0], gen_taus_indexes[1]
+    gen_taus_from_Higgs_indexes = [k for k in range(int(evt.GetLeaf("nGenPart").GetValue(0))) if abs(evt.GetLeaf("GenPart_pdgId").GetValue(k)) == tau_ID and abs(evt.GetLeaf("GenPart_pdgId").GetValue(int(evt.GetLeaf("GenPart_genPartIdxMother").GetValue(k)))) in Higgs_IDs]
+    Higgs_decaying_into_taus_indexes = [int(evt.GetLeaf("GenPart_genPartIdxMother").GetValue(k)) for k in gen_taus_from_Higgs_indexes]
+    if len(gen_taus_from_Higgs_indexes) == 2 and Higgs_decaying_into_taus_indexes[0] == Higgs_decaying_into_taus_indexes[1]:
+        return Higgs_decaying_into_taus_indexes[0], gen_taus_from_Higgs_indexes[0], gen_taus_from_Higgs_indexes[1]
+    # else:
+    #     print(gen_taus_from_Higgs_indexes)
+    #     print(Higgs_decaying_into_taus_indexes)
+    #     import pdb; pdb.set_trace()
     return None, None, None
                         
 def HTT_analysis(evt, verbose = 0, fast=True):
