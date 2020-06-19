@@ -31,7 +31,8 @@ def store_reco_MET(evt, dic):
     store(evt, dic, "MET", 0, "MET",
           attrs = ["pt", "phi", "covXX", "covXY", "covYY", "significance"])
 
-def store_jet(evt, dic, name, jet_index, attrs = default_attrs + ["btagDeepB"]):
+default_jet_attrs = default_attrs + ["btagDeepB"]
+def store_jet(evt, dic, name, jet_index, attrs = default_jet_attrs):
     store(evt, dic, name, jet_index, "Jet", attrs = attrs)
 
 default_HTT_leg_attrs = default_attrs + ["charge", "pdgId"]
@@ -51,3 +52,10 @@ def store_muon(evt, dic, name, muon_index, attrs = default_HTT_leg_attrs):
 
 def store_electron(evt, dic, name, ele_index, attrs = default_HTT_leg_attrs):
     store(evt, dic, name, ele_index, "Electron", attrs = attrs)
+
+def store_none(dic, name, type="jet"):
+    attrs = []
+    if type == "jet":
+        attrs = default_jet_attrs
+    for attr in attrs:
+        dic["{}_{}".format(name, attr)] = 0
