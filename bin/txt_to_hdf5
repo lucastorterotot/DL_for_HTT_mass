@@ -20,7 +20,7 @@ df = pd.read_csv(input_file_str, delimiter=options.delimiter)
 for k in df:
     if df[k].dtype == 'float64':
         df[k] = df[k].astype('float32')
-    elif df[k].dtype == 'int64' and ("_Charge_" in k or "_PID_" in k):
+    elif df[k].dtype == 'int64' and any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
         df[k] = df[k].astype('int8')
     elif df[k].dtype == 'int64':
         df[k] = df[k].astype('int16')
