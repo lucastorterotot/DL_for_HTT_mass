@@ -316,8 +316,8 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
             phi2 = evt.GetLeaf("Muon_charge").GetValue(mu2)
             if c1 * c2 < 0 and ((eta1-eta2)**2 + (phi1-phi2)**2)**.5 > 0.15:
                 rm_channel = True
-            if rm_channel:
-                possible_channels.remove(channel)
+        if rm_channel:
+            possible_channels.remove("mt")
 
     if "et" in possible_channels:
         rm_channel = False
@@ -331,8 +331,8 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
             phi2 = evt.GetLeaf("Electron_charge").GetValue(e2)
             if c1 * c2 < 0 and ((eta1-eta2)**2 + (phi1-phi2)**2)**.5 > 0.15:
                 rm_channel = True
-            if rm_channel:
-                possible_channels.remove(channel)
+        if rm_channel:
+            possible_channels.remove("et")
 
     if len(possible_channels) > 1:
         raise RuntimeError("More than one channel is still possible, please check!")
