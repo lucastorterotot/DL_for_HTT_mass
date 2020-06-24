@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <input txt file> <output file name>"
+parser = OptionParser(usage=usage)
+parser.add_option("-d", "--delimiter", dest = "delimiter",
+                  default=" ")
+parser.add_option("-o", "--output", dest="output_file_str",
+                  default="merged_file")
+
+(options,args) = parser.parse_args()
+
+input_files_strs = args
+output_file_str = options.output_file_str
+
+import pandas as pd
+import numpy as np
+
+dfs = [pd.read_csv(input_file_str, delimiter=options.delimiter) for input_file_str in input_files_strs]
+
+if len(dfs) > 0:
+    df = dfs[0]
+else:
+    raise RuntimeError("No dataframe available.")
+
+if len(dfs) > 1:
+    for df2 in dfs[1:]:
+        print(df2)
+        df.append(df2, ignore_index=True)
+
+for k in df:
+    if df[k].dtype == 'float64':
+        df[k] = df[k].astype('float32')
+    elif df[k].dtype == 'int64' and any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
+        df[k] = df[k].astype('int8')
+    elif df[k].dtype == 'int64':
+        df[k] = df[k].astype('int16')
+df.to_hdf("{}.h5".format(output_file_str), key='df')
+
