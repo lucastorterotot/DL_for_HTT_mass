@@ -201,7 +201,7 @@ history = NN_model.fit(arr_x_train, arr_y_train,
                        shuffle=True,
                        verbose=2, # Change it to 2, if wished to observe execution
                        validation_data=(arr_x_valid, arr_y_valid),
-                       #callbacks=keras_callbacks,
+                       callbacks=keras_callbacks,
 )
 
 # Evaluate and report performance of the trained model
