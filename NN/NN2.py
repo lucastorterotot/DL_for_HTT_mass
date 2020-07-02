@@ -50,9 +50,12 @@ for ana in ["reco", "gen"]:
     df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)]**2+df["mTtt_{ana}".format(ana=ana)]**2)**.5
 
 # select only good points
-# min_mass = 100
-# max_mass = 500
-# df = df.loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)]
+min_mass = 100
+max_mass = 500
+df = df.loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)]
+
+# only with 2 jets
+df = df.loc[(df['jet2_pt_reco'] > 0)]
 
 # define target and input variables
 target = "Higgs_mass_gen"
