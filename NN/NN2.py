@@ -63,9 +63,14 @@ inputs = list(df.keys())
 inputs.remove(target)
 
 inputs = [i for i in inputs if not "_gen" == i[-4:]]
-#inputs = [i for i in inputs if not "MET_cov" in i]
+inputs = [i for i in inputs if not "MET_cov" in i]
 inputs = [i for i in inputs if not "DM" == i[:2]]
 inputs = [i for i in inputs if not "channel" == i[:7]]
+inputs = [i for i in inputs if not "_pdgId_" in i]
+inputs = [i for i in inputs if not "_mass_reco" in i]
+inputs = [i for i in inputs if not "MET_significance_reco" == i]
+inputs = [i for i in inputs if not "_btagDeepB_reco" in i]
+inputs = [i for i in inputs if not "charge_" in i]
 
 # look for variables distributions
 df.hist(figsize = (24,20), bins = 500, log=True)
@@ -78,6 +83,39 @@ mask[np.triu_indices_from(mask)] = True
 import seaborn as sb
 sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
 fig.savefig("correlations.png")
+plt.clf()
+
+# Normalize inputs
+def norm_factor(input_var):
+    if "eta" in input_var:
+        return 1/5
+    if "phi" in input_var:
+        return 1/3.15
+    if "MET_cov" in input_var:
+        return 10**(-3)
+    if "MET_signif" in input_var:
+        return 10**(-3)
+    if "pt_reco" in input_var:
+        return 10**(-3)
+    if "mT" in input_var:
+        return 10**(-3)
+    return 1
+
+for i in inputs:
+    print(i)
+    df[i] *= norm_factor(i)
+
+# look for variables distributions
+df_inputs = df.drop(columns=[k for k in df.keys() if not k in inputs])
+df_inputs.hist(figsize = (24,20), bins = 500, log=True)
+plt.plot()
+plt.savefig("variables_inputs_after_norm.png")
+C_mat = df_inputs.corr()
+fig = plt.figure(figsize = (15,15))
+mask = np.zeros_like(C_mat)
+mask[np.triu_indices_from(mask)] = True
+sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
+fig.savefig("correlations_inputs_after_norm.png")
 plt.clf()
 
 # Split index ranges into training and testing parts with shuffle
