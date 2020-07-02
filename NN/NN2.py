@@ -39,7 +39,7 @@ print(_get_available_gpus())
 import matplotlib.pyplot as plt
 
 # Load data
-data_file = "../FastSim_NanoAOD_to_NN/Htt_merged_NanoAODSIM.h5"
+data_file = "../FastSim_NanoAOD_to_NN/nevents_1000/Htt_merged_NanoAODSIM.h5"
 df = pd.read_hdf(data_file)
 
 # make transverse masses
