@@ -328,8 +328,47 @@ plt.xlabel("Mass estimation / Generated mass")
 NN_output_on_mH = predictions[:,0]/answers
 mTtot_on_mH = np.array(df_x_test["mTtot_reco"] / norm_factor("mTtot_reco"))/answers
 
-ax.hist(NN_output_on_mH, bins=200, label = 'Deep NN output', alpha=0.5)
-ax.hist(mTtot_on_mH, bins=200, label = 'Classic mTtot', alpha=0.5)
+h_NN = ax.hist(NN_output_on_mH, bins=200, range = [0,2], label = 'Deep NN output', alpha=0.5, color = 'C0')
+h_mTtot = ax.hist(mTtot_on_mH, bins=200, range = [0,2], label = 'Classic mTtot', alpha=0.5, color = 'C1')
 plt.legend()
+
+# Gaussian fits
+def gaus(x,a,x0,sigma):
+    return a*np.exp(-(x-x0)**2/(2*sigma**2))
+
+from scipy.optimize import curve_fit
+x, y = (h_NN[1][1:]+h_NN[1][:-1])/2,h_NN[0]
+popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
+plt.plot(x,gaus(x,*popt), color = 'C0')
+y_info = 0.5
+x_info = .75
+multialignment='left'
+horizontalalignment='left'
+verticalalignment='top'
+ax.text(x_info, y_info,
+        '\n'.join([
+            "Deep NN",
+            'Mean $ = {}$'.format(np.round(popt[1], 3)),
+            '$\\sigma = {}$'.format(np.round(abs(popt[2]), 3))
+        ]),
+        transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+
+x, y = (h_mTtot[1][1:]+h_mTtot[1][:-1])/2,h_mTtot[0]
+popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
+plt.plot(x,gaus(x,*popt), color = 'C1')
+y_info = 0.9
+x_info = 0.025
+multialignment='left'
+horizontalalignment='left'
+verticalalignment='top'
+ax.text(x_info, y_info,
+        '\n'.join([
+            "Classic mTtot",
+            'Mean $ = {}$'.format(np.round(popt[1], 3)),
+            '$\\sigma = {}$'.format(np.round(abs(popt[2]), 3))
+        ]),
+        transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+
+plt.xlim(0,2)
 
 fig.savefig("NN_vs_mTtot_histos.png")
