@@ -55,7 +55,7 @@ max_mass = 500
 df = df.loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)]
 
 # only with 2 jets
-df = df.loc[(df['jet2_pt_reco'] > 0)]
+#df = df.loc[(df['jet2_pt_reco'] > 0)]
 
 # define target and input variables
 target = "Higgs_mass_gen"
