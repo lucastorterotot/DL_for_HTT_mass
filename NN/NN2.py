@@ -175,12 +175,11 @@ arr_y_test  = np.r_[df_y_test[target]]
 
 # Create model
 NN_model = Sequential()
-NN_model.add(Dense(1, activation="linear", input_shape=(len(df_x_train.keys()),)))
-NN_model.add(Dense(1000, activation="relu"))
-NN_model.add(Dense(1000, activation="relu"))
-NN_model.add(Dense(1000, activation="relu"))
-NN_model.add(Dense(1000, activation="relu"))
-NN_model.add(Dense(1000, activation="relu"))
+NN_model.add(Dense(1000, activation="linear", input_shape=(len(df_x_train.keys()),)))
+from tensorflow.keras.constraints import max_norm
+NN_model.add(Dense(1000, activation="relu", kernel_constraint=max_norm(2.)))
+NN_model.add(Dense(1000, activation="relu", kernel_constraint=max_norm(2.)))
+NN_model.add(Dense(1000, activation="relu", kernel_constraint=max_norm(2.)))
 NN_model.add(Dense(1, activation="linear"))
 print(NN_model.summary())
 NN_model.compile(loss='mean_squared_error',
