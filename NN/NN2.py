@@ -318,3 +318,18 @@ ax.text(x_info, y_info,
 #plt.show()
 fig.savefig("predicted_vs_answers.png")
 
+
+# Plot NN output / mH and mTtot / mH histograms as function of mH
+plt.clf()
+plt.rcParams["figure.figsize"] = [10, 10]
+fig, ax = plt.subplots()
+plt.xlabel("Mass estimation / Generated mass")
+
+NN_output_on_mH = predictions[:,0]/answers
+mTtot_on_mH = np.array(df_x_test["mTtot_reco"] / norm_factor("mTtot_reco"))/answers
+
+ax.hist(NN_output_on_mH, bins=200, label = 'Deep NN output', alpha=0.5)
+ax.hist(mTtot_on_mH, bins=200, label = 'Classic mTtot', alpha=0.5)
+plt.legend()
+
+fig.savefig("NN_vs_mTtot_histos.png")
