@@ -7,7 +7,7 @@ parser = OptionParser(usage=usage)
 parser.add_option("-o", "--output", dest = "output",
                   default = "NN")
 parser.add_option("-L", "--Nlayers", dest = "Nlayers",
-                  default = 5)
+                  default = 3)
 parser.add_option("-N", "--Nneurons", dest = "Nneurons",
                   default = 1000)
 parser.add_option("-E", "--Nevents", dest = "Nevents",
@@ -195,10 +195,6 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     elif Njets == 1:
         inputs = [i for i in inputs if not 'jet2' in i]
 
-    for i in inputs:
-        print(i)
-        df[i] *= norm_factor(i)
-
     df_select = df
 
     df_select = df_select.loc[(df_select['Higgs_mass_gen'] >= min_mass) & (df_select['Higgs_mass_gen'] <= max_mass)]
@@ -223,6 +219,11 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
         print("Empty set, aborting...")
         return None, False
 
+    for i in inputs:
+        print(i)
+        df_x_train[i] *= norm_factor(i)
+        df_x_valid[i] *= norm_factor(i)
+
     arr_x_train = np.r_[df_x_train]
     arr_y_train = np.r_[df_y_train[target]]
     arr_x_valid = np.r_[df_x_valid]
@@ -231,7 +232,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     # Create model
     NN_model = Sequential()
     from tensorflow.keras.constraints import max_norm
-    NN_model.add(Dense(Nneurons, activation="relu", input_shape=(len(df_x_train.keys()),), kernel_constraint=max_norm(2.)))
+    NN_model.add(Dense(Nneurons, activation="linear", input_shape=(len(df_x_train.keys()),)))
     for k in range(Nlayers):
         NN_model.add(Dense(Nneurons, activation="relu", kernel_constraint=max_norm(2.)))
     NN_model.add(Dense(1, activation="linear"))
@@ -312,30 +313,30 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     x, y = answers, np.r_[predictions][:,0]
     try:
         result = spo.leastsq(residual, p0, args=(y, x), full_output=True)
+        # optimized parameters a and b
+        popt = result[0];
+        # variance-covariance matrix
+        pcov = result[1];
+        # uncetainties on parameters (1 sigma)
+        #uopt = np.sqrt(np.abs(np.diagonal(pcov)))
+        x_aj = np.linspace(min(x),max(x),100)
+        y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
+        
+        ax.plot(x_aj, y_aj, color="C4")
+        y_info = 0.95
+        x_info = 0.025
+        multialignment='left'
+        horizontalalignment='left'
+        verticalalignment='top'
+        ax.text(x_info, y_info,
+                '\n'.join([
+                    '$f(x) = ax+b$',
+                    '$a = {{ {0:.2e} }}$'.format(popt[0]),
+                    '$b = {{ {0:.2e} }}$'.format(popt[1])
+                ]),
+                transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
     except:
         import pdb; pdb.set_trace()
-    # optimized parameters a and b
-    popt = result[0];
-    # variance-covariance matrix
-    pcov = result[1];
-    # uncetainties on parameters (1 sigma)
-    #uopt = np.sqrt(np.abs(np.diagonal(pcov)))
-    x_aj = np.linspace(min(x),max(x),100)
-    y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
-    
-    ax.plot(x_aj, y_aj, color="C4")
-    y_info = 0.95
-    x_info = 0.025
-    multialignment='left'
-    horizontalalignment='left'
-    verticalalignment='top'
-    ax.text(x_info, y_info,
-            '\n'.join([
-                '$f(x) = ax+b$',
-                '$a = {{ {0:.2e} }}$'.format(popt[0]),
-                '$b = {{ {0:.2e} }}$'.format(popt[1])
-            ]),
-            transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
     
     #plt.show()
     fig.savefig("predicted_vs_answers_{}.png".format(NNname))
@@ -348,8 +349,9 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     plt.xlabel("Discriminator / Generated mass")
 
     NN_output_on_mH = predictions[:,0]/answers
-    mTtot_on_mH = np.array(df_x_valid["mTtot_reco"] / norm_factor("mTtot_reco"))/answers
-    
+    mTtot_on_mH = np.array(df_x_valid["mTtot_reco"])/answers
+    mTtot_on_mH *= 1./norm_factor("mTtot_reco")
+
     h_NN = ax.hist(NN_output_on_mH, bins=200, range = [0,2], label = 'Deep NN output', alpha=0.5, color = 'C0')
     h_mTtot = ax.hist(mTtot_on_mH, bins=200, range = [0,2], label = 'Classic mTtot', alpha=0.5, color = 'C1')
     plt.legend()
@@ -396,9 +398,6 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     fig.savefig("NN_vs_mTtot_histos_{}.png".format(NNname))
 
     df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
-
-    for i in inputs:
-        df[i] *= 1./norm_factor(i)
 
     return df, True
 
