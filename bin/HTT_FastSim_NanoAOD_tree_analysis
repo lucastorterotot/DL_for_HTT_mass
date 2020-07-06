@@ -67,6 +67,7 @@ from FastSim_NanoAOD_to_NN.analysis.HTT_reco import HTT_analysis as HTT_analysis
 analysis_results = []
 cutflow_stats = {}
 
+N_to_store = 0
 for evt in tree:
     Nevt_in += 1
     passed_gen = False
@@ -90,7 +91,7 @@ for evt in tree:
 
     if passed_gen and passed_reco:
         analysis_results.append({"gen" : gen_analysis, "reco" : reco_analysis})
-        
+        N_to_store += 1
     if options.verbose > 0:
         print("")
     if Nevt_in >= Nmax:
@@ -99,6 +100,10 @@ for evt in tree:
 print("Processed on {Nevt_in} events.".format(Nevt_in=Nevt_in))
 print("Reco ana leaves {Nevt_out_reco} events.".format(Nevt_out_reco=Nevt_out_reco))
 print("Gen ana leaves {Nevt_out_gen} events.".format(Nevt_out_gen=Nevt_out_gen))
+
+if N_to_store == 0:
+    import sys
+    sys.exit()
 
 data = {}
 for analysis_result in analysis_results:
