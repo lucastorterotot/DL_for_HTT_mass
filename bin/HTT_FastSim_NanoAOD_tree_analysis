@@ -114,6 +114,7 @@ for analysis_result in analysis_results:
                 data[key] = []
             data[key].append(analysis_result[ana][k])
 
+data["file"] = [input_file_str for k in range(len(data[data.keys()[0]]))]
 
 # def clean_useless_data(names):
 #     to_remove = [

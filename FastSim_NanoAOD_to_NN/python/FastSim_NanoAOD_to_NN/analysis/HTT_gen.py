@@ -70,5 +70,7 @@ def HTT_analysis(evt, verbose = 0, fast=True):
         print("\tHiggs energy is {} GeV.".format(Higgs.E))
 
     store_vars.store_gen_MET(evt, output)
+
+    store_vars.store_evt_number(evt, output)
     
     return output

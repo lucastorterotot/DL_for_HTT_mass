@@ -1,4 +1,5 @@
-
+def store_evt_number(evt, dic):
+    dic["Event"] = evt.GetLeaf("event").GetValue()
 
 default_attrs = ["pt", "eta", "phi"]
 def store(evt, dic, name, index, branch_prefix, attrs = default_attrs):
