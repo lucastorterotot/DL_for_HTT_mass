@@ -276,7 +276,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     # Calculate the point density
     from matplotlib.colors import Normalize
     from scipy.interpolate import interpn
-    data , x_e, y_e = np.histogram2d( answers, predictions[:,0], bins = [30,30], density = True )
+    data , x_e, y_e = np.histogram2d( answers, predictions[:,0], bins = [50,50], density = True )
     z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([answers, predictions[:,0]]).T , method = "splinef2d", bounds_error = False)
     z[np.where(np.isnan(z))] = 0.0
     # Sort the points by density, so that the densest points are plotted last
