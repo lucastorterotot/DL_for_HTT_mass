@@ -247,7 +247,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
     print('Epochs: ', epochs)
     print('Batch size: ', batch_size)
 
-    keras_callbacks = [keras.callbacks.EarlyStopping(monitor='val_mean_absolute_error', patience=10, verbose=0)]
+    keras_callbacks = [keras.callbacks.EarlyStopping(monitor='val_mean_absolute_error', patience=20, verbose=0)]
 
     history = NN_model.fit(arr_x_train, arr_y_train,
                            batch_size=batch_size,
