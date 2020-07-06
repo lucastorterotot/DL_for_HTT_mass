@@ -81,6 +81,7 @@ inputs = list(df.keys())
 inputs.remove(target)
 
 inputs = [i for i in inputs if not "_gen" == i[-4:]]
+inputs = [i for i in inputs if not "file" == i]
 inputs = [i for i in inputs if not "MET_cov" in i]
 inputs = [i for i in inputs if not "DM" == i[:2]]
 inputs = [i for i in inputs if not "channel" == i[:7]]
