@@ -184,16 +184,11 @@ df.loc[np_valid, ["is_valid"]] = 1
 df.loc[np_test, ["is_test"]] = 1
 
 
-def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers = options.Nlayers, Nneurons = options.Nneurons):
+def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons):
 
-    NNname = "_".join([channel, str(Njets), "jets", str(Nlayers), "layers", str(Nneurons), "neurons"])
+    NNname = "_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
     print(NNname)
-
-    if Njets == 0:
-        inputs = [i for i in inputs if not 'jet' in i]
-    elif Njets == 1:
-        inputs = [i for i in inputs if not 'jet2' in i]
 
     df_select = df
 
@@ -201,11 +196,6 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
 
     if channel != "inclusive":
         df_select = df_select.loc[(df_select['channel_reco'] == channel)]
-
-    if Njets == 0:
-        df_select = df_select.loc[df_select['jet1_pt_reco'] == 0]
-    elif Njets == 1:
-        df_select = df_select.loc[((df_select['jet2_pt_reco'] == 0) & (df_select['jet1_pt_reco'] > 0))]
 
     df_x_train = df_select.loc[(df_select['is_train'] == 1)].drop(columns=[k for k in df_select.keys() if not k in inputs])
     df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
@@ -409,13 +399,11 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Njets = 2, Nlayers 
 
 
 channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee"]
-Njets_list = [0, 1, 2]
 
 for channel in channels:
-    for Njets in Njets_list:
-        df_out, valid = NN_make_train_predict(df, inputs, channel = channel, Njets = Njets,
-                                              Nlayers = options.Nlayers, Nneurons = options.Nneurons)
-        if valid:
-            df = df_out
+    df_out, valid = NN_make_train_predict(df, inputs, channel = channel,
+                                          Nlayers = options.Nlayers, Nneurons = options.Nneurons)
+    if valid:
+        df = df_out
 
 df.to_csv("{}.csv".format(output))
