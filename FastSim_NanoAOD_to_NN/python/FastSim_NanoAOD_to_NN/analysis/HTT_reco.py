@@ -58,6 +58,20 @@ def select_muon_em(evt, index):
         evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.15,
         ])
 
+def select_muon_mm(evt, index):
+    pT = evt.GetLeaf("Muon_pt").GetValue(index)
+    eta = evt.GetLeaf("Muon_eta").GetValue(index)
+    dxy = evt.GetLeaf("Muon_dxy").GetValue(index)
+    dz = evt.GetLeaf("Muon_dz").GetValue(index)
+    return all([
+        pT > 10,
+        abs(eta) < 2.4,
+        abs(dxy) < 0.045,
+        abs(dz) < 0.2,
+        evt.GetLeaf("Muon_mediumId").GetValue(index),
+        evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.15,
+        ])
+
 def select_muon_mt_dilepton_veto(evt, index):
     pT = evt.GetLeaf("Muon_pt").GetValue(index)
     eta = evt.GetLeaf("Muon_eta").GetValue(index)
@@ -124,6 +138,25 @@ def select_electron_em(evt, index):
             evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.15,
         ])
 
+def select_electron_ee(evt, index):
+    pT = evt.GetLeaf("Electron_pt").GetValue(index)
+    eta = evt.GetLeaf("Electron_eta").GetValue(index)
+    dxy = evt.GetLeaf("Electron_dxy").GetValue(index)
+    dz = evt.GetLeaf("Electron_dz").GetValue(index)
+    passConversionVeto = evt.GetLeaf("Electron_convVeto").GetValue(index)
+    lostHits = evt.GetLeaf("Electron_lostHits").GetValue(index)
+    mvaEleID_Fall17_noIso_V2_wp90 = evt.GetLeaf("Electron_mvaFall17V2noIso_WP90").GetValue(index)
+    return all([
+            pT > 20,
+            abs(eta) < 2.5,
+            abs(dxy) < 0.045,
+            abs(dz) < 0.2,
+            passConversionVeto,
+            lostHits <= 1,
+            mvaEleID_Fall17_noIso_V2_wp90,
+            evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.1,
+        ])
+
 def select_electron_et_dilepton_veto(evt, index):
     pT = evt.GetLeaf("Electron_pt").GetValue(index)
     eta = evt.GetLeaf("Electron_eta").GetValue(index)
@@ -173,7 +206,7 @@ def select_muon(evt, muon_idx, channel):
     if channel == "mt":
         return select_muon_mt(evt, muon_idx)
     elif channel == "mm":
-        return False # select_muon_mm(evt, muon_idx)
+        return select_muon_mm(evt, muon_idx)
     elif channel == "em":
         return select_muon_em(evt, muon_idx)
 
@@ -181,7 +214,7 @@ def select_electron(evt, ele_idx, channel):
     if channel == "et":
         return select_electron_et(evt, ele_idx)
     elif channel == "ee":
-        return False # select_electron_ee(evt, ele_idx)
+        return select_electron_ee(evt, ele_idx)
     elif channel == "em":
         return select_electron_em(evt, ele_idx)
 
@@ -244,6 +277,10 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     # construc dilepton
     dilepton = {}
     for channel in [c for c in accepted_channels if c in possible_channels]:
+        if channel in ["em", "mm"]:
+            DRmin = .3
+        else:
+            DRmin = .5
         l1s = selections[channel][letter_to_names[channel[0]]]
         l2s = selections[channel][letter_to_names[channel[1]]]
         pairs = []
@@ -269,7 +306,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
             phi1 = evt.GetLeaf("{}_phi".format(letter_to_names[channel[0]][:-1])).GetValue(pair[0])
             phi2 = evt.GetLeaf("{}_phi".format(letter_to_names[channel[1]][:-1])).GetValue(pair[1])
             DR2 = (eta1-eta2)**2 + (phi1-phi2)**2
-            if DR2 > .5**2:
+            if DR2 > DRmin**2:
                 pairs_OS_DR2.append(pair)
         pairs = pairs_OS_DR2
         if len(pairs) == 0:
