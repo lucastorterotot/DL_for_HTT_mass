@@ -406,4 +406,11 @@ for channel in channels:
     if valid:
         df = df_out
 
-df.to_csv("{}.csv".format(output))
+for k in df:
+    if df[k].dtype == 'float64':
+        df[k] = df[k].astype('float32')
+    elif df[k].dtype == 'int64' and any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
+        df[k] = df[k].astype('int8')
+    elif df[k].dtype == 'int64':
+        df[k] = df[k].astype('int16')
+df.to_hdf("{}.h5".format(output), key='df')
