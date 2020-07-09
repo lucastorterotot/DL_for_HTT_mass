@@ -64,6 +64,12 @@ import matplotlib.pyplot as plt
 data_file = "../FastSim_NanoAOD_to_NN/nevents_{}/Htt_merged_NanoAODSIM.h5".format(options.Nevents)
 df = pd.read_hdf(data_file)
 
+# GeV to TeV
+GeV_vars = ["MET_cov", "_pt_", "_mass_", "mT"]
+for k in df.keys():
+    if any([GeV_var in k for GeV_var in GeV_vars]):
+        df[k] *= 1./1000
+
 # make transverse masses
 for ana in ["reco", "gen"]:
     df["mT1_{ana}".format(ana=ana)] = (2*df["tau1_pt_{ana}".format(ana=ana)]*df["MET_pt_{ana}".format(ana=ana)]*(1-np.cos(df["tau1_phi_{ana}".format(ana=ana)]-df["MET_phi_{ana}".format(ana=ana)])))**.5
@@ -71,9 +77,9 @@ for ana in ["reco", "gen"]:
     df["mTtt_{ana}".format(ana=ana)] = (2*df["tau1_pt_{ana}".format(ana=ana)]*df["tau2_pt_{ana}".format(ana=ana)]*(1-np.cos(df["tau1_phi_{ana}".format(ana=ana)]-df["tau2_phi_{ana}".format(ana=ana)])))**.5
     df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)]**2+df["mT2_{ana}".format(ana=ana)]**2+df["mTtt_{ana}".format(ana=ana)]**2)**.5
 
-# select only good points
-min_mass = 100
-max_mass = 500
+# select only good points in TeV
+min_mass = .1
+max_mass = .5
 
 # define target and input variables
 target = "Higgs_mass_gen"
@@ -118,17 +124,6 @@ def train_valid_test_split(df, train_size=.6, valid_size=.2, test_size=.2, seed=
     valid = perm[train_end:valid_end]
     test = perm[valid_end:]
     return train, valid, test
-
-def norm_factor(input_var):
-    if "MET_cov" in input_var:
-        return 10**(-3)
-    if "MET_signif" in input_var:
-        return 10**(-3)
-    if "pt_reco" in input_var:
-        return 10**(-3)
-    if "mT" in input_var:
-        return 10**(-3)
-    return 1
 
 def plot_hist(h, NNname, xsize=6, ysize=10):
     # Prepare plotting
@@ -209,11 +204,6 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
         print("Empty set, aborting...")
         return None, False
 
-    for i in inputs:
-        print(i)
-        df_x_train[i] *= norm_factor(i)
-        df_x_valid[i] *= norm_factor(i)
-
     arr_x_train = np.r_[df_x_train]
     arr_y_train = np.r_[df_y_train[target]]
     arr_x_valid = np.r_[df_x_valid]
@@ -274,8 +264,8 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     x, y, z = answers[idx], predictions[idx,0], z[idx]
     ax.scatter(x,y, c=z, edgecolor='', label="Test")
     ax.plot(answers, answers, color="C3")
-    plt.xlabel("Generated Higgs Mass (GeV)")
-    plt.ylabel("Predicted Higgs Mass (GeV)")
+    plt.xlabel("Generated Higgs Mass (TeV)")
+    plt.ylabel("Predicted Higgs Mass (TeV)")
     
     # linear regression on trained output
     xerr_for_reg = 1
@@ -341,7 +331,6 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
 
     NN_output_on_mH = predictions[:,0]/answers
     mTtot_on_mH = np.array(df_x_valid["mTtot_reco"])/answers
-    mTtot_on_mH *= 1./norm_factor("mTtot_reco")
 
     h_NN = ax.hist(NN_output_on_mH, bins=200, range = [0,2], label = 'Deep NN output', alpha=0.5, color = 'C0')
     h_mTtot = ax.hist(mTtot_on_mH, bins=200, range = [0,2], label = 'Classic mTtot', alpha=0.5, color = 'C1')
