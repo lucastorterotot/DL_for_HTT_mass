@@ -21,7 +21,7 @@ Nlayers_list = [2, 3, 4, 5, 10, 15]
 Nneurons_list = [1000, 2000]
 
 if options.small_test:
-    Nlayers_list = Nlayers_list[:1]
+    Nlayers_list = Nlayers_list[:2]
     Nneurons_list = Nneurons_list[:2]
 
 # Load data
