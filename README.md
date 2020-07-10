@@ -5,7 +5,6 @@
 
 ## Installation
 
-### This repository
 Fork the repository and clone it on your machine
 ```
 mkdir -p <YOUR_DIRECTORY_NAME>
@@ -18,39 +17,67 @@ Run the provided installation script to ensure setting variables properly:
 ./install
 ```
 
-### Delphes 3.4.2
+## HTT events from FastSim NanoAOD analysis
+Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored.
+To run on the files, if named `Htt_${mass}_NanoAODSIM.root`, do
 ```
-mkdir -p $DL_for_HTT/Delphes && cd $DL_for_HTT/Delphes
-wget http://cp3.irmp.ucl.ac.be/downloads/Delphes-3.4.2.tar.gz && tar -zxf Delphes-3.4.2.tar.gz
-cd Delphes-3.4.2
-make
+for f in $(ls | grep Htt_.*_NanoAODSIM.root) ; do HTT_FastSim_NanoAOD_tree_analysis $f ${f%.*} ; done
+```
+Then you have a table in `Htt_${mass}_NanoAODSIM.txt` that you can import in a python script using `numpy`, `pandas`, etc.
+
+You can merge the different mass points outputs by using
+```
+conda activate tf
+txt_merger -o Htt_merged_NanoAODSIM.txt $(ls | grep Htt_.*_NanoAODSIM.txt | grep -ve Htt_merged_)
+```
+and convert it to hdf5 format using less disk space with
+```
+txt_to_hdf5 Htt_merged_NanoAODSIM.txt Htt_merged_NanoAODSIM
+```
+Then you may delete `root` and `txt` files
+```
+find . -type f -iname Htt_\*_NanoAODSIM.{root,txt} -delete
 ```
 
-### Pythia 8.235
+## Train NN
+Go in the NN directory and activate the conda environment if not already done
 ```
-mkdir -p $DL_for_HTT/Pythia8 && cd $DL_for_HTT/Pythia8
-wget http://home.thep.lu.se/~torbjorn/pythia8/pythia8235.tgz && tar xzvf pythia8235.tgz
-cd pythia8235 && ./configure --prefix=$(pwd)
-make install
-export PYTHIA8=$(pwd)
-cd $DL_for_HTT/Delphes/Delphes-3.4.2/ && make HAS_PYTHIA8=true
+cd $DL_for_HTT/NN
+conda activate tf
 ```
+If the hdf5 output files from the previous step are stored in `$DL_for_HTT/FastSim_NanoAOD_to_NN/nevents_${Nevt}/Htt_merged_NanoAODSIM.h5` you can run as a test
+```
+./NN2.py -E 10 -L 1 -N 1 -o TEST
+```
+This will run a training on the 10 (`-E`) events per mass point samples with 1 (`-L`) hidden layer containing 1 (`-N`) neuron. Output hdf5 files containing the NNs outputs will be named starting with `TEST` (`-o`).
 
-### Run a test
+If this runs properly, the full production cna be done in parallel on the two GPUs by using `NN_prods.sh`:
 ```
-cd $DL_for_HTT/Delphes
-./DelphesPythia8 cards/delphes_card_CMS.tcl examples/Pythia8/configNoLHE.cmnd delphes_nolhe.root
+NN_prods.sh 0 & NN_prods.sh 1 & wait
 ```
+This takes some time (~ 1.5 days at this point).
+Outputs will be named `PROD_X_layers_Y_neurons.h5` and may take ~500 Mo each.
+`X` will be in `[2, 3, 4, 5, 10, 15]` and `Y` in `[1000, 2000]`, so that's a total of 12 files i.e. 6 Go in total.
 
-## HTT events generation and analysis
-Generate HTT events. It takes roughly 1 hour for 100000 events, try with 1000:
+_NB_ For training, all GeV inputs are converted to TeV so that the NNs handle values mostly in `[0,1]`.
+
+## Get plots about the NNs performances
+Go in the post NN directory and activate the conda environment if not already done
 ```
-cd $DL_for_HTT/Event_generation_with_Delphes
-DelphesPythia8 delphes_card_CMS.tcl event_gen_cfgs/Higgs_to_tau_tau.cmnd SM_HTT.root
+cd $DL_for_HTT/postNN
+conda activate tf
 ```
-Analyse them to get a NN-friendly input. It takes roughly 1 hour for 100000 generated events. Selections leave around 10 percent of them in the final output.
+One script runs on provided outputs from previous step. To be kind with the disk space, these outputs are stored in `/data2`:
 ```
-cd $DL_for_HTT/Delphes_to_NN/
-HTT_Delphes_tree_analysis ../Event_generation_with_Delphes/SM_HTT.root SM_HTT
+mkdir -p /data2/ltorterotot/ML/NN/TeV_outputs/
+mv $DL_for_HTT/NN/*.h5 /data2/ltorterotot/ML/NN/TeV_outputs/
 ```
-Then you have a table in `$DL_for_HTT/Delphes_to_NN/SM_HTT.txt` that you can import in a python script using `numpy`, `pandas`, etc.
+Then the plotting script can be tested with its small option enabled:
+```
+./plots.py -s
+```
+If everything works fine you may get *lots* of png outputs, eventually some `tex` files containing tables ready to be used in a document (to be implemented if wanted).
+To get the full analysis of the NNs outputs, do not use the small option:
+```
+./plots.py
+```
