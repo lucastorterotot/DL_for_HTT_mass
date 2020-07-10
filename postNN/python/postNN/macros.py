@@ -59,9 +59,9 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
         
         plt.xlim(0,2)
         
-        fig.savefig("NN_reponse_{}".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons", str(mHrange[0]), "to", str(mHrange[1]), "TeV"])).replace(".", "_")+".png")
+        fig.savefig("NN_response_{}".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons", str(mHrange[0]), "to", str(mHrange[1]), "TeV"])).replace(".", "_")+".png")
         
-        plt.close(fig)
+        plt.close('all')
         
     fig, ax = plt.subplots()
     fig.suptitle("{} NN response for {} layers of {} neurons".format(channel, str(Nlayers), str(Nneurons)))
@@ -79,8 +79,8 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
     plt.ylim(1-delta,1+delta)
     plt.xlim(mH_min, mH_max)
     
-    fig.savefig("NN_reponse_{}.png".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])))
-    plt.close(fig)
+    fig.savefig("NN_response_{}.png".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])))
+    plt.close('all')
 
 def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, mH_min, mH_max):
     for Nneurons in Nneurons_list:
@@ -155,4 +155,4 @@ def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, t
         fig.savefig("NN_mean_{}_at_fixed_{}_Nneurons.png".format(channel, str(at)))
     elif type == "l":
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers.png".format(channel, str(at)))    
-    plt.close(fig)
+    plt.close('all')
