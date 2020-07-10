@@ -37,7 +37,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
         plt.xlabel("Discriminator / Generated mass")
         plt.ylabel("Probability")
         
-        hist = ax.hist(values, bins=200, range = [0,2], label = 'Deep NN output', alpha=0.5, color = 'C0')
+        hist = ax.hist(values, bins=300, range = [0,3], label = 'Deep NN output', alpha=0.5, color = 'C0')
         x, popt = utils.make_gaussian_fit(hist)
         
         means.append(popt[1])
@@ -45,7 +45,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
         
         plt.plot(x,utils.gaus(x,*popt), color = 'C0')
         y_info = 0.75
-        x_info = 0.1
+        x_info = 0.65
         multialignment='left'
         horizontalalignment='left'
         verticalalignment='top'
@@ -57,7 +57,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
                 ]),
                 transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
         
-        plt.xlim(0,2)
+        plt.xlim(0,3)
         
         fig.savefig("NN_response_{}".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons", str(mHrange[0]), "to", str(mHrange[1]), "TeV"])).replace(".", "_")+".png")
         
@@ -75,8 +75,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
         marker='+', markersize=4, linewidth=.4, elinewidth=1,
         fmt=' ', capsize = 3, capthick = .4)
     
-    delta = .6
-    plt.ylim(1-delta,1+delta)
+    plt.ylim(0.7,1.7)
     plt.xlim(mH_min, mH_max)
     
     fig.savefig("NN_response_{}.png".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])))
@@ -149,7 +148,15 @@ def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, t
         marker='+', markersize=4, linewidth=.4, elinewidth=1,
         fmt=' ', capsize = 6, capthick = 1,
         color = "C3", label = "MAE")
-    ax.legend()
+    ax.legend(loc='upper right')
+
+    xmin = int(xpos[0]-xerr[0])
+    xmax = int(xpos[-1]+xerr[-1])+1
+    
+    plt.plot([xmin, xmax], [1,1], color='C3')
+
+    plt.ylim(0.75,1.25)
+    plt.xlim(xmin, xmax)
     
     if type == "n":
         fig.savefig("NN_mean_{}_at_fixed_{}_Nneurons.png".format(channel, str(at)))
