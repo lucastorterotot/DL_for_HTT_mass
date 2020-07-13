@@ -70,3 +70,5 @@ for channel in channels:
     for Nlayers in Nlayers_list:
         for Nneurons in Nneurons_list:
             macros.NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max)
+            macros.plot_pred_vs_ans(df, channel, Nneurons, Nlayers, mH_min, mH_max)
+            

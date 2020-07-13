@@ -163,3 +163,89 @@ def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, t
     elif type == "l":
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers.png".format(channel, str(at)))    
     plt.close('all')
+
+def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, mH_min, mH_max):
+    _df = df
+    if channel not in ["inclusive", "combined"]:
+        _df = df.loc[(df.channel_reco == channel)]
+    # Plot predicted vs answer on a test sample
+    plt.clf()
+    fig, ax = plt.subplots()
+
+    predictions, answers = np.r_[_df["{}_{}_layers_{}_neurons_output".format(channel, str(Nlayers), str(Nneurons))]], np.r_[_df["Higgs_mass_gen"]]
+
+    # Calculate the point density
+    from matplotlib.colors import Normalize
+    from scipy.interpolate import interpn
+    data , x_e, y_e = np.histogram2d( answers, predictions, bins = [50,50], density = True )
+    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([answers, predictions]).T , method = "splinef2d", bounds_error = False)
+    z[np.where(np.isnan(z))] = 0.0
+    # Sort the points by density, so that the densest points are plotted last
+    idx = z.argsort()
+    x, y, z = answers[idx], predictions[idx], z[idx]
+    ax.scatter(x,y, c=z, edgecolor='', label="Test")
+    ax.plot(answers, answers, color="C3")
+    plt.xlabel("Generated Higgs Mass (TeV)")
+    plt.ylabel("Predicted Higgs Mass (TeV)")
+    
+    # linear regression on trained output
+    xerr_for_reg = 1
+    yerr_for_reg = 1
+    # linear function to adjust
+    def f(x,p):
+        a,b = p
+        return a*x+b
+
+    # its derivative
+    def Dx_f(x,p):
+        a,b = p
+        return a
+
+    # difference to data
+    def residual(p, y, x):
+        return (y-f(x,p))/np.sqrt(yerr_for_reg**2 + (Dx_f(x,p)*xerr_for_reg)**2)
+
+    # initial estimation
+    # usually OK but sometimes one need to give a different
+    # starting point to make it converge
+    p0 = np.array([0,0])
+    # minimizing algorithm
+    import scipy.optimize as spo
+    x, y = answers, np.r_[predictions]
+    try:
+        result = spo.leastsq(residual, p0, args=(y, x), full_output=True)
+        # optimized parameters a and b
+        popt = result[0];
+        # variance-covariance matrix
+        pcov = result[1];
+        # uncetainties on parameters (1 sigma)
+        #uopt = np.sqrt(np.abs(np.diagonal(pcov)))
+        x_aj = np.linspace(min(x),max(x),100)
+        y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
+        
+        ax.plot(x_aj, y_aj, color="C4")
+        y_info = 0.95
+        x_info = 0.025
+        multialignment='left'
+        horizontalalignment='left'
+        verticalalignment='top'
+        ax.text(x_info, y_info,
+                '\n'.join([
+                    '$f(x) = ax+b$',
+                    '$a = {{ {0:.2e} }}$'.format(popt[0]),
+                    '$b = {{ {0:.2e} }}$'.format(popt[1])
+                ]),
+                transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+    except:
+        #import pdb; pdb.set_trace()
+        print("No extrapolation possible")
+    
+    #plt.show()
+    plt.xlim(mH_min, mH_max)
+    plt.ylim(-.1, .7)
+
+    fig.savefig(
+        "predicted_vs_answers_{}_{}_layers_{}_neurons.png".format(
+            channel, Nlayers, Nneurons
+        )
+    )
