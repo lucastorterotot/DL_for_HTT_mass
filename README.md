@@ -21,7 +21,8 @@ Run the provided installation script to ensure setting variables properly:
 Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored.
 To run on the files, if named `Htt_${mass}_NanoAODSIM.root`, do
 ```
-for f in $(ls | grep Htt_.*_NanoAODSIM.root) ; do HTT_FastSim_NanoAOD_tree_analysis $f ${f%.*} ; done
+Nevents_in_file=<enter the value here>
+for f in $(ls | grep Htt_.*_NanoAODSIM.root) ; do HTT_FastSim_NanoAOD_tree_analysis $f ${f%.*}_${Nevents_in_file} ; done
 ```
 Then you have a table in `Htt_${mass}_NanoAODSIM.txt` that you can import in a python script using `numpy`, `pandas`, etc.
 
@@ -36,7 +37,7 @@ txt_to_hdf5 Htt_merged_NanoAODSIM.txt Htt_merged_NanoAODSIM
 ```
 Then you may delete `root` and `txt` files
 ```
-find . -type f -iname Htt_\*_NanoAODSIM.{root,txt} -delete
+find . -type f -iname Htt_\*_NanoAODSIM\*.{root,txt} -delete
 ```
 
 ## Train NN
@@ -45,17 +46,17 @@ Go in the NN directory and activate the conda environment if not already done
 cd $DL_for_HTT/NN
 conda activate tf
 ```
-If the hdf5 output files from the previous step are stored in `$DL_for_HTT/FastSim_NanoAOD_to_NN/nevents_${Nevt}/Htt_merged_NanoAODSIM.h5` you can run as a test
+If the hdf5 output files from the previous step are stored in `/data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
 ```
-./NN2.py -E 10 -L 1 -N 1 -o TEST
+./NN2.py -i nevents_10 -L 1 -N 1 -o TEST
 ```
-This will run a training on the 10 (`-E`) events per mass point samples with 1 (`-L`) hidden layer containing 1 (`-N`) neuron. Output hdf5 files containing the NNs outputs will be named starting with `TEST` (`-o`).
+This will run a training on the 10 (`-i`) events per mass point samples with 1 (`-L`) hidden layer containing 1 (`-N`) neuron. Output hdf5 files containing the NNs outputs will be named starting with `TEST` (`-o`).
 
 If this runs properly, the full production cna be done in parallel on the two GPUs by using `NN_prods.sh`:
 ```
 NN_prods.sh 0 & NN_prods.sh 1 & wait
 ```
-This takes some time (~ 1.5 days at this point).
+This takes some time (up to 4 days at this point).
 Outputs will be named `PROD_X_layers_Y_neurons.h5` and may take ~500 Mo each.
 `X` will be in `[2, 3, 4, 5, 10, 15]` and `Y` in `[1000, 2000]`, so that's a total of 12 files i.e. 6 Go in total.
 
