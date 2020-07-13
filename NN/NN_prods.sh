@@ -1,5 +1,8 @@
 #!/bin/bash
 
+mkdir -p /data2/ltorterotot/ML/NN/latest
+cd /data2/ltorterotot/ML/NN/latest
+
 gpu=$1
 
 input=ALL
@@ -12,11 +15,11 @@ do
     else
         Nneurons=2000
     fi
-    cd $DL_for_HTT/NN/
-    ./NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu
+
+    $DL_for_HTT/NN/NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu
     if [[ $Nlayers != 2 ]] || [[ $Nneurons != 2000 ]]
     then
-        ./NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu -b
+        $DL_for_HTT/NN/NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu -b
     fi
 done
 
@@ -28,7 +31,7 @@ do
     else
         Nneurons=1000
     fi
-    cd $DL_for_HTT/NN/
-    ./NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu
-    ./NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu -b
+
+    $DL_for_HTT/NN/NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu
+    $DL_for_HTT/NN/NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu -b
 done
