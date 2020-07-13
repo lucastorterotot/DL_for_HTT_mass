@@ -10,8 +10,8 @@ parser.add_option("-L", "--Nlayers", dest = "Nlayers",
                   default = 3)
 parser.add_option("-N", "--Nneurons", dest = "Nneurons",
                   default = 1000)
-parser.add_option("-E", "--Nevents", dest = "Nevents",
-                  default = 20000)
+parser.add_option("-i", "--input", dest = "input",
+                  default = "ALL")
 parser.add_option("-g", "--gpu", dest = "gpu",
                   default = 0)
 parser.add_option("-b", "--bottleneck", dest = "bottleneck",
@@ -67,7 +67,7 @@ print(_get_available_gpus())
 import matplotlib.pyplot as plt
 
 # Load data
-data_file = "../FastSim_NanoAOD_to_NN/nevents_{}/Htt_merged_NanoAODSIM.h5".format(options.Nevents)
+data_file = "/data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/{}/Htt_merged_NanoAODSIM_{}.h5".format(options.input, options.input)
 df = pd.read_hdf(data_file)
 
 # GeV to TeV
