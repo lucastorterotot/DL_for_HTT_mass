@@ -1,0 +1,43 @@
+#!/bin/bash
+
+mkdir -p /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
+cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
+
+find . -type f -iname \*.txt -delete
+find . -type f -iname \*.h5 -delete
+find . -type f -iname Htt_merged_\* -delete
+
+rsync -a --progress torterotot@lyoserv.in2p3.fr:/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_* /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/
+
+conda deactivate
+for d in $(ls /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
+do
+    cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/$d
+    rename "s|NanoAODSIM|NanoAODSIM_${d}|g" *NanoAODSIM.root
+
+    for f in $(ls | grep Htt_.*_NanoAODSIM_${d}.root)
+    do
+        (
+            HTT_FastSim_NanoAOD_tree_analysis $f ${f%.*}
+            # rm $f
+        ) &
+    done
+    wait
+done
+
+cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
+conda activate tf
+for d in $(ls /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
+do
+    cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/$d
+    txt_merger -o Htt_merged_NanoAODSIM_${d}.txt $(ls | grep Htt_.*_NanoAODSIM_${d}.txt | grep -ve Htt_merged_)
+    # rm Htt_[0-9]*_NanoAODSIM_${d}.txt
+    txt_to_hdf5 Htt_merged_NanoAODSIM_${d}.txt Htt_merged_NanoAODSIM_${d}
+done
+
+cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
+mkdir -p ALL
+cd ALL
+txt_merger -o Htt_merged_NanoAODSIM_ALL.txt $(find /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/ -type f -name Htt_merged_NanoAODSIM_\*.txt)
+txt_to_hdf5 Htt_merged_NanoAODSIM_ALL.txt Htt_merged_NanoAODSIM_ALL
+# find . -type f -name Htt_merged_NanoAODSIM_.*.txt -delete
