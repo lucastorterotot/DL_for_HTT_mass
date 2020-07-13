@@ -24,7 +24,7 @@ for k in df:
         df[k] = df[k].astype('int32')
     elif any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
         df[k] = df[k].astype('int8')
-    elif any([s in k for s in ["_eta_", "_phi_", "_pt_", "_mass_", "_btagDeepB_", "mT"]]):
+    elif any([s in k for s in ["_eta_", "_phi_", "_btagDeepB_"]]):
         df[k] = df[k].astype('float16')
     elif df[k].dtype == 'float64':
         df[k] = df[k].astype('float32')
