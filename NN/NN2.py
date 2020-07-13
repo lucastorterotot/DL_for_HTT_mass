@@ -466,10 +466,16 @@ for channel in channels:
         df = df_out
 
 for k in df:
-    if df[k].dtype == 'float64':
-        df[k] = df[k].astype('float32')
-    elif df[k].dtype == 'int64' and any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
+    if any([s in k for s in ["is_", "was_"]]):
+        df[k] = df[k].astype('bool')
+    elif k == 'Event_gen':
+        df[k] = df[k].astype('int32')
+    elif any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
         df[k] = df[k].astype('int8')
+    elif any([s in k for s in ["_eta_", "_phi_", "_pt_", "_mass_", "_btagDeepB_", "mT"]]):
+        df[k] = df[k].astype('float16')
+    elif df[k].dtype == 'float64':
+        df[k] = df[k].astype('float32')
     elif df[k].dtype == 'int64':
         df[k] = df[k].astype('int16')
 df.to_hdf("{}.h5".format(output), key='df')
