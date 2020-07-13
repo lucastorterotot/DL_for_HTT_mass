@@ -186,6 +186,51 @@ df.loc[np_train, ["is_train"]] = 1
 df.loc[np_valid, ["is_valid"]] = 1
 df.loc[np_test, ["is_test"]] = 1
 
+# ensure flat target distribution
+# compute bin content to use
+flat_step = 5e-3 # bin width in TeV for which content will be taken as constant
+flat_mass = min_mass
+min_bin_content = {
+    "train" : len(df.loc[df["is_train"] == 1, ['Higgs_mass_gen']]),
+    "valid" : len(df.loc[df["is_valid"] == 1, ['Higgs_mass_gen']]),
+    "test"  : len(df.loc[df["is_test"] == 1, ['Higgs_mass_gen']]),
+}
+
+
+flat_mass -= flat_step
+while flat_mass < max_mass:
+    flat_mass += flat_step
+    for t in min_bin_content.keys():
+        bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ['Higgs_mass_gen']])
+        if min_bin_content[t] > bin_content:
+            min_bin_content[t] = bin_content
+
+# apply bin content
+df["was_train"] = np.zeros(len(df[target]))
+df["was_valid"] = np.zeros(len(df[target]))
+df["was_test"] = np.zeros(len(df[target]))
+flat_mass = min_mass
+flat_mass -= flat_step
+while flat_mass < max_mass:
+    flat_mass += flat_step
+    for t in min_bin_content.keys():
+        bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ["is_{}".format(t)]])
+        df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ["was_{}".format(t)]] = np.concatenate([np.zeros(min_bin_content[t]), np.ones(bin_total-min_bin_content[t])])
+        df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ["is_{}".format(t)]] = np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
+
+# control variables
+df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).hist(figsize = (24,20), bins = 500, log=True)
+plt.plot()
+plt.savefig("variables_flat_target.png")
+plt.close('all')
+C_mat = df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).corr()
+fig = plt.figure(figsize = (15,15))
+mask = np.zeros_like(C_mat)
+mask[np.triu_indices_from(mask)] = True
+import seaborn as sb
+sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
+fig.savefig("correlations_flat_target.png")
+plt.close('all')
 
 def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons):
 
