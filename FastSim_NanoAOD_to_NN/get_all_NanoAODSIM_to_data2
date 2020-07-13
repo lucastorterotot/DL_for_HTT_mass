@@ -9,7 +9,6 @@ find . -type f -iname Htt_merged_\* -delete
 
 rsync -au --progress torterotot@lyoserv.in2p3.fr:/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_* /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/
 
-conda deactivate
 for d in $(ls /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
 do
     cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/$d
