@@ -3,30 +3,6 @@
 mkdir -p /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
 cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
 
-find . -type f -iname \*.txt -delete
-find . -type f -iname \*.h5 -delete
-find . -type f -iname Htt_merged_\* -delete
-
-rsync -a --progress torterotot@lyoserv.in2p3.fr:/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_* /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/
-
-conda deactivate
-for d in $(ls /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
-do
-    cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/$d
-    rename "s|NanoAODSIM|NanoAODSIM_${d}|g" *NanoAODSIM.root
-
-    for f in $(ls | grep Htt_.*_NanoAODSIM_${d}.root)
-    do
-        (
-            HTT_FastSim_NanoAOD_tree_analysis $f ${f%.*}
-            # rm $f
-        ) &
-    done
-    wait
-done
-
-cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN
-conda activate tf
 for d in $(ls /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
 do
     cd /data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/$d
