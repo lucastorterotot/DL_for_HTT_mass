@@ -14,12 +14,18 @@ parser.add_option("-E", "--Nevents", dest = "Nevents",
                   default = 20000)
 parser.add_option("-g", "--gpu", dest = "gpu",
                   default = 0)
+parser.add_option("-b", "--bottleneck", dest = "bottleneck",
+                  default =  False, action = 'store_true')
 
 (options,args) = parser.parse_args()
 
 options.Nlayers = int(options.Nlayers)
 options.Nneurons = int(options.Nneurons)
 options.gpu = int(options.gpu)
+
+bottleneck_sequence = [500, 100] # for Nneurons = 1000
+if options.Nneurons == 2000:
+    bottleneck_sequence = [1000] + bottleneck_sequence # for Nneurons = 2000
 
 output = "_".join([options.output, str(options.Nlayers), "layers", str(options.Nneurons), "neurons"])
 
@@ -183,6 +189,9 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
 
     NNname = "_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
+    if options.bottleneck:
+        NNname += "_bottleneck"
+
     print(NNname)
 
     df_select = df
@@ -213,8 +222,20 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     NN_model = Sequential()
     from tensorflow.keras.constraints import max_norm
     NN_model.add(Dense(Nneurons, activation="linear", input_shape=(len(df_x_train.keys()),)))
-    for k in range(Nlayers):
+
+    Nhidden = Nlayers
+    if options.bottleneck:
+        Nhidden -= len(bottleneck_sequence)
+    if Nhidden < 0:
+        Nhidden = 0
+    
+    for k in range(Nhidden):
         NN_model.add(Dense(Nneurons, activation="relu", kernel_constraint=max_norm(2.)))
+
+    if options.bottleneck:
+        for Nneurons_bottleneck in bottleneck_sequence:
+            NN_model.add(Dense(Nneurons_bottleneck, activation="relu", kernel_constraint=max_norm(2.)))
+            
     NN_model.add(Dense(1, activation="linear"))
     print(NN_model.summary())
     NN_model.compile(loss='mean_squared_error',
