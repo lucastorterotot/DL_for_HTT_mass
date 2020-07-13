@@ -107,6 +107,7 @@ inputs = [i for i in inputs if not "charge_" in i]
 df.hist(figsize = (24,20), bins = 500, log=True)
 plt.plot()
 plt.savefig("variables.png")
+plt.close('all')
 C_mat = df.corr()
 fig = plt.figure(figsize = (15,15))
 mask = np.zeros_like(C_mat)
@@ -114,7 +115,7 @@ mask[np.triu_indices_from(mask)] = True
 import seaborn as sb
 sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
 fig.savefig("correlations.png")
-plt.clf()
+plt.close('all')
 
 def train_valid_test_split(df, train_size=.6, valid_size=.2, test_size=.2, seed=None):
     np.random.seed(seed)
@@ -163,6 +164,7 @@ def plot_hist(h, NNname, xsize=6, ysize=10):
     # plt.show()
     
     fig.savefig("history_{}.png".format(NNname))
+    plt.close('all')
 
 # Split index ranges into training and testing parts with shuffle
 train_size = .7
@@ -342,6 +344,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     
     #plt.show()
     fig.savefig("predicted_vs_answers_{}.png".format(NNname))
+    plt.close('all')    
 
 
     # Plot NN output / mH and mTtot / mH histograms as function of mH
@@ -402,6 +405,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     plt.xlim(0,2)
         
     fig.savefig("NN_vs_mTtot_histos_{}.png".format(NNname))
+    plt.close('all')
 
     df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
 
