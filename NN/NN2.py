@@ -29,6 +29,9 @@ if options.Nneurons == 2000:
 
 output = "_".join([options.output, str(options.Nlayers), "layers", str(options.Nneurons), "neurons"])
 
+if options.bottleneck:
+    output += "_bottleneck"
+
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
