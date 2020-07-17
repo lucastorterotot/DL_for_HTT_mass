@@ -5,12 +5,18 @@ import numpy as np
 
 plt.rcParams["figure.figsize"] = [7, 7]
 
-def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
+def filter_channel(df, channel = None):
+    df1 = df
+    if channel in set(df['channel_reco']):
+        df1 = df.loc[(df['channel_reco'] == channel)]
+    elif channel == "lt":
+        df1 = df.loc[(df['channel_reco'] == "mt") | (df['channel_reco'] == "et")]
+    elif channel == "ll":
+        df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
+    return df1    
 
-    if channel in ["inclusive", "combined"]:
-        df1 = df
-    else:
-        df1 = df.loc[(df["channel_reco"] == channel)]
+def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
+    df1 = filter_channel(df, channel)
         
     means = []
     sigmas = []
@@ -28,14 +34,14 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
                 
         df2 = df1.loc[(df1["Higgs_mass_gen"] >= mHrange[0]) & (df1["Higgs_mass_gen"] <= mHrange[1])]
         
-        predictions = np.r_[df2["{}_{}_layers_{}_neurons_output".format(channel, str(Nlayers), str(Nneurons))]]
+        predictions = np.r_[df2["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]]
         mHs = np.r_[df2["Higgs_mass_gen"]]
         values = predictions/mHs
         
         fig, ax = plt.subplots()
-        fig.suptitle("{} NN response in range {} to {} TeV for {} layers of {} neurons".format(channel, mHrange[0], mHrange[1], str(Nlayers), str(Nneurons)))
+        fig.suptitle("{} NN response in range {} to {} TeV\n for {} layers of {} neurons{}".format(channel, mHrange[0], mHrange[1], str(Nlayers), str(Nneurons), " with bottleneck" if bottleneck != "" else ""))
         plt.xlabel("Discriminator / Generated mass")
-        plt.ylabel("Probability")
+        plt.ylabel("Number of events")
         
         hist = ax.hist(values, bins=300, range = [0,3], label = 'Deep NN output', alpha=0.5, color = 'C0')
         x, popt = utils.make_gaussian_fit(hist)
@@ -59,12 +65,12 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
         
         plt.xlim(0,3)
         
-        fig.savefig("NN_response_{}".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons", str(mHrange[0]), "to", str(mHrange[1]), "TeV"])).replace(".", "_")+".png")
+        fig.savefig("NN_response_{}{}".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons", str(mHrange[0]), "to", str(mHrange[1]), "TeV"]), bottleneck).replace(".", "_")+".png")
         
         plt.close('all')
         
     fig, ax = plt.subplots()
-    fig.suptitle("{} NN response for {} layers of {} neurons".format(channel, str(Nlayers), str(Nneurons)))
+    fig.suptitle("{} NN response for {} layers of {} neurons{}".format(channel, str(Nlayers), str(Nneurons), " with bottleneck" if bottleneck != "" else ""))
     plt.xlabel("Generated mass (TeV)")
     plt.ylabel("NN output / Generated mass")
     
@@ -78,27 +84,24 @@ def NN_responses(df, channel, Nneurons, Nlayers, mH_min, mH_max):
     plt.ylim(0.7,1.7)
     plt.xlim(mH_min, mH_max)
     
-    fig.savefig("NN_response_{}.png".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])))
+    fig.savefig("NN_response_{}{}.png".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"]), bottleneck))
     plt.close('all')
 
-def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, mH_min, mH_max):
-    for Nneurons in Nneurons_list:
-        mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, mH_min, mH_max)
-    for Nlayers in Nlayers_list:
-        mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, mH_min, mH_max)
+def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, mH_min, mH_max):
+    for bottleneck in bottleneck_list:
+        for Nneurons in Nneurons_list:
+            mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, bottleneck, mH_min, mH_max)
+        for Nlayers in Nlayers_list:
+            mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, bottleneck, mH_min, mH_max)
 
-def mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, mH_min, mH_max):
-    mean_sigma_mae_fct(df, channel, Nlayers_list, mH_min, mH_max, fixed = "{} neurons per layer".format(str(Nneurons)), at = Nneurons, type = "n")
+def mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, bottleneck, mH_min, mH_max):
+    mean_sigma_mae_fct(df, channel, Nlayers_list, bottleneck, mH_min, mH_max, fixed = "{} neurons per layer".format(str(Nneurons)), at = Nneurons, type = "n")
 
-def mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, mH_min, mH_max):
-    mean_sigma_mae_fct(df, channel, Nneurons_list, mH_min, mH_max, fixed = "{} hidden layers".format(str(Nlayers)), at = Nlayers, type = "l")
+def mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, bottleneck, mH_min, mH_max):
+    mean_sigma_mae_fct(df, channel, Nneurons_list, bottleneck, mH_min, mH_max, fixed = "{} hidden layers".format(str(Nlayers)), at = Nlayers, type = "l")
 
-def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, type = "?"):
-                       
-    if channel in ["inclusive", "combined"]:
-        df1 = df
-    else:
-        df1 = df.loc[(df["channel_reco"] == channel)]
+def mean_sigma_mae_fct(df, channel, list, bottleneck, mH_min, mH_max, fixed = "?", at = 0, type = "?"):
+    df1 = filter_channel(df, channel)
         
     means = []
     sigmas = []
@@ -106,10 +109,16 @@ def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, t
     xpos = []
 
     for val in list:
+
+        if bottleneck == "_bottleneck":
+            if (type == "l" and val == 2000 and at == 2) or (type == "n" and val == 2 and at == 2000):
+                continue
+            
         if type == "n":
-            var = "{}_{}_layers_{}_neurons_output".format(channel, str(val), str(at))
+            var = "{}_{}_layers_{}_neurons{}_output".format(channel, str(val), str(at), bottleneck)
         elif type == "l":
-            var = "{}_{}_layers_{}_neurons_output".format(channel, str(at), str(val))
+            var = "{}_{}_layers_{}_neurons{}_output".format(channel, str(at), str(val), bottleneck)
+            
         predictions = np.r_[df1[var]]
         mHs = np.r_[df1["Higgs_mass_gen"]]
         values = predictions/mHs
@@ -131,7 +140,7 @@ def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, t
     xerr = [uxerr for x in xpos]
 
     fig, ax = plt.subplots()
-    fig.suptitle("{} performances with {}".format(channel, fixed))
+    fig.suptitle("{} performances with {}{}".format(channel, fixed, " and bottleneck" if bottleneck != "" else ""))
     if type == "n":
         plt.xlabel("Number of hidden layers")
     elif type == "l":
@@ -159,20 +168,18 @@ def mean_sigma_mae_fct(df, channel, list, mH_min, mH_max, fixed = "?", at = 0, t
     plt.xlim(xmin, xmax)
     
     if type == "n":
-        fig.savefig("NN_mean_{}_at_fixed_{}_Nneurons.png".format(channel, str(at)))
+        fig.savefig("NN_mean_{}_at_fixed_{}_Nneurons{}.png".format(channel, str(at), bottleneck))
     elif type == "l":
-        fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers.png".format(channel, str(at)))    
+        fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
 
-def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, mH_min, mH_max):
-    _df = df
-    if channel not in ["inclusive", "combined"]:
-        _df = df.loc[(df.channel_reco == channel)]
+def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
+    _df = filter_channel(df, channel)
     # Plot predicted vs answer on a test sample
     plt.clf()
     fig, ax = plt.subplots()
 
-    predictions, answers = np.r_[_df["{}_{}_layers_{}_neurons_output".format(channel, str(Nlayers), str(Nneurons))]], np.r_[_df["Higgs_mass_gen"]]
+    predictions, answers = np.r_[_df["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]], np.r_[_df["Higgs_mass_gen"]]
 
     # Calculate the point density
     from matplotlib.colors import Normalize
@@ -245,7 +252,7 @@ def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, mH_min, mH_max):
     plt.ylim(-.1, .7)
 
     fig.savefig(
-        "predicted_vs_answers_{}_{}_layers_{}_neurons.png".format(
-            channel, Nlayers, Nneurons
+        "predicted_vs_answers_{}_{}_layers_{}_neurons{}.png".format(
+            channel, Nlayers, Nneurons, bottleneck
         )
     )

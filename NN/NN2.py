@@ -23,9 +23,8 @@ options.Nlayers = int(options.Nlayers)
 options.Nneurons = int(options.Nneurons)
 options.gpu = int(options.gpu)
 
-bottleneck_sequence = [500, 100] # for Nneurons = 1000
-if options.Nneurons == 2000:
-    bottleneck_sequence = [1000] + bottleneck_sequence # for Nneurons = 2000
+# specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
+bottleneck_sequence = [1000, 500, 100]
 
 output = "_".join([options.output, str(options.Nlayers), "layers", str(options.Nneurons), "neurons"])
 
@@ -248,8 +247,12 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
 
     df_select = df_select.loc[(df_select['Higgs_mass_gen'] >= min_mass) & (df_select['Higgs_mass_gen'] <= max_mass)]
 
-    if channel != "inclusive":
+    if channel in set(df_select['channel_reco']):
         df_select = df_select.loc[(df_select['channel_reco'] == channel)]
+    elif channel == "lt":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mt") | (df_select['channel_reco'] == "et")]
+    elif channel == "ll":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
 
     df_x_train = df_select.loc[(df_select['is_train'] == 1)].drop(columns=[k for k in df_select.keys() if not k in inputs])
     df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
@@ -271,20 +274,17 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     # Create model
     NN_model = Sequential()
     from tensorflow.keras.constraints import max_norm
-    NN_model.add(Dense(Nneurons, activation="linear", input_shape=(len(df_x_train.keys()),)))
+    my_max_norm = 3.
 
-    Nhidden = Nlayers
+    Nneurons_sequence = Nneurons * np.ones(Nlayers)
     if options.bottleneck:
-        Nhidden -= len(bottleneck_sequence)
-    if Nhidden < 0:
-        Nhidden = 0
-    
-    for k in range(Nhidden):
-        NN_model.add(Dense(Nneurons, activation="relu", kernel_constraint=max_norm(2.)))
+        for k in range(min([Nlayers, len(bottleneck_sequence)])):
+            Nneurons_sequence[Nlayers-k-1] = min([Nneurons_sequence[Nlayers-k-1], bottleneck_sequence[-k-1]])
 
-    if options.bottleneck:
-        for Nneurons_bottleneck in bottleneck_sequence:
-            NN_model.add(Dense(Nneurons_bottleneck, activation="relu", kernel_constraint=max_norm(2.)))
+    NN_model.add(Dense(int(Nneurons_sequence[0]), activation="relu", kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
+
+    for _Nneurons in Nneurons_sequence[1:]:
+        NN_model.add(Dense(int(_Nneurons), activation="relu", kernel_constraint=max_norm(my_max_norm)))
             
     NN_model.add(Dense(1, activation="linear"))
     print(NN_model.summary())
@@ -460,7 +460,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     return df, True
 
 
-channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee"]
+channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
 for channel in channels:
     df_out, valid = NN_make_train_predict(df, inputs, channel = channel,

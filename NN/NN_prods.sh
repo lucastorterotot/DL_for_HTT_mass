@@ -17,7 +17,7 @@ do
     fi
 
     $DL_for_HTT/NN/NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu
-    if [[ $Nlayers != 2 ]] || [[ $Nneurons != 2000 ]]
+    if [[ $Nlayers > 3 ]] || [[ $Nneurons != 2000 ]] # avoid doing twice same NN
     then
         $DL_for_HTT/NN/NN2.py -i $input -L $Nlayers -N $Nneurons -o PROD -g $gpu -b
     fi
