@@ -69,7 +69,8 @@ print(_get_available_gpus())
 import matplotlib.pyplot as plt
 
 # Load data
-data_file = "/data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/{}/Htt_merged_NanoAODSIM_{}.h5".format(options.input, options.input)
+import os
+data_file = "/data2/{}/ML/FastSim_NanoAOD_to_NN/{}/Htt_merged_NanoAODSIM_{}.h5".format(os.environ["USER"], options.input, options.input)
 df = pd.read_hdf(data_file)
 
 # GeV to TeV

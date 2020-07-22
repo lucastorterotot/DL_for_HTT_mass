@@ -18,20 +18,36 @@ Run the provided installation script to ensure setting variables properly:
 ```
 
 ## HTT events from FastSim NanoAOD analysis
-Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored.
-To run on the files, if named `Htt_${mass}_NanoAODSIM.root`, do
+### Get the `.root` samples from FastSim output
+Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored. A dedicated script has been designed:
 ```
-Nevents_in_file=<enter the value here>
-for f in $(ls | grep Htt_.*_NanoAODSIM.root) ; do HTT_FastSim_NanoAOD_tree_analysis $f ${f%.*}_${Nevents_in_file} ; done
+cd $DL_for_HTT/FastSim_NanoAOD_to_NN
+./get_all_NanoAODSIM_to_data2 -u <YOUR_LYOSERV_USERNAME>
 ```
-Then you have a table in `Htt_${mass}_NanoAODSIM.txt` that you can import in a python script using `numpy`, `pandas`, etc.
+On `lyovis10`, it creates a directory `/data2/${USER}/ML/FastSim_NanoAOD_to_NN` and run `rsync` on `/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_*` from `lyoserv`.
 
-You can merge the different mass points outputs by using
+### Analyze the samples and get a `.txt` output table
+To run the `root` to `txt` analysis on a file, do
+```
+HTT_FastSim_NanoAOD_tree_analysis <FILE> <OUTPUT_NAME>
+```
+Then you have a table in `OUTPUT_NAME.txt` that you can import in a python script using `numpy`, `pandas`, etc.
+
+Now you need the `tf` environment from `conda`:
 ```
 conda activate tf
+```
+
+To merge the different `.txt` outputs (in principle one by root file, corresponding to one mass point and one amount of events) one can use the `txt_merger` script:
+```
+txt_merger -o <OUTPUT_NAME> <LIST_OF_INPUTS>
+```
+Make sure the columns are the same! To avoid typing all the files names, if for example you want to merge all `Htt_XXX_NanoAODSIM.txt` files where `XXX` is the Higgs mass into `Htt_merged_NanoAODSIM.txt` then you can do
+```
 txt_merger -o Htt_merged_NanoAODSIM.txt $(ls | grep Htt_.*_NanoAODSIM.txt | grep -ve Htt_merged_)
 ```
-and convert it to hdf5 format using less disk space with
+
+Once this is done, this txt file can be converted to `hdf5` format as it uses less disk space:
 ```
 txt_to_hdf5 Htt_merged_NanoAODSIM.txt Htt_merged_NanoAODSIM
 ```
@@ -40,23 +56,31 @@ Then you may delete `root` and `txt` files
 find . -type f -iname Htt_\*_NanoAODSIM\*.{root,txt} -delete
 ```
 
-## Train NN
+A dedicated script to run all the commands described in this section is provided:
+```
+cd $DL_for_HTT/FastSim_NanoAOD_to_NN
+./convert_NanoAODSIM_in_data2
+```
+This script will ensure to have a good naming scheme so that any event can be found back in the original root file.
+
+## Train the deep NN
 Go in the NN directory and activate the conda environment if not already done
 ```
 cd $DL_for_HTT/NN
 conda activate tf
 ```
-If the hdf5 output files from the previous step are stored in `/data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
+If the hdf5 output files from the previous step are stored in `/data2/${USER}/ML/FastSim_NanoAOD_to_NN/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
 ```
 ./NN2.py -i nevents_10 -L 1 -N 1 -o TEST
 ```
-This will run a training on the 10 (`-i`) events per mass point samples with 1 (`-L`) hidden layer containing 1 (`-N`) neuron. Output hdf5 files containing the NNs outputs will be named starting with `TEST` (`-o`).
+This will run a training on the 10 (`-i`) events per mass point samples with 1 (`-L`) hidden layer containing 1 (`-N`) neuron, so this would be quite quick.
+Output hdf5 files containing the NNs outputs will be named starting with `TEST` (`-o`).
 
-If this runs properly, the full production cna be done in parallel on the two GPUs by using `NN_prods.sh`:
+If this runs properly, the full production can be done in parallel on the two GPUs by using `NN_prods.sh`:
 ```
 NN_prods.sh 0 & NN_prods.sh 1 & wait
 ```
-This takes some time (up to 4 days at this point).
+This takes some time (up to 2 days at this point).
 Outputs will be named `PROD_X_layers_Y_neurons.h5` and may take ~500 Mo each.
 `X` will be in `[2, 3, 4, 5, 10, 15]` and `Y` in `[1000, 2000]`, so that's a total of 12 files i.e. 6 Go in total.
 
@@ -70,8 +94,8 @@ conda activate tf
 ```
 One script runs on provided outputs from previous step. To be kind with the disk space, these outputs are stored in `/data2`:
 ```
-mkdir -p /data2/ltorterotot/ML/NN/TeV_outputs/
-mv $DL_for_HTT/NN/*.h5 /data2/ltorterotot/ML/NN/TeV_outputs/
+mkdir -p /data2/${USER}/ML/NN/TeV_outputs/
+mv $DL_for_HTT/NN/*.h5 /data2/${USER}/ML/NN/TeV_outputs/
 ```
 Then the plotting script can be tested with its small option enabled:
 ```
