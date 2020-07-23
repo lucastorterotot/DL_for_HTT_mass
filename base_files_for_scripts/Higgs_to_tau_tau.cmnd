@@ -16,44 +16,31 @@ Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
 Beams:eCM = 13000.                 ! CM energy of collision = 13 TeV
 
 ! 4) Settings for the hard-process generation.
-HiggsSM:all = on
+!HiggsSM:all = on
+HiggsSM:gg2H = on
 
 ! 5) Higgs mass and Tau decays settings
 25:m0 = h_mass_GeV
-25:mWidth = 0.00374
-25:0:bRatio  = 0.0                 ! h -> d dbar
-25:1:bRatio  = 0.0                 ! h -> u ubar
-25:2:bRatio  = 0.0                 ! h -> s sbar
-25:3:bRatio  = 0.0                 ! h -> c cbar
-25:4:bRatio  = 0.0                 ! h -> b bbar
-25:5:bRatio  = 0.0                 ! h -> t tbar
-25:6:bRatio  = 0.0                 ! h -> e+ e-
-25:7:bRatio  = 0.0                 ! h -> mu+ mu-
-25:8:bRatio  = 1.0                 ! h -> tau+ tau-
-25:9:bRatio  = 0.0                 ! h -> g g
-25:10:bRatio = 0.0                 ! h -> gamma gamma
-25:11:bRatio = 0.0                 ! h -> gamma Z
-25:12:bRatio = 0.0                 ! h -> Z0 Z0
-25:13:bRatio = 0.0                 ! h -> W+ W-
-25:0:meMode  = 100                 ! set meMode = 100 so that
-25:1:meMode  = 100                 ! branching ratios are not
-25:2:meMode  = 100                 ! overwritten at initialization
-25:3:meMode  = 100
-25:4:meMode  = 100
-25:5:meMode  = 100
-25:6:meMode  = 100
-25:7:meMode  = 100
-25:8:meMode  = 100
-25:9:meMode  = 100
-25:10:meMode = 100
-25:11:meMode = 100
-25:12:meMode = 100
-25:13:meMode = 100
+!25:mWidth = 0.00374
+25:onMode = off
+25:onIfAny = 15 ! thx ece :)
+
 
 TauDecays:externalMode = 1          ! Decays of tau leptons can be performed using helicity information from the tau production process
 
 ! 6) Other settings. Can be expanded as desired.
-#Tune:preferLHAPDF = off            ! use internal PDFs when LHAPDF not linked
-Tune:pp = 6                        ! use Tune 4Cx
+Tune:preferLHAPDF = 2              ! use internal PDFs when LHAPDF not linked
+Tune:pp = 14                       ! use Tune Monash 2013 tune by Peter Skands
+Tune:ee = 7
+MultipartonInteractions:pT0Ref = 2.4024
+MultipartonInteractions:ecmPow = 0.25208
+MultipartonInteractions:expPow = 1.6
+Main:timesAllowErrors = 10000
+Check:epTolErr = 0.01
+Beams:setProductionScalesFromLHEF = off
+SLHA:keepSM = on
+SLHA:minMassSM = 1000.
 ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
 ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
+ParticleDecays:allowPhotonRadiation = on
+
