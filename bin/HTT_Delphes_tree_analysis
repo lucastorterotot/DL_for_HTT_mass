@@ -31,15 +31,15 @@ if options.Nmax is None:
 else:
     Nmax = min([int(options.Nmax), tree.GetEntries()])
                         
-def match(ptc1, ptc2, dR = .5):
-    ''' Check that two particles instance can be linked to the same physic object.'''
-    if ptc1.PID != ptc2.PID:
-        return False
-    # if abs((ptc1.PT - ptc2.PT)/ptc1.PT) > .1:
-    #     return False
-    if DR2(ptc1, ptc2)**.5 > dR:
-        return False
-    return True
+# def match(ptc1, ptc2, dR = .5):
+#     ''' Check that two particles instance can be linked to the same physic object.'''
+#     if ptc1.PID != ptc2.PID:
+#         return False
+#     # if abs((ptc1.PT - ptc2.PT)/ptc1.PT) > .1:
+#     #     return False
+#     if DR2(ptc1, ptc2)**.5 > dR:
+#         return False
+#     return True
 
 Nevt_in = 0
 Nevt_out_gen= 0
@@ -68,37 +68,43 @@ from Delphes_to_NN.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
 
 analysis_results = []
 
+N_to_store = 0
 for evt in tree:
     Nevt_in += 1
     passed_gen = False
     passed_reco = False
-    
+
     if options.verbose > 0 and Nevt_in%10 == 0:
         print("\nEvent {}:".format(Nevt_in))
-
-    gen_analysis = HTT_analysis_gen(evt, verbose = options.verbose)
-    if gen_analysis != {}:
-        passed_gen = True
-        Nevt_out_gen += 1
-
-    reco_analysis = {}
-    if passed_gen:
-        reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
-
+    
+    reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
     if reco_analysis != {}:
         passed_reco = True
         Nevt_out_reco += 1
 
+    gen_analysis = {}
+    if passed_reco:
+        gen_analysis = HTT_analysis_gen(evt, verbose = options.verbose)
+
+    if gen_analysis != {}:
+        passed_gen = True
+        Nevt_out_gen += 1
 
     if passed_gen and passed_reco:
         analysis_results.append({"gen" : gen_analysis, "reco" : reco_analysis})
-        
+        N_to_store += 1
     if options.verbose > 0:
         print("")
     if Nevt_in >= Nmax:
         break
 
 print("Processed on {Nevt_in} events.".format(Nevt_in=Nevt_in))
+print("Reco ana leaves {Nevt_out_reco} events.".format(Nevt_out_reco=Nevt_out_reco))
+print("Gen ana leaves {Nevt_out_gen} events.".format(Nevt_out_gen=Nevt_out_gen))
+
+if N_to_store == 0:
+    import sys
+    sys.exit()
 
 data = {}
 for analysis_result in analysis_results:
@@ -110,30 +116,30 @@ for analysis_result in analysis_results:
             data[key].append(analysis_result[ana][k])
 
 
-def clean_useless_data(names):
-    to_remove = [
-        'Higgs_Charge_gen',
-        'Higgs_D0_gen',
-        'Higgs_DZ_gen',
-        'Higgs_IsPU_gen',
-        'tau1_D0_gen',
-        'tau1_DZ_gen',
-        'tau1_IsPU_gen',
-        'tau1_Mass_gen',
-        'tau1_PID_gen',
-        'tau2_D0_gen',
-        'tau2_DZ_gen',
-        'tau2_IsPU_gen',
-        'tau2_Mass_gen',
-        'tau2_PID_gen',
-    ]
+# def clean_useless_data(names):
+#     to_remove = [
+#         'Higgs_Charge_gen',
+#         'Higgs_D0_gen',
+#         'Higgs_DZ_gen',
+#         'Higgs_IsPU_gen',
+#         'tau1_D0_gen',
+#         'tau1_DZ_gen',
+#         'tau1_IsPU_gen',
+#         'tau1_Mass_gen',
+#         'tau1_PID_gen',
+#         'tau2_D0_gen',
+#         'tau2_DZ_gen',
+#         'tau2_IsPU_gen',
+#         'tau2_Mass_gen',
+#         'tau2_PID_gen',
+#     ]
 
-    for var in to_remove:
-        if var in names:
-            names.remove(var)
+#     for var in to_remove:
+#         if var in names:
+#             names.remove(var)
 
 cols = list(data.keys())
-clean_useless_data(cols)
+# clean_useless_data(cols)
 cols.sort()
 
 # import pandas as pd

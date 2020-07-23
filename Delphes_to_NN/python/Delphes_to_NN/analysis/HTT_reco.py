@@ -43,6 +43,12 @@ def select_muon_em(muon):
         #muon.isMediumMuon,
         ])
 
+def select_muon_mm(muon):
+    return all([
+        muon.PT > 10,
+        abs(muon.Eta) < 2.4,
+        ])
+
 def select_muon_mt_dilepton_veto(muon):
     return all([
         muon.PT > 15,
@@ -85,6 +91,12 @@ def select_electron_em(ele):
             #ele.id_passes("mvaEleID-Fall17-noIso-V2","wp90"),
         ])
 
+def select_electron_ee(ele):
+    return all([
+            ele.PT > 20,
+            abs(ele.Eta) < 2.5,
+        ])
+
 def select_electron_et_dilepton_veto(ele):
     return all([
         ele.PT > 15,
@@ -121,7 +133,7 @@ def select_muon(muon, channel):
     if channel == "mt":
         return select_muon_mt(muon)
     elif channel == "mm":
-        return False # select_muon_mm(muon)
+        return select_muon_mm(muon)
     elif channel == "em":
         return select_muon_em(muon)
 
@@ -129,7 +141,7 @@ def select_electron(ele, channel):
     if channel == "et":
         return select_electron_et(ele)
     elif channel == "ee":
-        return False # select_electron_ee(ele)
+        return select_electron_ee(ele)
     elif channel == "em":
         return select_electron_em(ele)
 
@@ -194,6 +206,10 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     # construc dilepton
     dilepton = {}
     for channel in [c for c in accepted_channels if c in possible_channels]:
+        if channel in ["em", "mm"]:
+            DRmin = .3
+        else:
+            DRmin = .5
         l1s = selections[channel][letter_to_names[channel[0]]]
         l2s = selections[channel][letter_to_names[channel[1]]]
         pairs = []
@@ -204,9 +220,10 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
             for l1 in l1s:
                 for l2 in l2s:
                     pairs.append((l1,l2))
-        _pairs = [p for p in pairs]
+        # check opposite sign
         pairs = [pair for pair in pairs if pair[0].Charge == - pair[1].Charge]
-        pairs = [pair for pair in pairs if DR2(pair[0], pair[1])**.5 > .5] # check
+        # check DR2
+        pairs = [pair for pair in pairs if DR2(pair[0], pair[1])**.5 > DRmin] # check
         if len(pairs) == 0:
             possible_channels.remove(channel)
             continue
@@ -216,31 +233,66 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         if verbose >0:
             tau1, tau2 = dilepton[channel]
             print(channel)
-            print("")
-            print("\tleg1:")
-            print("\ttau pT: {}, eta: {}, phi: {}".format(tau1.PT, tau1.Eta, tau1.Phi))
+            # print("")
+            # print("\tleg1:")
+            # print("\ttau pT: {}, eta: {}, phi: {}".format(tau1.PT, tau1.Eta, tau1.Phi))
 
-            print("")
-            print("\tleg2:")
-            print("\ttau pT: {}, eta: {}, phi: {}".format(tau2.PT, tau2.Eta, tau2.Phi))
+            # print("")
+            # print("\tleg2:")
+            # print("\ttau pT: {}, eta: {}, phi: {}".format(tau2.PT, tau2.Eta, tau2.Phi))
                                                         
 
-    # select only one channel
-    if len(possible_channels) > 1:
-        muon_third_lepton = [m for m in muons if select_muon_third_lepton_veto(m)]
-        ele_third_lepton = [e for e in electrons if select_electron_third_lepton_veto(e)]
-        for channel in [c for c in accepted_channels if c in possible_channels]:
-            if channel == "mt":
-                muons_dilepton = [m for m in muons if select_muon_mt_dilepton_veto(m) if not m in dilepton[channel]]
-                if len(muons_dilepton) > len(selections[channel]["muons"]) or len(ele_third_lepton)>0:
-                    possible_channels.remove(channel)
-            if channel == "et":
-                ele_dilepton = [e for e in electrons if select_electron_et_dilepton_veto(e) if not e in dilepton[channel]]
-                if len(ele_dilepton) > len(selections[channel]["electrons"]) or len(muon_third_lepton)>0:
-                    possible_channels.remove(channel)
-            if channel == "tt":
-                if len(ele_third_lepton)>0 or len(muon_third_lepton)>0:
-                    possible_channels.remove(channel)
+    # Lepton vetoes
+    muon_third_lepton = [muon for muon in muons if select_muon_third_lepton_veto(muon)]
+    for channel in ["tt", "et", "ee"]:
+        if channel in possible_channels and len(muon_third_lepton)>0:
+            possible_channels.remove(channel)
+    for channel in ["mt", "em"]:
+        if channel in possible_channels and len(muon_third_lepton)>1:
+            possible_channels.remove(channel)
+    for channel in ["mm"]:
+        if channel in possible_channels and len(muon_third_lepton)>2:
+            possible_channels.remove(channel)
+    ele_third_lepton = [ele for ele in electrons if select_electron_third_lepton_veto(ele)]
+    for channel in ["tt", "mt", "mm"]:
+        if channel in possible_channels and len(ele_third_lepton)>0:
+            possible_channels.remove(channel)
+    for channel in ["et", "em"]:
+        if channel in possible_channels and len(ele_third_lepton)>1:
+            possible_channels.remove(channel)
+    for channel in ["ee"]:
+        if channel in possible_channels and len(ele_third_lepton)>2:
+            possible_channels.remove(channel)
+
+    if "mt" in possible_channels:
+        rm_channel = False
+        dimu_veto = [muon for muon in muons if select_muon_mt_dilepton_veto(muon) and not muon == dilepton["mt"][0]]
+        for mu1, mu2 in itertools.combinations(dimu_veto,2):
+            c1 = mu1.Charge
+            c2 = mu2.Charge
+            eta1 = mu1.Eta
+            eta2 = mu2.Eta
+            phi1 = mu1.Phi
+            phi2 = mu2.Phi
+            if c1 * c2 < 0 and ((eta1-eta2)**2 + (phi1-phi2)**2)**.5 > 0.15:
+                rm_channel = True
+        if rm_channel:
+            possible_channels.remove("mt")
+
+    if "et" in possible_channels:
+        rm_channel = False
+        diele_vetoe = [ele for ele in electrons if select_electron_et_dilepton_veto(ele) and not ele == dilepton["et"][0]]
+        for e1, e2 in itertools.combinations(diele_vetoe,2):
+            c1 = e1.Charge
+            c2 = e2.Charge
+            eta1 = e1.Eta
+            eta2 = e2.Eta
+            phi1 = e1.Phi
+            phi2 = e2.Phi
+            if c1 * c2 < 0 and ((eta1-eta2)**2 + (phi1-phi2)**2)**.5 > 0.15:
+                rm_channel = True
+        if rm_channel:
+            possible_channels.remove("et")
 
     if len(possible_channels) > 1:
         raise RuntimeError("More than one channel is still possible, please check!")
@@ -249,19 +301,25 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         
     channel = possible_channels[0]
     tau1, tau2 = dilepton[channel]
-    decays1, decays2 = tau1, tau2
-    DM1, DM2 = "1prong0pi0", "1prong0pi0"
 
-    if channel[0] == "t":
-        DM1 = find_tau_DM(tau1)
-    if channel[1] == "t":
-        DM2 = find_tau_DM(tau2)
+    # store variables
+    output = {
+        "channel" : channel,
+    }
 
-
+    # legs
+    store_vars.store_real_tau_decays(output, "tau1", tau1, type=channel[0])
+    store_vars.store_real_tau_decays(output, "tau2", tau2, type=channel[1])
+    
     # MET and METcov
     MET, METcov = get_MET_and_METcov(evt)
+    output["MET_PT"] =  MET.MET
+    output["MET_Phi"] = MET.Phi
+    output["METcov_xx"] = METcov[0][0]
+    output["METcov_xy"] = METcov[0][1]
+    output["METcov_yy"] = METcov[1][1]
 
-    # Store two leading jets
+    # Up to two leading jets
     jets.sort(key = lambda j : j.PT, reverse = True)
 
     jet1 = None
@@ -271,18 +329,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     if len(jets) > 1:
         jet2 = jets[1]
         
-    output = {
-        "channel" : channel,
-        "DM1" : DM1,
-        "DM2" : DM2,
-        "MET_PT" : MET.MET,
-        "MET_Phi" : MET.Phi,
-        "METcov_xx" : METcov[0][0],
-        "METcov_xy" : METcov[0][1],
-        "METcov_yy" : METcov[1][1],
-    }
-    store_vars.store_real_tau_decays(output, "tau1", tau1, type=channel[0])
-    store_vars.store_real_tau_decays(output, "tau2", tau2, type=channel[1])
     store_vars.store_jet(output, "jet1", jet1)
     store_vars.store_jet(output, "jet2", jet2)
+
     return output

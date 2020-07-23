@@ -4,10 +4,10 @@ default_attrs = ["PT", "Eta", "Phi"]
 def store(dic, name, obj, attrs = default_attrs):
     if obj is None:
         for attr in attrs:
-            dic["{}_{}".format(name, attr)] = None
+            dic["{}_{}".format(name, attr)] = 0
     else:
         for attr in attrs:
-            dic["{}_{}".format(name, attr)] = getattr(obj, attr, None)
+            dic["{}_{}".format(name, attr)] = getattr(obj, attr, 0)
 
             
 default_gen_ptc_attrs = ["PID", "IsPU", "Charge", "Mass", "E", "PT", "Eta", "Phi", "D0", "DZ"]
