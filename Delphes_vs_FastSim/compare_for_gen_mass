@@ -88,8 +88,8 @@ def draw_comparison(
     trees["FastSim"].Project(hf.GetName(), FastSim_var, FastSim_cut)
     hf.SetLineColor(1)
     
-    hd.Draw()
-    hf.Draw("same")
+    hf.Draw()
+    hd.Draw("same")
 
     legend = TLegend(.75,.8,.925,.9)
     legend.SetLineColor(0)
@@ -98,10 +98,10 @@ def draw_comparison(
     add_legend_entry(hf, "FastSim", hfls, legend)
     
     pad.SetLogy()
-    Xaxis = hd.GetXaxis()
+    Xaxis = hf.GetXaxis()
     Xaxis.SetLabelSize(0)
 
-    Yaxis = hd.GetYaxis()
+    Yaxis = hf.GetYaxis()
     Yaxis.SetTitle('N events')
     Yaxis.SetTitleSize(.075)
     
@@ -211,7 +211,7 @@ draw_comparison(
         Delphes_cut = "1",
         FastSim_var = "Muon_pt[1]",
         FastSim_cut = "1",
-        bins = (50, 0, 400)
+        bins = (50, 0, 150)
 )
 
 # reco leading electron pt
@@ -222,7 +222,7 @@ draw_comparison(
         Delphes_cut = "1",
         FastSim_var = "Electron_pt[0]",
         FastSim_cut = "1",
-        bins = (50, 0, 400)
+        bins = (50, 0, 1500)
 )
 
 # reco trailing electron pt
