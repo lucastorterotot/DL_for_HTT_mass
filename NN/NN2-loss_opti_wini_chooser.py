@@ -11,7 +11,7 @@ parser.add_option("-L", "--Nlayers", dest = "Nlayers",
 parser.add_option("-N", "--Nneurons", dest = "Nneurons",
                   default = 1000)
 parser.add_option("-i", "--input", dest = "input",
-                  default = "ALL")
+                  default = "nevents_1000")
 parser.add_option("-g", "--gpu", dest = "gpu",
                   default = 0)
 parser.add_option("-b", "--bottleneck", dest = "bottleneck",
@@ -88,7 +88,7 @@ for ana in ["reco", "gen"]:
 
 # select only good points in TeV
 min_mass = .1
-max_mass = .2 #.5
+max_mass = .5
 
 # define target and input variables
 target = "Higgs_mass_gen"
@@ -235,7 +235,7 @@ sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
 fig.savefig("correlations_flat_target.png")
 plt.close('all')
 
-def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons):
+def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = 'mean_squared_error', optimizer = optimizers.Adam(), w_init_mode = None):
 
     NNname = "_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
@@ -282,15 +282,37 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
         for k in range(min([Nlayers, len(bottleneck_sequence)])):
             Nneurons_sequence[Nlayers-k-1] = min([Nneurons_sequence[Nlayers-k-1], bottleneck_sequence[-k-1]])
 
-    NN_model.add(Dense(int(Nneurons_sequence[0]), activation="relu", kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
+    NN_model.add(
+        Dense(
+            int(Nneurons_sequence[0]),
+            activation="relu",
+            kernel_constraint = max_norm(my_max_norm),
+            input_shape = (len(df_x_train.keys()),),
+            kernel_initializer=w_init_mode,
+        )
+    )
 
     for _Nneurons in Nneurons_sequence[1:]:
-        NN_model.add(Dense(int(_Nneurons), activation="relu", kernel_constraint=max_norm(my_max_norm)))
+        NN_model.add(
+            Dense(
+                int(_Nneurons),
+                activation="relu",
+                kernel_constraint=max_norm(my_max_norm),
+                kernel_initializer=w_init_mode,
+            )
+        )
             
-    NN_model.add(Dense(1, activation="linear"))
+    NN_model.add(
+        Dense(
+            1,
+            activation="linear",
+            kernel_initializer=w_init_mode,
+        )
+    )
+    
     print(NN_model.summary())
-    NN_model.compile(loss='mean_squared_error',
-                     optimizer=optimizers.Adam(),
+    NN_model.compile(loss=loss,
+                     optimizer=optimizer,
                      metrics=[keras.metrics.mae])
     
     # Train model
@@ -458,17 +480,32 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
 
     df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
 
-    return df, True
+    return df, True, NNname
 
 
-channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
+loss_fcts = []
+optimizers = []
+w_init_modes = []
 
-for channel in channels:
-    df_out, valid = NN_make_train_predict(df, inputs, channel = channel,
-                                          Nlayers = options.Nlayers, Nneurons = options.Nneurons)
-    if valid:
-        df = df_out
+scores = {}
 
+for loss in loss_fcts:
+    for optimizer in optimizers:
+        for w_init_mode in w_init_modes:
+            df_out, valid, NNname = NN_make_train_predict(df, inputs, channel = "inclusive",
+                                                  Nlayers = options.Nlayers, Nneurons = options.Nneurons,
+                                                  loss = loss,
+                                                  optimizer = optimizer,
+                                                  w_init_mode = w_init_mode)
+            if valid:
+                df = df_out
+                scores["_".join([loss, optimizer, w_init_mode])] = df.loc[df["is_valid" == 1], ["{}_output".format(NNname)]].std()
+
+scores = pd.DataFrame.from_dict(scores)
+print(scores)
+
+scores.to_csv("scores.csv")
+                
 for k in df:
     if any([s in k for s in ["is_", "was_"]]):
         df[k] = df[k].astype('bool')
