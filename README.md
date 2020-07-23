@@ -5,6 +5,7 @@
 
 ## Installation
 
+### This repository
 Fork the repository and clone it on your machine
 ```
 mkdir -p <YOUR_DIRECTORY_NAME>
@@ -17,7 +18,41 @@ Run the provided installation script to ensure setting variables properly:
 ./install
 ```
 
-## HTT events from FastSim NanoAOD analysis
+### Delphes 3.4.2
+```
+mkdir -p $DL_for_HTT/Delphes && cd $DL_for_HTT/Delphes
+wget http://cp3.irmp.ucl.ac.be/downloads/Delphes-3.4.2.tar.gz && tar -zxf Delphes-3.4.2.tar.gz
+cd Delphes-3.4.2
+make
+```
+
+### Pythia 8.235
+```
+mkdir -p $DL_for_HTT/Pythia8 && cd $DL_for_HTT/Pythia8
+wget http://home.thep.lu.se/~torbjorn/pythia8/pythia8235.tgz && tar xzvf pythia8235.tgz
+cd pythia8235 && ./configure --prefix=$(pwd)
+make install
+export PYTHIA8=$(pwd)
+cd $DL_for_HTT/Delphes/Delphes-3.4.2/ && make HAS_PYTHIA8=true
+```
+
+### Run a test
+>>>>>>> parent of 12c898b... Update README
+```
+cd $DL_for_HTT/Delphes
+./DelphesPythia8 cards/delphes_card_CMS.tcl examples/Pythia8/configNoLHE.cmnd delphes_nolhe.root
+```
+
+## HTT events generation with Delphes
+Generate HTT events. It takes roughly 1 hour for 100000 events, try with 1000:
+```
+cd $DL_for_HTT/Event_generation_with_Delphes
+DelphesPythia8 delphes_card_CMS.tcl event_gen_cfgs/Higgs_to_tau_tau.cmnd SM_HTT.root
+```
+
+## HTT eventsfrom FastSim NanoAOD analysis
+Instead of Delphes, one can use NanoAOD from CMS FastSim.
+
 ### Get the `.root` samples from FastSim output
 Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored. A dedicated script has been designed:
 ```
@@ -28,6 +63,10 @@ On `lyovis10`, it creates a directory `/data2/${USER}/ML/FastSim_NanoAOD_to_NN` 
 
 ### Analyze the samples and get a `.txt` output table
 To run the `root` to `txt` analysis on a file, do
+```
+HTT_Delphes_tree_analysis <FILE> <OUTPUT_NAME>
+```
+or, if FastSim was used,
 ```
 HTT_FastSim_NanoAOD_tree_analysis <FILE> <OUTPUT_NAME>
 ```
@@ -64,11 +103,8 @@ cd $DL_for_HTT/FastSim_NanoAOD_to_NN
 This script will ensure to have a good naming scheme so that any event can be found back in the original root file.
 
 ## Train the deep NN
-Go in the NN directory and activate the conda environment if not already done
-```
-cd $DL_for_HTT/NN
-conda activate tf
-```
+Go in the NN directory and activate the conda environment if not already done.
+
 If the hdf5 output files from the previous step are stored in `/data2/${USER}/ML/FastSim_NanoAOD_to_NN/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
 ```
 ./NN2.py -i nevents_10 -L 1 -N 1 -o TEST
@@ -96,13 +132,3 @@ One script runs on provided outputs from previous step. To be kind with the disk
 ```
 mkdir -p /data2/${USER}/ML/NN/TeV_outputs/
 mv $DL_for_HTT/NN/*.h5 /data2/${USER}/ML/NN/TeV_outputs/
-```
-Then the plotting script can be tested with its small option enabled:
-```
-./plots.py -s
-```
-If everything works fine you may get *lots* of png outputs, eventually some `tex` files containing tables ready to be used in a document (to be implemented if wanted).
-To get the full analysis of the NNs outputs, do not use the small option:
-```
-./plots.py
-```
