@@ -25,9 +25,9 @@ def find_HTT(evt):
                         return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
     return None, None, None
 
-def determine_gen_channel(tau1, tau2):
-    leg1 = determine_tau_channel(tau1)
-    leg2 = determine_tau_channel(tau1)
+def determine_gen_channel(evt, tau1, tau2):
+    leg1 = determine_tau_channel(evt, tau1)
+    leg2 = determine_tau_channel(evt, tau1)
     channel = leg1+leg2
     # sort legs and channel
     if leg1 == leg2:
@@ -38,7 +38,7 @@ def determine_gen_channel(tau1, tau2):
         tau1, tau2 = tau2, tau1
     return leg1+leg2, tau1, tau2
 
-def determine_tau_channel(tau):
+def determine_tau_channel(evt, tau):
     decays_PIDs = [(tau, tau.PID)]
 
     while not any([abs(decays_PID[1]) in [12, 14, 16] for decays_PID in decays_PIDs]): # use neutrinos to check decays
