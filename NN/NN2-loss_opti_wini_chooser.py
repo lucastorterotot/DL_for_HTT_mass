@@ -336,8 +336,8 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     train_score = NN_model.evaluate(arr_x_train, arr_y_train, verbose=0)
     valid_score = NN_model.evaluate(arr_x_valid, arr_y_valid, verbose=0)
 
-    # print('Train MAE: ', round(train_score[1], 4), ', Train Loss: ', round(train_score[0], 4))
-    # print('Val MAE: ', round(valid_score[1], 4), ', Val Loss: ', round(valid_score[0], 4))
+    print('Train MAE: ', round(train_score[1], 4), ', Train Loss: ', round(train_score[0], 4))
+    print('Val MAE: ', round(valid_score[1], 4), ', Val Loss: ', round(valid_score[0], 4))
 
 
     # plot_hist(history.history, NNname, xsize=8, ysize=12)
@@ -478,7 +478,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     # fig.savefig("NN_vs_mTtot_histos_{}.png".format(NNname))
     # plt.close('all')
 
-    # df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
+    df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
 
     return df, True, NNname
 
