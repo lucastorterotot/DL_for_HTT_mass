@@ -51,11 +51,11 @@ def determine_tau_channel(evt, tau):
 
     decays_PIDs = list(set(decays_PID[1] for decays_PID in decays_PIDs))
 
-    if 12 in [abs[PID] for PID in decays_PIDs]:
+    if 12 in [abs(PID) for PID in decays_PIDs]:
         return "e"
-    elif 14 in [abs[PID] for PID in decays_PIDs]:
+    elif 14 in [abs(PID) for PID in decays_PIDs]:
         return "m"
-    elif 16 in [abs[PID] for PID in decays_PIDs]:
+    elif 16 in [abs(PID) for PID in decays_PIDs]:
         return "t"
     else:
         import pdb; pdb.set_trace()
