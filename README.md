@@ -49,10 +49,9 @@ cd $DL_for_HTT/Event_generation_with_Delphes
 DelphesPythia8 delphes_card_CMS.tcl event_gen_cfgs/Higgs_to_tau_tau.cmnd SM_HTT.root
 ```
 
-## HTT eventsfrom FastSim NanoAOD analysis
+## HTT events from FastSim NanoAOD analysis
 Instead of Delphes, one can use NanoAOD from CMS FastSim.
 
-### Get the `.root` samples from FastSim output
 Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored. A dedicated script has been designed:
 ```
 cd $DL_for_HTT/FastSim_NanoAOD_to_NN
@@ -60,7 +59,7 @@ cd $DL_for_HTT/FastSim_NanoAOD_to_NN
 ```
 On `lyovis10`, it creates a directory `/data2/${USER}/ML/FastSim_NanoAOD_to_NN` and run `rsync` on `/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_*` from `lyoserv`.
 
-### Analyze the samples and get a `.txt` output table
+## Analyze the samples and get a `.txt` output table
 To run the `root` to `txt` analysis on a file, do
 ```
 HTT_Delphes_tree_analysis <FILE> <OUTPUT_NAME>
