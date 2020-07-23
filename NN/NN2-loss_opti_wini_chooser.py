@@ -235,7 +235,7 @@ sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
 fig.savefig("correlations_flat_target.png")
 plt.close('all')
 
-def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = 'mean_squared_error', optimizer = optimizers.Adam(), w_init_mode = None):
+def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = 'mean_squared_error', optimizer = optimizers.Adam, w_init_mode = None):
 
     NNname = "_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
@@ -312,7 +312,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     
     print(NN_model.summary())
     NN_model.compile(loss=loss,
-                     optimizer=optimizer,
+                     optimizer=optimizer(),
                      metrics=[keras.metrics.mae])
     
     # Train model
@@ -336,156 +336,192 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     train_score = NN_model.evaluate(arr_x_train, arr_y_train, verbose=0)
     valid_score = NN_model.evaluate(arr_x_valid, arr_y_valid, verbose=0)
 
-    print('Train MAE: ', round(train_score[1], 4), ', Train Loss: ', round(train_score[0], 4))
-    print('Val MAE: ', round(valid_score[1], 4), ', Val Loss: ', round(valid_score[0], 4))
+    # print('Train MAE: ', round(train_score[1], 4), ', Train Loss: ', round(train_score[0], 4))
+    # print('Val MAE: ', round(valid_score[1], 4), ', Val Loss: ', round(valid_score[0], 4))
 
 
-    plot_hist(history.history, NNname, xsize=8, ysize=12)
+    # plot_hist(history.history, NNname, xsize=8, ysize=12)
 
-    # Plot predicted vs answer on a test sample
-    plt.clf()
-    plt.rcParams["figure.figsize"] = [16, 10]
-    fig, ax = plt.subplots()
-    predictions, answers = NN_model.predict(arr_x_valid), arr_y_valid
-    # Calculate the point density
-    from matplotlib.colors import Normalize
-    from scipy.interpolate import interpn
-    data , x_e, y_e = np.histogram2d( answers, predictions[:,0], bins = [50,50], density = True )
-    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([answers, predictions[:,0]]).T , method = "splinef2d", bounds_error = False)
-    z[np.where(np.isnan(z))] = 0.0
-    # Sort the points by density, so that the densest points are plotted last
-    idx = z.argsort()
-    x, y, z = answers[idx], predictions[idx,0], z[idx]
-    ax.scatter(x,y, c=z, edgecolor='', label="Test")
-    ax.plot(answers, answers, color="C3")
-    plt.xlabel("Generated Higgs Mass (TeV)")
-    plt.ylabel("Predicted Higgs Mass (TeV)")
+    # # Plot predicted vs answer on a test sample
+    # plt.clf()
+    # plt.rcParams["figure.figsize"] = [16, 10]
+    # fig, ax = plt.subplots()
+    # predictions, answers = NN_model.predict(arr_x_valid), arr_y_valid
+    # # Calculate the point density
+    # from matplotlib.colors import Normalize
+    # from scipy.interpolate import interpn
+    # data , x_e, y_e = np.histogram2d( answers, predictions[:,0], bins = [50,50], density = True )
+    # z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([answers, predictions[:,0]]).T , method = "splinef2d", bounds_error = False)
+    # z[np.where(np.isnan(z))] = 0.0
+    # # Sort the points by density, so that the densest points are plotted last
+    # idx = z.argsort()
+    # x, y, z = answers[idx], predictions[idx,0], z[idx]
+    # ax.scatter(x,y, c=z, edgecolor='', label="Test")
+    # ax.plot(answers, answers, color="C3")
+    # plt.xlabel("Generated Higgs Mass (TeV)")
+    # plt.ylabel("Predicted Higgs Mass (TeV)")
     
-    # linear regression on trained output
-    xerr_for_reg = 1
-    yerr_for_reg = 1
-    # linear function to adjust
-    def f(x,p):
-        a,b = p
-        return a*x+b
+    # # linear regression on trained output
+    # xerr_for_reg = 1
+    # yerr_for_reg = 1
+    # # linear function to adjust
+    # def f(x,p):
+    #     a,b = p
+    #     return a*x+b
 
-    # its derivative
-    def Dx_f(x,p):
-        a,b = p
-        return a
+    # # its derivative
+    # def Dx_f(x,p):
+    #     a,b = p
+    #     return a
 
-    # difference to data
-    def residual(p, y, x):
-        return (y-f(x,p))/np.sqrt(yerr_for_reg**2 + (Dx_f(x,p)*xerr_for_reg)**2)
+    # # difference to data
+    # def residual(p, y, x):
+    #     return (y-f(x,p))/np.sqrt(yerr_for_reg**2 + (Dx_f(x,p)*xerr_for_reg)**2)
 
-    # initial estimation
-    # usually OK but sometimes one need to give a different
-    # starting point to make it converge
-    p0 = np.array([0,0])
-    # minimizing algorithm
-    import scipy.optimize as spo
-    x, y = answers, np.r_[predictions][:,0]
-    try:
-        result = spo.leastsq(residual, p0, args=(y, x), full_output=True)
-        # optimized parameters a and b
-        popt = result[0];
-        # variance-covariance matrix
-        pcov = result[1];
-        # uncetainties on parameters (1 sigma)
-        #uopt = np.sqrt(np.abs(np.diagonal(pcov)))
-        x_aj = np.linspace(min(x),max(x),100)
-        y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
+    # # initial estimation
+    # # usually OK but sometimes one need to give a different
+    # # starting point to make it converge
+    # p0 = np.array([0,0])
+    # # minimizing algorithm
+    # import scipy.optimize as spo
+    # x, y = answers, np.r_[predictions][:,0]
+    # try:
+    #     result = spo.leastsq(residual, p0, args=(y, x), full_output=True)
+    #     # optimized parameters a and b
+    #     popt = result[0];
+    #     # variance-covariance matrix
+    #     pcov = result[1];
+    #     # uncetainties on parameters (1 sigma)
+    #     #uopt = np.sqrt(np.abs(np.diagonal(pcov)))
+    #     x_aj = np.linspace(min(x),max(x),100)
+    #     y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
         
-        ax.plot(x_aj, y_aj, color="C4")
-        y_info = 0.95
-        x_info = 0.025
-        multialignment='left'
-        horizontalalignment='left'
-        verticalalignment='top'
-        ax.text(x_info, y_info,
-                '\n'.join([
-                    '$f(x) = ax+b$',
-                    '$a = {{ {0:.2e} }}$'.format(popt[0]),
-                    '$b = {{ {0:.2e} }}$'.format(popt[1])
-                ]),
-                transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
-    except:
-        #import pdb; pdb.set_trace()
-        print("No extrapolation possible")
+    #     ax.plot(x_aj, y_aj, color="C4")
+    #     y_info = 0.95
+    #     x_info = 0.025
+    #     multialignment='left'
+    #     horizontalalignment='left'
+    #     verticalalignment='top'
+    #     ax.text(x_info, y_info,
+    #             '\n'.join([
+    #                 '$f(x) = ax+b$',
+    #                 '$a = {{ {0:.2e} }}$'.format(popt[0]),
+    #                 '$b = {{ {0:.2e} }}$'.format(popt[1])
+    #             ]),
+    #             transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+    # except:
+    #     #import pdb; pdb.set_trace()
+    #     print("No extrapolation possible")
     
-    #plt.show()
-    fig.savefig("predicted_vs_answers_{}.png".format(NNname))
-    plt.close('all')    
+    # #plt.show()
+    # fig.savefig("predicted_vs_answers_{}.png".format(NNname))
+    # plt.close('all')    
 
 
-    # Plot NN output / mH and mTtot / mH histograms as function of mH
-    plt.clf()
-    plt.rcParams["figure.figsize"] = [10, 10]
-    fig, ax = plt.subplots()
-    plt.xlabel("Discriminator / Generated mass")
+    # # Plot NN output / mH and mTtot / mH histograms as function of mH
+    # plt.clf()
+    # plt.rcParams["figure.figsize"] = [10, 10]
+    # fig, ax = plt.subplots()
+    # plt.xlabel("Discriminator / Generated mass")
 
-    NN_output_on_mH = predictions[:,0]/answers
-    mTtot_on_mH = np.array(df_x_valid["mTtot_reco"])/answers
+    # NN_output_on_mH = predictions[:,0]/answers
+    # mTtot_on_mH = np.array(df_x_valid["mTtot_reco"])/answers
 
-    h_NN = ax.hist(NN_output_on_mH, bins=200, range = [0,2], label = 'Deep NN output', alpha=0.5, color = 'C0')
-    h_mTtot = ax.hist(mTtot_on_mH, bins=200, range = [0,2], label = 'Classic mTtot', alpha=0.5, color = 'C1')
-    plt.legend()
+    # h_NN = ax.hist(NN_output_on_mH, bins=200, range = [0,2], label = 'Deep NN output', alpha=0.5, color = 'C0')
+    # h_mTtot = ax.hist(mTtot_on_mH, bins=200, range = [0,2], label = 'Classic mTtot', alpha=0.5, color = 'C1')
+    # plt.legend()
 
-    # Gaussian fits
-    try:
-        def gaus(x,a,x0,sigma):
-            return a*np.exp(-(x-x0)**2/(2*sigma**2))
+    # # Gaussian fits
+    # try:
+    #     def gaus(x,a,x0,sigma):
+    #         return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
-        from scipy.optimize import curve_fit
-        x, y = (h_NN[1][1:]+h_NN[1][:-1])/2,h_NN[0]
-        popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
-        plt.plot(x,gaus(x,*popt), color = 'C0')
-        y_info = 0.5
-        x_info = .75
-        multialignment='left'
-        horizontalalignment='left'
-        verticalalignment='top'
-        ax.text(x_info, y_info,
-                '\n'.join([
-                "Deep NN",
-                'Mean $ = {}$'.format(np.round(popt[1], 3)),
-                '$\\sigma = {}$'.format(np.round(abs(popt[2]), 3))
-            ]),
-                transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+    #     from scipy.optimize import curve_fit
+    #     x, y = (h_NN[1][1:]+h_NN[1][:-1])/2,h_NN[0]
+    #     popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
+    #     plt.plot(x,gaus(x,*popt), color = 'C0')
+    #     y_info = 0.5
+    #     x_info = .75
+    #     multialignment='left'
+    #     horizontalalignment='left'
+    #     verticalalignment='top'
+    #     ax.text(x_info, y_info,
+    #             '\n'.join([
+    #             "Deep NN",
+    #             'Mean $ = {}$'.format(np.round(popt[1], 3)),
+    #             '$\\sigma = {}$'.format(np.round(abs(popt[2]), 3))
+    #         ]),
+    #             transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
         
-        x, y = (h_mTtot[1][1:]+h_mTtot[1][:-1])/2,h_mTtot[0]
-        popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
-        plt.plot(x,gaus(x,*popt), color = 'C1')
-        y_info = 0.9
-        x_info = 0.025
-        multialignment='left'
-        horizontalalignment='left'
-        verticalalignment='top'
-        ax.text(x_info, y_info,
-                '\n'.join([
-                    "Classic mTtot",
-                    'Mean $ = {}$'.format(np.round(popt[1], 3)),
-                    '$\\sigma = {}$'.format(np.round(abs(popt[2]), 3))
-                ]),
-                transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
+    #     x, y = (h_mTtot[1][1:]+h_mTtot[1][:-1])/2,h_mTtot[0]
+    #     popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
+    #     plt.plot(x,gaus(x,*popt), color = 'C1')
+    #     y_info = 0.9
+    #     x_info = 0.025
+    #     multialignment='left'
+    #     horizontalalignment='left'
+    #     verticalalignment='top'
+    #     ax.text(x_info, y_info,
+    #             '\n'.join([
+    #                 "Classic mTtot",
+    #                 'Mean $ = {}$'.format(np.round(popt[1], 3)),
+    #                 '$\\sigma = {}$'.format(np.round(abs(popt[2]), 3))
+    #             ]),
+    #             transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
 
-    except:
-        #import pdb; pdb.set_trace()
-        print("No extrapolation possible")
+    # except:
+    #     #import pdb; pdb.set_trace()
+    #     print("No extrapolation possible")
         
-    plt.xlim(0,2)
+    # plt.xlim(0,2)
         
-    fig.savefig("NN_vs_mTtot_histos_{}.png".format(NNname))
-    plt.close('all')
+    # fig.savefig("NN_vs_mTtot_histos_{}.png".format(NNname))
+    # plt.close('all')
 
-    df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
+    # df["{}_output".format(NNname)] = NN_model.predict(df.drop(columns=[k for k in df_select.keys() if not k in inputs]))
 
     return df, True, NNname
 
 
-loss_fcts = []
-optimizers = []
-w_init_modes = []
+
+loss_fcts = [
+    "mean_squared_error",
+    "mean_absolute_error",
+    #"mean_absolute_percentage_error",
+    #"mean_squared_logarithmic_error",
+    "cosine_similarity",
+    "huber_loss",
+    #"log_cosh",
+]
+
+Adam = tf.keras.optimizers.Adam
+Adamax = tf.keras.optimizers.Adamax
+Nadam = tf.keras.optimizers.Nadam
+Adadelta = tf.keras.optimizers.Adadelta
+Adagrad = tf.keras.optimizers.Adagrad
+SGD = tf.keras.optimizers.SGD
+RMSprop = tf.keras.optimizers.RMSprop
+
+optimizers = {
+    "Adam" : Adam,
+    #"Adamax" : Adamax,
+    #"Nadam" : Nadam,
+    "Adadelta" : Adadelta,
+    #"Adagrad" : Adagrad,
+    "SGD" : SGD,
+    #"RMSprop" : RMSprop,
+}
+
+w_init_modes = [
+    'uniform',
+    #'lecun_uniform',
+    'normal',
+    #'zero',
+    #'glorot_normal',
+    #'glorot_uniform',
+    'he_normal',
+    #'he_uniform',
+]
 
 scores = {}
 
@@ -495,11 +531,16 @@ for loss in loss_fcts:
             df_out, valid, NNname = NN_make_train_predict(df, inputs, channel = "inclusive",
                                                   Nlayers = options.Nlayers, Nneurons = options.Nneurons,
                                                   loss = loss,
-                                                  optimizer = optimizer,
+                                                  optimizer = optimizers[optimizer],
                                                   w_init_mode = w_init_mode)
             if valid:
                 df = df_out
-                scores["_".join([loss, optimizer, w_init_mode])] = df.loc[df["is_valid" == 1], ["{}_output".format(NNname)]].std()
+                try:
+                    distrib = np.array(df.loc[df["is_valid"] == 1, ["{}_output".format(NNname)]]) / np.array(df.loc[df["is_valid"] == 1, ["Higgs_mass_gen"]])
+                    scores["_".join([str(loss), str(optimizer), str(w_init_mode)])] = distrib.std()
+                except:
+                    import pdb; pdb.set_trace()
+                print(scores)
 
 scores = pd.DataFrame.from_dict(scores)
 print(scores)
