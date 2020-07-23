@@ -37,9 +37,8 @@ cd $DL_for_HTT/Delphes/Delphes-3.4.2/ && make HAS_PYTHIA8=true
 ```
 
 ### Run a test
->>>>>>> parent of 12c898b... Update README
 ```
-cd $DL_for_HTT/Delphes
+cd $DL_for_HTT/Delphes/Delphes-3.4.2
 ./DelphesPythia8 cards/delphes_card_CMS.tcl examples/Pythia8/configNoLHE.cmnd delphes_nolhe.root
 ```
 
