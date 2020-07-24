@@ -29,6 +29,10 @@ options.Nlayers = int(options.Nlayers)
 options.Nneurons = int(options.Nneurons)
 options.gpu = int(options.gpu)
 
+print("Selected options are the following:")
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu"]:
+    print("\t{}\t{}".format(option, getattr(options, option)))
+
 # specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
 bottleneck_sequence = [1000, 500, 100]
 
