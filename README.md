@@ -46,7 +46,7 @@ cd $DL_for_HTT/Delphes/Delphes-3.4.2
 Generate HTT events. It takes roughly 1 hour for 100000 events, try with 1000:
 ```
 cd $DL_for_HTT/Event_generation_with_Delphes
-DelphesPythia8 delphes_card_CMS.tcl event_gen_cfgs/Higgs_to_tau_tau.cmnd SM_HTT.root
+gen_HTT_at_mass -m <mh in GeV> -N <number of events to generate>
 ```
 
 ## HTT events from FastSim NanoAOD analysis
