@@ -11,7 +11,7 @@ parser.add_option("-N", "--Nevents", dest = "nevents",
 
 (options,args) = parser.parse_args()
 
-from ROOT import TFile, TCanvas, TH1F, TLegend
+from ROOT import TFile, TCanvas, TH1F, TLegend, TLine
 
 files = {
     "Delphes" : "/data2/ltorterotot/ML/Delphes_prods/HTT_{}_Delphes_N{}.root".format(options.mass, options.nevents),
@@ -87,9 +87,10 @@ def draw_comparison(
     hf = TH1F("hf", '', *bins)
     trees["FastSim"].Project(hf.GetName(), FastSim_var, FastSim_cut)
     hf.SetLineColor(1)
+    hf.SetStats(0)
     
-    hf.Draw()
-    hd.Draw("same")
+    hf.Draw("E1")
+    hd.Draw("E1 SAME")
 
     legend = TLegend(.75,.8,.925,.9)
     legend.SetLineColor(0)
@@ -109,7 +110,15 @@ def draw_comparison(
     rh = hd.Clone()
     rh.SetTitle('')
     rh.Divide(hf)
-    rh.Draw()
+    for b in range(rh.GetNbinsX()):
+        if hf.GetBinContent(b) != 0:
+            rh.SetBinError(b, rh.GetBinError(b)/(hf.GetBinContent(b))**.5)
+    rh.Draw("E1")
+
+    lines = []
+    for v in [1, 1-.5, 1+.5]:
+        lines.append(TLine(rh.GetXaxis().GetBinUpEdge(0),v,rh.GetXaxis().GetBinUpEdge(b+1),v))
+        lines[-1].Draw("same")
     
     Xaxis = rh.GetXaxis()
     Xaxis.SetLabelSize(0.075)
@@ -117,7 +126,7 @@ def draw_comparison(
     Xaxis.SetTitleSize(.075)
     
     Yaxis = rh.GetYaxis()
-    Yaxis.SetRangeUser(.5, 1.5)
+    Yaxis.SetRangeUser(0, 2)
     Yaxis.SetTitle('Ratio D/FS')
     Yaxis.SetTitleSize(.075)
     
