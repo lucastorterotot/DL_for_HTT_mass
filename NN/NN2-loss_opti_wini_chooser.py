@@ -537,7 +537,10 @@ for loss in loss_fcts:
                 df = df_out
                 try:
                     distrib = np.array(df.loc[df["is_valid"] == 1, ["{}_output".format(NNname)]]) / np.array(df.loc[df["is_valid"] == 1, ["Higgs_mass_gen"]])
-                    scores["_".join([str(loss), str(optimizer), str(w_init_mode)])] = distrib.std()
+                    if type(distrib.std()) == 'float':
+                        scores["_".join([str(loss), str(optimizer), str(w_init_mode)])] = [distrib.std()]
+                    else:
+                        scores["_".join([str(loss), str(optimizer), str(w_init_mode)])] = [10.]
                 except:
                     import pdb; pdb.set_trace()
                 print(scores)
