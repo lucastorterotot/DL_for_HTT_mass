@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from optparse import OptionParser
+usage = "usage: %prog [options]"
+parser = OptionParser(usage=usage)
+parser.add_option("-m", "--mass", dest = "mass",
+                  default = "345")
+parser.add_option("-N", "--Nevents", dest = "nevents",
+                  default = "20000")
+
+(options,args) = parser.parse_args()
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+files = {
+    "Delphes" : "./HTT_{}_Delphes_N{}.h5".format(options.mass, options.nevents),
+    "FastSim" : "./HTT_{}_FastSim_N{}.h5".format(options.mass, options.nevents),
+    "Official": "./HTT_{}_Official_N{}.h5".format(options.mass, options.nevents),
+}
+
+dfs = {
+    "Delphes" : pd.read_hdf(files["Delphes"]),
+    "FastSim" : pd.read_hdf(files["FastSim"]),
+    "Official" : pd.read_hdf(files["Official"]),
+}
+
+def draw_comparison(
+        basic_variable = None,
+        xaxis = "Gen Higgs Mass (GeV)",
+        Delphes_var = "Higgs_Mass_gen",
+        Delphes_cut = False,
+        FastSim_var = "Higgs_mass_gen",
+        FastSim_cut = False,
+        bins = (50, 0., 1000.),
+        **kwargs
+):
+    if basic_variable == None:
+        basic_variable = FastSim_var
+
+    fig = plt.figure(constrained_layout=True, figsize=[7, 7])
+    gs = fig.add_gridspec(10, 1)
+    ax = fig.add_subplot(gs[:7, 0])
+    ax.tick_params(bottom=False)
+    plt.setp(ax.get_xticklabels(), visible=False)
+    rax = fig.add_subplot(gs[7:, 0], sharex=ax)
+
+    if Delphes_cut:
+        n1, bins1, patches1 = ax.hist(
+            dfs["Delphes"].loc[dfs["Delphes"][Delphes_cut[0]] == Delphes_cut[1]][Delphes_var], bins[0], log=True, range=[bins[1], bins[2]], color="C0", label="Delphes", alpha = .5)
+    else:
+        n1, bins1, patches1 = ax.hist(dfs["Delphes"][Delphes_var], bins[0], log=True, range=[bins[1], bins[2]], color="C0", label="Delphes", alpha = .5)
+    if FastSim_cut:
+        n2, bins2, patches2 = ax.hist(
+            dfs["FastSim"].loc[dfs["FastSim"][FastSim_cut[0]] == FastSim_cut[1]][FastSim_var], bins[0], log=True, range=[bins[1], bins[2]], color="C1", label="FastSim", alpha = .5)
+        n3, bins3, patches3 = ax.hist(
+            dfs["Official"].loc[dfs["Official"][FastSim_cut[0]] == FastSim_cut[1]][FastSim_var], bins[0], log=True, range=[bins[1], bins[2]], color="C4", label="Official", alpha = .5)
+    else:
+        n2, bins2, patches2 = ax.hist(dfs["FastSim"][FastSim_var], bins[0], log=True, range=[bins[1], bins[2]], color="C1", label="FastSim", alpha = .5)
+        n3, bins3, patches3 = ax.hist(dfs["Official"][FastSim_var], bins[0], log=True, range=[bins[1], bins[2]], color="C4", label="Official", alpha = .5)
+
+    rbins = (bins1[1:]+bins1[:-1])/2
+    ratios = n1/(n3+1e-10)
+    ratios_erry = (ratios/(n3+1e-10))**.5
+
+    FSratios = n2/(n3+1e-10)
+    FSratios_erry = (FSratios/(n3+1e-10))**.5
+
+    for v in [1, 1-.5, 1+.5]:
+        rax.plot([rbins[0], rbins[-1]], [v, v], color='black', linewidth=.5, dashes=[1,1])
+    
+    rax.errorbar(rbins, ratios,
+                 yerr = ratios_erry,
+                 color="C0",
+                 marker="+",
+                 markersize=4,
+                 linewidth=0,
+                 elinewidth=1,
+                 capsize=3,
+                 capthick=.4,
+    )
+    
+    rax.errorbar(rbins, FSratios,
+                 yerr = FSratios_erry,
+                 color="C1",
+                 marker="+",
+                 markersize=4,
+                 linewidth=0,
+                 elinewidth=1,
+                 capsize=3,
+                 capthick=.4,
+    )
+
+    ax.set_title("{} on {} events with settings at {} GeV".format(basic_variable, options.nevents, options.mass))
+    rax.set_xlabel(xaxis)
+    rax.set_xlim(rbins[0], rbins[-1])
+    rax.set_ylim(0,2)
+
+    ax.legend()
+
+    #fig.tight_layout()
+    plt.savefig("{}_{}_{}-after_HTT.pdf".format(basic_variable, options.mass, options.nevents))
+    
+
+# Higgs_mass_gen
+draw_comparison()
+
+# Higgs_eta_gen
+draw_comparison(
+    basic_variable = "Higgs_eta_gen",
+    xaxis = "Gen Higgs eta",
+    Delphes_var = "Higgs_Eta_gen",
+    FastSim_var = "Higgs_eta_gen",
+    bins = (25, -10, 10)
+)
+
+# Higgs_pt_gen
+draw_comparison(
+    basic_variable = "Higgs_pt_gen",
+    xaxis = "Gen Higgs pT",
+    Delphes_var = "Higgs_PT_gen",
+    FastSim_var = "Higgs_pt_gen",
+    bins = (25, 0, 1000)
+)
+
+# MET_pt_gen
+# draw_comparison(
+#     basic_variable = "MET_pt_gen",
+#     xaxis = "Gen MET pT",
+#     Delphes_var = "GenMissingET.MET",
+#     FastSim_var = "GenMET_pt",
+#     bins = (25, 0, 1500)
+# )
+
+# MET_pt_reco
+draw_comparison(
+    basic_variable = "MET_pt_reco",
+    xaxis = "Reco MET pT",
+    Delphes_var = "MET_PT_reco",
+    FastSim_var = "MET_pt_reco",
+    bins = (25, 0, 600)
+)
+
+# reco leading jet pt
+draw_comparison(
+        basic_variable = "jet1_pt_reco",
+        xaxis = "Reco jet1 pT",
+        Delphes_var = "jet1_PT_reco",
+        FastSim_var = "jet1_pt_reco",
+        bins = (25, 0, 1500)
+)
+
+# reco trailing jet pt
+draw_comparison(
+        basic_variable = "jet2_pt_reco",
+        xaxis = "Reco jet2 pT",
+        Delphes_var = "jet1_PT_reco",
+        FastSim_var = "jet1_pt_reco",
+        bins = (25, 0, 1500)
+)
+
+# reco leading tauh pt
+draw_comparison(
+        basic_variable = "tauh_pt_reco",
+        xaxis = "Reco tauh1 pT",
+        Delphes_var = "tau1_PT_reco",
+        Delphes_cut = ["channel_reco", "tt"],
+        FastSim_var = "tau1_pt_reco",
+        FastSim_cut = ["channel_reco", "tt"],
+        bins = (25, 0, 500)
+)
+
+# reco leading muon pt
+draw_comparison(
+        basic_variable = "muon1_pt_reco",
+        xaxis = "Reco muon1 pT",
+        Delphes_var = "tau1_PT_reco",
+        Delphes_cut = ["channel_reco", "mt"],
+        FastSim_var = "tau1_pt_reco",
+        FastSim_cut = ["channel_reco", "mt"],
+        bins = (25, 0, 300)
+)
+
+# # reco trailing muon pt
+# draw_comparison(
+#         basic_variable = "muon2_pt_reco",
+#         xaxis = "Reco muon2 pT",
+#         Delphes_var = "Muon.PT[1]",
+#         Delphes_cut = "Muon.PT[1] > 0",
+#         FastSim_var = "Muon_pt[1]",
+#         FastSim_cut = "Muon_pt[1] > 0",
+#         bins = (25, 0, 150)
+# )
+
+# reco leading electron pt
+draw_comparison(
+        basic_variable = "electron1_pt_reco",
+        xaxis = "Reco electron1 pT",
+        Delphes_var = "tau1_PT_reco",
+        Delphes_cut = ["channel_reco", "et"],
+        FastSim_var = "tau1_pt_reco",
+        FastSim_cut = ["channel_reco", "et"],
+        bins = (25, 0, 500)
+)
+
+# # reco trailing electron pt
+# draw_comparison(
+#         basic_variable = "electron2_pt_reco",
+#         xaxis = "Reco electron2 pT",
+#         Delphes_var = "Electron.PT[1]",
+#         Delphes_cut = "Electron.PT[1] > 0",
+#         FastSim_var = "Electron_pt[1]",
+#         FastSim_cut = "Electron_pt[1] > 0",
+#         bins = (25, 0, 400)
+# )
