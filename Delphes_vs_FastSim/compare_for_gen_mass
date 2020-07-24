@@ -184,9 +184,9 @@ draw_comparison(
         basic_variable = "jet1_pt_reco",
         xaxis = "Reco jet1 pT",
         Delphes_var = "Jet.PT[0]",
-        Delphes_cut = "1",
+        Delphes_cut = "Jet.PT[0] > 0",
         FastSim_var = "Jet_pt[0]",
-        FastSim_cut = "1",
+        FastSim_cut = "Jet_pt[0] > 0",
         bins = (50, 0, 1500)
 )
 
@@ -195,9 +195,9 @@ draw_comparison(
         basic_variable = "jet2_pt_reco",
         xaxis = "Reco jet2 pT",
         Delphes_var = "Jet.PT[1]",
-        Delphes_cut = "1",
+        Delphes_cut = "Jet.PT[1] > 0",
         FastSim_var = "Jet_pt[1]",
-        FastSim_cut = "1",
+        FastSim_cut = "Jet_pt[1] > 0",
         bins = (50, 0, 1500)
 )
 
@@ -206,9 +206,9 @@ draw_comparison(
         basic_variable = "muon1_pt_reco",
         xaxis = "Reco muon1 pT",
         Delphes_var = "Muon.PT[0]",
-        Delphes_cut = "1",
+        Delphes_cut = "Muon.PT[0] > 0",
         FastSim_var = "Muon_pt[0]",
-        FastSim_cut = "1",
+        FastSim_cut = "Muon_pt[0] > 0",
         bins = (50, 0, 400)
 )
 
@@ -217,9 +217,9 @@ draw_comparison(
         basic_variable = "muon2_pt_reco",
         xaxis = "Reco muon2 pT",
         Delphes_var = "Muon.PT[1]",
-        Delphes_cut = "1",
+        Delphes_cut = "Muon.PT[1] > 0",
         FastSim_var = "Muon_pt[1]",
-        FastSim_cut = "1",
+        FastSim_cut = "Muon_pt[1] > 0",
         bins = (50, 0, 150)
 )
 
@@ -228,9 +228,9 @@ draw_comparison(
         basic_variable = "electron1_pt_reco",
         xaxis = "Reco electron1 pT",
         Delphes_var = "Electron.PT[0]",
-        Delphes_cut = "1",
+        Delphes_cut = "Electron.PT[0] > 0",
         FastSim_var = "Electron_pt[0]",
-        FastSim_cut = "1",
+        FastSim_cut = "Electron_pt[0] > 0",
         bins = (50, 0, 1500)
 )
 
@@ -239,8 +239,8 @@ draw_comparison(
         basic_variable = "electron2_pt_reco",
         xaxis = "Reco electron2 pT",
         Delphes_var = "Electron.PT[1]",
-        Delphes_cut = "1",
+        Delphes_cut = "Electron.PT[1] > 0",
         FastSim_var = "Electron_pt[1]",
-        FastSim_cut = "1",
+        FastSim_cut = "Electron_pt[1] > 0",
         bins = (50, 0, 400)
 )
