@@ -16,6 +16,12 @@ parser.add_option("-g", "--gpu", dest = "gpu",
                   default = 0)
 parser.add_option("-b", "--bottleneck", dest = "bottleneck",
                   default =  False, action = 'store_true')
+parser.add_option("-l", "--loss", dest = "loss",
+                  default = "cosine_similarity")
+parser.add_option("-O", "--optimizer", dest = "optimizer",
+                  default = "Adadelta")
+parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
+                  default = "uniform")
 
 (options,args) = parser.parse_args()
 
@@ -67,6 +73,47 @@ tfback._get_available_gpus = _get_available_gpus
 print(_get_available_gpus())
 
 import matplotlib.pyplot as plt
+
+# Get available loss_fcts, optimizers and w_init_modes
+
+loss_fcts = [
+    "mean_squared_error",
+    "mean_absolute_error",
+    "mean_absolute_percentage_error",
+    "mean_squared_logarithmic_error",
+    "cosine_similarity",
+    "huber_loss",
+    "log_cosh",
+]
+
+Adam = tf.keras.optimizers.Adam
+Adamax = tf.keras.optimizers.Adamax
+Nadam = tf.keras.optimizers.Nadam
+Adadelta = tf.keras.optimizers.Adadelta
+Adagrad = tf.keras.optimizers.Adagrad
+SGD = tf.keras.optimizers.SGD
+RMSprop = tf.keras.optimizers.RMSprop
+
+optimizers_dict = {
+    "Adam" : Adam,
+    "Adamax" : Adamax,
+    "Nadam" : Nadam,
+    "Adadelta" : Adadelta,
+    "Adagrad" : Adagrad,
+    "SGD" : SGD,
+    "RMSprop" : RMSprop,
+}
+
+w_init_modes = [
+    'uniform',
+    'lecun_uniform',
+    'normal',
+    'zero',
+    'glorot_normal',
+    'glorot_uniform',
+    'he_normal',
+    'he_uniform',
+]
 
 # Load data
 import os
@@ -235,7 +282,7 @@ sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
 fig.savefig("correlations_flat_target.png")
 plt.close('all')
 
-def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons):
+def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer = optimizers_dict[options.optimizer], w_init_mode = options.w_init_mode):
 
     NNname = "_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
@@ -465,7 +512,10 @@ channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
 for channel in channels:
     df_out, valid = NN_make_train_predict(df, inputs, channel = channel,
-                                          Nlayers = options.Nlayers, Nneurons = options.Nneurons)
+                                          Nlayers = options.Nlayers, Nneurons = options.Nneurons,
+                                          loss = options.loss,
+                                          optimizer = optimizers_dict[options.optimizer],
+                                          w_init_mode = options.w_init_mode)
     if valid:
         df = df_out
 
