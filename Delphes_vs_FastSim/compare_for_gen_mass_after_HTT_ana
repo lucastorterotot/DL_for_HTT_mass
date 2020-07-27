@@ -95,7 +95,7 @@ def draw_comparison(
     ax.set_title("{} on {} events with settings at {} GeV".format(basic_variable, options.nevents, options.mass))
     rax.set_xlabel(xaxis)
     rax.set_xlim(rbins[0], rbins[-1])
-    rax.set_ylim(0,2)
+    rax.set_ylim(0,3)
 
     ax.legend()
 
