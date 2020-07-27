@@ -256,7 +256,7 @@ while flat_mass < max_mass:
     flat_mass += flat_step
     for t in min_bin_content.keys():
         bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ['Higgs_mass_gen']])
-        if min_bin_content[t] > bin_content:
+        if min_bin_content[t] > bin_content and bin_content != 0:
             min_bin_content[t] = bin_content
 
 # apply bin content
