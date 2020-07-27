@@ -60,7 +60,7 @@ if "_bottleneck" in bottleneck_list:
         for Nneurons in [2000]:
             for channel in channels + ["inclusive"]:
                 key = "{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), "_bottleneck")
-                if key not in df.keys():
+                if key not in df.keys() and Nlayers in Nlayers_list:
                     df[key] = df[key.replace("2000_neurons", "1000_neurons")]
             
                             
