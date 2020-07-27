@@ -3,6 +3,9 @@
 *~
 *.pyc
 *.root
+*.png
+*.pdf
+*.h5
 Delphes/
 Pythia8/
 Event_generation_with_Delphes/HTT/
