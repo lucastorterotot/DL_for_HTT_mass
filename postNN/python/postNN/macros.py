@@ -249,7 +249,7 @@ def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max)
     
     #plt.show()
     plt.xlim(mH_min, mH_max)
-    plt.ylim(-.1, .7)
+    plt.ylim(-.1, 1)
 
     fig.savefig(
         "predicted_vs_answers_{}_{}_layers_{}_neurons{}.png".format(
