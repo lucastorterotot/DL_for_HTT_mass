@@ -138,8 +138,8 @@ for ana in ["reco", "gen"]:
     df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)]**2+df["mT2_{ana}".format(ana=ana)]**2+df["mTtt_{ana}".format(ana=ana)]**2)**.5
 
 # select only good points in TeV
-min_mass = .1
-max_mass = .5
+min_mass = .091
+max_mass = .800
 
 # define target and input variables
 target = "Higgs_mass_gen"
