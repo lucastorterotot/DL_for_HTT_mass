@@ -31,7 +31,7 @@ do
         (
             ln -s  $f ${f%.*}_${d}.root
             HTT_FastSim_NanoAOD_tree_analysis ${f%.*}_${d}.root ${f%.*}_${d}
-            # rm $f
+            rm $f
         ) &
     done
     wait

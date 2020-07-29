@@ -7,7 +7,7 @@ for d in $(ls /data2/${USER}/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
 do
     cd /data2/${USER}/ML/FastSim_NanoAOD_to_NN/$d
     txt_merger -o Htt_merged_NanoAODSIM_${d}.txt $(ls | grep Htt_.*_NanoAODSIM_${d}.txt | grep -ve Htt_merged_)
-    # rm Htt_[0-9]*_NanoAODSIM_${d}.txt
+    rm Htt_[0-9]*_NanoAODSIM_${d}.txt
     txt_to_hdf5 Htt_merged_NanoAODSIM_${d}.txt Htt_merged_NanoAODSIM_${d}
 done
 
@@ -16,4 +16,4 @@ mkdir -p ALL
 cd ALL
 txt_merger -o Htt_merged_NanoAODSIM_ALL.txt $(find /data2/${USER}/ML/FastSim_NanoAOD_to_NN/ -type f -name Htt_merged_NanoAODSIM_\*.txt)
 txt_to_hdf5 Htt_merged_NanoAODSIM_ALL.txt Htt_merged_NanoAODSIM_ALL
-# find . -type f -name Htt_merged_NanoAODSIM_.*.txt -delete
+find . -type f -name Htt_merged_NanoAODSIM_.*.txt -delete
