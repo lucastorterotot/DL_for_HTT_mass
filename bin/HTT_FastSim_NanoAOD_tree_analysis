@@ -90,6 +90,7 @@ for evt in tree:
         Nevt_out_gen += 1
 
     if passed_gen and passed_reco:
+        gen_analysis["Nevt"] = Nevt_in
         analysis_results.append({"gen" : gen_analysis, "reco" : reco_analysis})
         N_to_store += 1
     if options.verbose > 0:
