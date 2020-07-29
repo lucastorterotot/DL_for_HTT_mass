@@ -8,7 +8,7 @@ find . -type f -iname \*.h5 -delete
 find . -type f -iname \*_merged_\* -delete
 
 N_events=60000
-for Higgs_mass in {90..91}
+for Higgs_mass in {90..299}
 do
     gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
     HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
@@ -16,7 +16,7 @@ do
 done
 
 N_events=20000
-for Higgs_mass in {300..301}
+for Higgs_mass in {300..499}
 do
     gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
     HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
@@ -24,7 +24,7 @@ do
 done
 
 N_events=10000
-for Higgs_mass in {500..501}
+for Higgs_mass in {500..800}
 do
     gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
     HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
