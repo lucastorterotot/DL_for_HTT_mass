@@ -22,6 +22,8 @@ parser.add_option("-O", "--optimizer", dest = "optimizer",
                   default = "Adadelta")
 parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
                   default = "uniform")
+parser.add_option("-s", "--source", dest = "source",
+                  default = "Delphes")
 
 (options,args) = parser.parse_args()
 
@@ -30,7 +32,7 @@ options.Nneurons = int(options.Nneurons)
 options.gpu = int(options.gpu)
 
 print("Selected options are the following:")
-for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu"]:
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "source"]:
     print("\t{}\t{}".format(option, getattr(options, option)))
 
 # specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
@@ -121,41 +123,63 @@ w_init_modes = [
 
 # Load data
 import os
-data_file = "/data2/{}/ML/FastSim_NanoAOD_to_NN/{}/Htt_merged_NanoAODSIM_{}.h5".format(os.environ["USER"], options.input, options.input)
+if options.source == "Delphes":
+    data_file = "/data2/{}/ML/Delphes_to_NN/HTT_merged_Delphes.h5".format(os.environ["USER"])
+elif options.source == "FastSim":
+    data_file = "/data2/{}/ML/FastSim_NanoAOD_to_NN/{}/Htt_merged_NanoAODSIM_{}.h5".format(os.environ["USER"], options.input, options.input)
 df = pd.read_hdf(data_file)
 
 # GeV to TeV
-GeV_vars = ["MET_cov", "_pt_", "_mass_", "mT"]
+GeV_vars = ["MET_cov", "METcov", "_pt_", "_PT_", "_mass_", "_Mass_", "mT", "_E_"]
 for k in df.keys():
     if any([GeV_var in k for GeV_var in GeV_vars]):
         df[k] *= 1./1000
 
 # make transverse masses
+if options.source == "Delphes":
+    pt_str = "PT"
+    phi_str = "Phi"
+elif options.source == "FastSim":
+    pt_str = "pt"
+    phi_str = "phi"
+    
 for ana in ["reco", "gen"]:
-    df["mT1_{ana}".format(ana=ana)] = (2*df["tau1_pt_{ana}".format(ana=ana)]*df["MET_pt_{ana}".format(ana=ana)]*(1-np.cos(df["tau1_phi_{ana}".format(ana=ana)]-df["MET_phi_{ana}".format(ana=ana)])))**.5
-    df["mT2_{ana}".format(ana=ana)] = (2*df["tau2_pt_{ana}".format(ana=ana)]*df["MET_pt_{ana}".format(ana=ana)]*(1-np.cos(df["tau2_phi_{ana}".format(ana=ana)]-df["MET_phi_{ana}".format(ana=ana)])))**.5
-    df["mTtt_{ana}".format(ana=ana)] = (2*df["tau1_pt_{ana}".format(ana=ana)]*df["tau2_pt_{ana}".format(ana=ana)]*(1-np.cos(df["tau1_phi_{ana}".format(ana=ana)]-df["tau2_phi_{ana}".format(ana=ana)])))**.5
+    df["mT1_{ana}".format(ana=ana)] = (2*df["tau1_{pt}_{ana}".format(pt=pt_str, ana=ana)]*df["MET_{pt}_{ana}".format(pt=pt_str, ana=ana)]*(1-np.cos(df["tau1_{phi}_{ana}".format(phi=phi_str, ana=ana)]-df["MET_{phi}_{ana}".format(phi=phi_str, ana=ana)])))**.5
+    df["mT2_{ana}".format(ana=ana)] = (2*df["tau2_{pt}_{ana}".format(pt=pt_str, ana=ana)]*df["MET_{pt}_{ana}".format(pt=pt_str, ana=ana)]*(1-np.cos(df["tau2_{phi}_{ana}".format(phi=phi_str, ana=ana)]-df["MET_{phi}_{ana}".format(phi=phi_str, ana=ana)])))**.5
+    df["mTtt_{ana}".format(ana=ana)] = (2*df["tau1_{pt}_{ana}".format(pt=pt_str, ana=ana)]*df["tau2_{pt}_{ana}".format(pt=pt_str, ana=ana)]*(1-np.cos(df["tau1_{phi}_{ana}".format(phi=phi_str, ana=ana)]-df["tau2_{phi}_{ana}".format(phi=phi_str, ana=ana)])))**.5
     df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)]**2+df["mT2_{ana}".format(ana=ana)]**2+df["mTtt_{ana}".format(ana=ana)]**2)**.5
 
 # select only good points in TeV
-min_mass = .091
+min_mass = .090
 max_mass = .800
 
 # define target and input variables
-target = "Higgs_mass_gen"
+if options.source == "Delphes":
+    target = "Higgs_Mass_gen"
+elif options.source == "FastSim":
+    target = "Higgs_mass_gen"
+        
 inputs = list(df.keys())
 inputs.remove(target)
 
 inputs = [i for i in inputs if not "_gen" == i[-4:]]
 inputs = [i for i in inputs if not "file" == i]
 inputs = [i for i in inputs if not "MET_cov" in i]
+inputs = [i for i in inputs if not "METcov" in i]
 inputs = [i for i in inputs if not "DM" == i[:2]]
 inputs = [i for i in inputs if not "channel" == i[:7]]
 inputs = [i for i in inputs if not "_pdgId_" in i]
+inputs = [i for i in inputs if not "_PID_" in i]
 inputs = [i for i in inputs if not "_mass_reco" in i]
+inputs = [i for i in inputs if not "_Mass_reco" in i]
 inputs = [i for i in inputs if not "MET_significance_reco" == i]
 inputs = [i for i in inputs if not "_btagDeepB_reco" in i]
 inputs = [i for i in inputs if not "charge_" in i]
+inputs = [i for i in inputs if not "Charge_" in i]
+
+print("Inputs:")
+for i in inputs:
+    print("\t{}".format(i))
 
 # look for variables distributions
 df.hist(figsize = (24,20), bins = 500, log=True)
@@ -243,19 +267,19 @@ df.loc[np_test, ["is_test"]] = 1
 # ensure flat target distribution
 # compute bin content to use
 flat_step = 5e-3 # bin width in TeV for which content will be taken as constant
-flat_mass = min_mass
+flat_mass = min_mass+2e-3
 min_bin_content = {
-    "train" : len(df.loc[df["is_train"] == 1, ['Higgs_mass_gen']]),
-    "valid" : len(df.loc[df["is_valid"] == 1, ['Higgs_mass_gen']]),
-    "test"  : len(df.loc[df["is_test"] == 1, ['Higgs_mass_gen']]),
+    "train" : len(df.loc[df["is_train"] == 1, [target]]),
+    "valid" : len(df.loc[df["is_valid"] == 1, [target]]),
+    "test"  : len(df.loc[df["is_test"] == 1, [target]]),
 }
 
 
 flat_mass -= flat_step
-while flat_mass < max_mass:
+while flat_mass < max_mass-2e-3:
     flat_mass += flat_step
     for t in min_bin_content.keys():
-        bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ['Higgs_mass_gen']])
+        bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), [target]])
         if min_bin_content[t] > bin_content and bin_content != 0:
             min_bin_content[t] = bin_content
 
@@ -263,21 +287,21 @@ while flat_mass < max_mass:
 df["was_train"] = np.zeros(len(df[target]))
 df["was_valid"] = np.zeros(len(df[target]))
 df["was_test"] = np.zeros(len(df[target]))
-flat_mass = min_mass
+flat_mass = min_mass+2e-3
 flat_mass -= flat_step
-while flat_mass < max_mass:
+while flat_mass < max_mass-2e-3:
     flat_mass += flat_step
     for t in min_bin_content.keys():
-        bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ["is_{}".format(t)]])
-        df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ["was_{}".format(t)]] = np.concatenate([np.zeros(min_bin_content[t]), np.ones(bin_total-min_bin_content[t])])
-        df.loc[(df["is_{}".format(t)] == 1) & (df['Higgs_mass_gen'] >= flat_mass-flat_step/2) & (df['Higgs_mass_gen'] <= flat_mass+flat_step/2), ["is_{}".format(t)]] = np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
+        bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]])
+        df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["was_{}".format(t)]] = np.concatenate([np.zeros(min_bin_content[t]), np.ones(bin_total-min_bin_content[t])])
+        df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]] = np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
 
 # control variables
-df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).hist(figsize = (24,20), bins = 500, log=True)
+df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df[target] >= min_mass) & (df[target] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).hist(figsize = (24,20), bins = 500, log=True)
 plt.plot()
 plt.savefig("variables_flat_target.png")
 plt.close('all')
-C_mat = df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df['Higgs_mass_gen'] >= min_mass) & (df['Higgs_mass_gen'] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).corr()
+C_mat = df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df[target] >= min_mass) & (df[target] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).corr()
 fig = plt.figure(figsize = (15,15))
 mask = np.zeros_like(C_mat)
 mask[np.triu_indices_from(mask)] = True
@@ -297,7 +321,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
 
     df_select = df
 
-    df_select = df_select.loc[(df_select['Higgs_mass_gen'] >= min_mass) & (df_select['Higgs_mass_gen'] <= max_mass)]
+    df_select = df_select.loc[(df_select[target] >= min_mass) & (df_select[target] <= max_mass)]
 
     if channel in set(df_select['channel_reco']):
         df_select = df_select.loc[(df_select['channel_reco'] == channel)]
