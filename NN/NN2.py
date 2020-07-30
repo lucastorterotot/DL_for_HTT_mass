@@ -24,15 +24,21 @@ parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
                   default = "uniform")
 parser.add_option("-s", "--source", dest = "source",
                   default = "Delphes")
+parser.add_option("-m", "--minmass", dest = "min_mass",
+                  default = 0.090)
+parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  default = 0.800)
 
 (options,args) = parser.parse_args()
 
 options.Nlayers = int(options.Nlayers)
 options.Nneurons = int(options.Nneurons)
 options.gpu = int(options.gpu)
+min_mass = float(options.min_mass)
+max_mass = float(options.max_mass)
 
 print("Selected options are the following:")
-for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "source"]:
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "source", "min_mass", "max_mass"]:
     print("\t{}\t{}".format(option, getattr(options, option)))
 
 # specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
@@ -148,10 +154,6 @@ for ana in ["reco", "gen"]:
     df["mT2_{ana}".format(ana=ana)] = (2*df["tau2_{pt}_{ana}".format(pt=pt_str, ana=ana)]*df["MET_{pt}_{ana}".format(pt=pt_str, ana=ana)]*(1-np.cos(df["tau2_{phi}_{ana}".format(phi=phi_str, ana=ana)]-df["MET_{phi}_{ana}".format(phi=phi_str, ana=ana)])))**.5
     df["mTtt_{ana}".format(ana=ana)] = (2*df["tau1_{pt}_{ana}".format(pt=pt_str, ana=ana)]*df["tau2_{pt}_{ana}".format(pt=pt_str, ana=ana)]*(1-np.cos(df["tau1_{phi}_{ana}".format(phi=phi_str, ana=ana)]-df["tau2_{phi}_{ana}".format(phi=phi_str, ana=ana)])))**.5
     df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)]**2+df["mT2_{ana}".format(ana=ana)]**2+df["mTtt_{ana}".format(ana=ana)]**2)**.5
-
-# select only good points in TeV
-min_mass = .090
-max_mass = .800
 
 # define target and input variables
 if options.source == "Delphes":
