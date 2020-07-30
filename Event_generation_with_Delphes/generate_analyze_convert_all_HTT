@@ -7,8 +7,24 @@ find . -type f -iname \*.txt -delete
 find . -type f -iname \*.h5 -delete
 find . -type f -iname \*_merged_\* -delete
 
+N_events=120000
+for Higgs_mass in {80..109}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=90000
+for Higgs_mass in {110..125}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
 N_events=60000
-for Higgs_mass in {90..299}
+for Higgs_mass in {126..299}
 do
     gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
     HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
@@ -23,8 +39,32 @@ do
     rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
 done
 
-N_events=10000
-for Higgs_mass in {500..800}
+N_events=15000
+for Higgs_mass in {500..649}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=30000
+for Higgs_mass in {650..699}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=45000
+for Higgs_mass in {700..749}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=60000
+for Higgs_mass in {750..800}
 do
     gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
     HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
