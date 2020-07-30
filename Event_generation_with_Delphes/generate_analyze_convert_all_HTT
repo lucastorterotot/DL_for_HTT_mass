@@ -83,16 +83,16 @@ for Nlayers in {2..10} 15
 do
     for Nneurons in 500 1000 1500 2000
     do
-        $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes
+        $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8
         if [[ $Nlayers > 3 ]] # avoid doing twice same NN
         then
-            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -b
+            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8 -b
         elif [[ $Nlayers > 2 ]] || [[ $Nneurons < 1001 ]]
         then
-            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -b
+            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8 -b
         elif [[ $Nneurons < 501 ]]
         then
-            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -b
+            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8 -b
         fi
     done
 done
