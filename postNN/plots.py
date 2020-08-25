@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-mH_min = .1
-mH_max = .5
+mH_min = .090
+mH_max = .8
 
 from optparse import OptionParser
 usage = "usage: %prog [options]"
@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 
 # NN structures
-Nlayers_list = [2, 3, 4, 5, 10, 15]
-Nneurons_list = [1000, 2000]
+Nlayers_list = [k for k in range(2,11)]+[15]
+Nneurons_list = [500, 1000, 1500, 2000]
 bottleneck_list = ["", "_bottleneck"]
 
 if options.small_test:
@@ -34,7 +34,8 @@ df = None
 for Nlayers in Nlayers_list:
     for Nneurons in Nneurons_list:
         for bottleneck in bottleneck_list:
-            if (bottleneck != "_bottleneck" or Nneurons == 1000 or Nlayers > 3):
+            if True:
+                print("\t{} {} {}".format(Nlayers, Nneurons, bottleneck))
                 _df = pd.read_hdf(
                     "/".join([
                         data_dir,
@@ -55,13 +56,13 @@ df = df.loc[(df["is_valid"] == 1)]
 channels = list(set(df.channel_reco)) + ["lt", "ll"]
 
 # Get missing NN structures due to duplications with bottleneck
-if "_bottleneck" in bottleneck_list:
-    for Nlayers in [2,3]:
-        for Nneurons in [2000]:
-            for channel in channels + ["inclusive"]:
-                key = "{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), "_bottleneck")
-                if key not in df.keys() and Nlayers in Nlayers_list:
-                    df[key] = df[key.replace("2000_neurons", "1000_neurons")]
+# if "_bottleneck" in bottleneck_list:
+#     for Nlayers in [2,3]:
+#         for Nneurons in [2000]:
+#             for channel in channels + ["inclusive"]:
+#                 key = "{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), "_bottleneck")
+#                 if key not in df.keys() and Nlayers in Nlayers_list:
+#                     df[key] = df[key.replace("2000_neurons", "1000_neurons")]
             
                             
 # Create the combined NN outputs
