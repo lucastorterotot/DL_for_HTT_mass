@@ -27,7 +27,7 @@ if options.small_test:
     bottleneck_list = bottleneck_list[:2]
 
 # Load data
-data_dir = "/data2/ltorterotot/ML/NN/latest"
+data_dir = "/data2/ltorterotot/ML/NN/latest_Delphes/"#latest"
 file_basename = "PROD_{}_layers_{}_neurons{}.h5"
 
 df = None
@@ -49,7 +49,7 @@ for Nlayers in Nlayers_list:
                         if k not in df:
                             df[k] = _df[k]
 
-df = df.loc[(df["Higgs_mass_gen"] >= mH_min) & (df["Higgs_mass_gen"] <= mH_max)]
+df = df.loc[(df["Higgs_Mass_gen"] >= mH_min) & (df["Higgs_Mass_gen"] <= mH_max)]
 df = df.loc[(df["is_valid"] == 1)]
 
 # Get available channels and create the combined NN output
