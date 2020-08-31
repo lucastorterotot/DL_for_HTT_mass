@@ -222,9 +222,9 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     elif channel == "ll":
         df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
 
-    df_x_train = df_select.loc[(df_select['is_train'] == 1)].drop(columns=[k for k in df_select.keys() if not k in inputs])
+    df_x_train = df_select.loc[(df_select['is_train'] == 1), inputs]
     df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
-    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), :].drop(columns=[k for k in df_select.keys() if not k in inputs])
+    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), inputs]
     df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
 
     print('Size of training set: ', len(df_x_train))
