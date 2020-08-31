@@ -108,8 +108,8 @@ df["was_train"] = np.zeros(len(df[target]))
 df["was_valid"] = np.zeros(len(df[target]))
 df["was_test"] = np.zeros(len(df[target]))
 if options.Flat:
-    flat_step = 5e-3 # bin width in TeV for which content will be taken as constant
-    flat_mass = min_mass+2e-3
+    flat_step = 5 # bin width in GeV for which content will be taken as constant
+    flat_mass = min_mass+2
     min_bin_content = {
         "train" : len(df.loc[df["is_train"] == 1, [target]]),
         "valid" : len(df.loc[df["is_valid"] == 1, [target]]),
@@ -117,7 +117,7 @@ if options.Flat:
     }
 
     flat_mass -= flat_step
-    while flat_mass < max_mass-2e-3:
+    while flat_mass < max_mass-2:
         flat_mass += flat_step
         for t in min_bin_content.keys():
             bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), [target]])
@@ -125,9 +125,9 @@ if options.Flat:
                 min_bin_content[t] = bin_content
 
     # apply bin content
-    flat_mass = min_mass+2e-3
+    flat_mass = min_mass+2
     flat_mass -= flat_step
-    while flat_mass < max_mass-2e-3:
+    while flat_mass < max_mass-2:
         flat_mass += flat_step
         for t in min_bin_content.keys():
             bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]])

@@ -86,7 +86,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
         
     fig, ax = plt.subplots()
     fig.suptitle("{} channel, {} layers of {} neurons{}".format(channel, str(Nlayers), str(Nneurons), " with bottleneck" if bottleneck != "" else ""))
-    plt.xlabel("Generated mass (TeV)")
+    plt.xlabel("Generated mass (GeV)")
     plt.ylabel("Discriminator / Generated mass")
     
     ax.fill_between(
@@ -246,11 +246,10 @@ def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max)
     sns.kdeplot(predictions, answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
 
     ax.plot(answers, answers, color="C3")
-    plt.xlabel("Generated Higgs Mass (TeV)")
-    plt.ylabel("Predicted Higgs Mass (TeV)")
+    plt.xlabel("Generated Higgs Mass (GeV)")
+    plt.ylabel("Predicted Higgs Mass (GeV)")
     
     #plt.show()
-    plt.xlim(mH_min, mH_max)
     plt.xlim(answers.min(), answers.max())
     plt.ylim(answers.min(), answers.max())
 
