@@ -100,33 +100,27 @@ cd $DL_for_HTT/HTT_analysis_FastSim_NanoAOD
 ```
 This script will ensure to have a good naming scheme so that any event can be found back in the original root file.
 
+## Prepare data for the NN
+One has to define which data the NN will be trained on, which will be kept for testing, and so on. To do so, a dedicated script is provided:
+```
+analyzed_events_to_NN <input h5 file from previous step> <output_name>
+```
+Options are available for this script:
+
+- `-m` (`min_mass`), minimum mass point to consider;
+- `-M` (`max_mass`), maximum mass point to consider;
+- `-T` (`TeV_switch`), converts GeV to TeV (make sure the previous options are then given in the correct unit);
+- `-t` (`train_frac`), training fraction in the dataset;
+- `-v` (`valid_frac`), validation fraction in the dataset, testing will be the remaining;
+- `-r` (`random_seed`), random seed to use for splitting the dataset into train, valid and test parts;
+- `-F` (`Flat`), wether to make a flat target distribution or not.
+
 ## Train the deep NN
 Go in the NN directory and activate the conda environment if not already done.
 
 If the hdf5 output files from the previous step are stored in `/data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
 ```
-./NN2.py -i nevents_10 -L 1 -N 1 -o TEST
+NN_trainer -L 1 -N 1 -o TEST <input h5 file from previous step>
 ```
-This will run a training on the 10 (`-i`) events per mass point samples with 1 (`-L`) hidden layer containing 1 (`-N`) neuron, so this would be quite quick.
-Output hdf5 files containing the NNs outputs will be named starting with `TEST` (`-o`).
-
-If this runs properly, the full production can be done in parallel on the two GPUs by using `NN_prods.sh`:
-```
-NN_prods.sh 0 & NN_prods.sh 1 & wait
-```
-This takes some time (up to 2 days at this point).
-Outputs will be named `PROD_X_layers_Y_neurons.h5` and may take ~500 Mo each.
-`X` will be in `[2, 3, 4, 5, 10, 15]` and `Y` in `[1000, 2000]`, so that's a total of 12 files i.e. 6 Go in total.
-
-_NB_ For training, all GeV inputs are converted to TeV so that the NNs handle values mostly in `[0,1]`.
-
-## Get plots about the NNs performances
-Go in the post NN directory and activate the conda environment if not already done
-```
-cd $DL_for_HTT/postNN
-conda activate tf
-```
-One script runs on provided outputs from previous step. To be kind with the disk space, these outputs are stored in `/data2`:
-```
-mkdir -p /data2/${USER}/ML/NN/TeV_outputs/
-mv $DL_for_HTT/NN/*.h5 /data2/${USER}/ML/NN/TeV_outputs/
+This will run a training on the events stored in the input h5 file from previous step with 1 (`-L`) hidden layer containing 1 (`-N`) neuron, so this would be quite quick.
+Output json and h5 files containing the NNs structure will have a name containing `TEST` (`-o`), the channel the NN has been trained on, the number of hidden layers and the base number of neurons per layer.
