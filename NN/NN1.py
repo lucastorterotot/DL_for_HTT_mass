@@ -70,7 +70,7 @@ import matplotlib.pyplot as plt
 
 # Load data
 import os
-data_file = "../../Delphes_to_NN/prod/merged.h5"
+data_file = "../../HTT_analysis_Delphes/prod/merged.h5"
 df = pd.read_hdf(data_file)
 
 # GeV to TeV

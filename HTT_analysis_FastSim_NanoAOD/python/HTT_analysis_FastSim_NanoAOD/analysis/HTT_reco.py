@@ -1,4 +1,4 @@
-import FastSim_NanoAOD_to_NN.modules.store_vars as store_vars
+import HTT_analysis_FastSim_NanoAOD.modules.store_vars as store_vars
 import itertools
 
 def select_tauh_tt(evt, index):

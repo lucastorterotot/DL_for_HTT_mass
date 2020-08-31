@@ -54,10 +54,10 @@ Instead of Delphes, one can use NanoAOD from CMS FastSim.
 
 Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored. A dedicated script has been designed:
 ```
-cd $DL_for_HTT/FastSim_NanoAOD_to_NN
+cd $DL_for_HTT/HTT_analysis_FastSim_NanoAOD
 ./get_all_NanoAODSIM_to_data2 -u <YOUR_LYOSERV_USERNAME>
 ```
-On `lyovis10`, it creates a directory `/data2/${USER}/ML/FastSim_NanoAOD_to_NN` and run `rsync` on `/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_*` from `lyoserv`.
+On `lyovis10`, it creates a directory `/data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD` and run `rsync` on `/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_*` from `lyoserv`.
 
 ## Analyze the samples and get a `.txt` output table
 To run the `root` to `txt` analysis on a file, do
@@ -95,7 +95,7 @@ find . -type f -iname Htt_\*_NanoAODSIM\*.{root,txt} -delete
 
 A dedicated script to run all the commands described in this section is provided:
 ```
-cd $DL_for_HTT/FastSim_NanoAOD_to_NN
+cd $DL_for_HTT/HTT_analysis_FastSim_NanoAOD
 ./convert_NanoAODSIM_in_data2
 ```
 This script will ensure to have a good naming scheme so that any event can be found back in the original root file.
@@ -103,7 +103,7 @@ This script will ensure to have a good naming scheme so that any event can be fo
 ## Train the deep NN
 Go in the NN directory and activate the conda environment if not already done.
 
-If the hdf5 output files from the previous step are stored in `/data2/${USER}/ML/FastSim_NanoAOD_to_NN/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
+If the hdf5 output files from the previous step are stored in `/data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
 ```
 ./NN2.py -i nevents_10 -L 1 -N 1 -o TEST
 ```

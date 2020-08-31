@@ -13,18 +13,18 @@ do
     esac
 done
 
-mkdir -p /data2/${USER}/ML/FastSim_NanoAOD_to_NN
-cd /data2/${USER}/ML/FastSim_NanoAOD_to_NN
+mkdir -p /data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD
+cd /data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD
 
 find . -type f -iname \*.txt -delete
 find . -type f -iname \*.h5 -delete
 find . -type f -iname Htt_merged_\* -delete
 
-rsync -au --progress ${lyoservusername}@lyoserv.in2p3.fr:/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_* /data2/${USER}/ML/FastSim_NanoAOD_to_NN/
+rsync -au --progress ${lyoservusername}@lyoserv.in2p3.fr:/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_* /data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD/
 
-for d in $(ls /data2/${USER}/ML/FastSim_NanoAOD_to_NN | grep -ve ALL)
+for d in $(ls /data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD | grep -ve ALL)
 do
-    cd /data2/${USER}/ML/FastSim_NanoAOD_to_NN/$d
+    cd /data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD/$d
 
     for f in $(ls | grep Htt_.*_NanoAODSIM.root)
     do

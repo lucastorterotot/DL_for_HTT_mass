@@ -1,4 +1,4 @@
-import FastSim_NanoAOD_to_NN.modules.store_vars as store_vars
+import HTT_analysis_FastSim_NanoAOD.modules.store_vars as store_vars
 
 def find_HTT(evt):
     ''' Find the Higgs boson in the generated particles,

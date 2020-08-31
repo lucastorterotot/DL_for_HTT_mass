@@ -70,7 +70,7 @@ import matplotlib.pyplot as plt
 
 # Load data
 import os
-data_file = "/data2/{}/ML/FastSim_NanoAOD_to_NN/{}/Htt_merged_NanoAODSIM_{}.h5".format(os.environ["USER"], options.input, options.input)
+data_file = "/data2/{}/ML/HTT_analysis_FastSim_NanoAOD/{}/Htt_merged_NanoAODSIM_{}.h5".format(os.environ["USER"], options.input, options.input)
 df = pd.read_hdf(data_file)
 
 # GeV to TeV

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir -p /data2/${USER}/ML/Delphes_to_NN
-cd /data2/${USER}/ML/Delphes_to_NN
+mkdir -p /data2/${USER}/ML/HTT_analysis_Delphes
+cd /data2/${USER}/ML/HTT_analysis_Delphes
 
 find . -type f -iname \*.txt -delete
 find . -type f -iname \*.h5 -delete
