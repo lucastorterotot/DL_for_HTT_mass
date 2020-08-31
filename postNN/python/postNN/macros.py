@@ -40,7 +40,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
         mHrange[0] = np.round(mHrange[0],3)
         mHrange[1] = np.round(mHrange[1],3)
         
-        df2 = df1.loc[(df1["Higgs_Mass_gen"] >= mHrange[0]) & (df1["Higgs_Mass_gen"] <= mHrange[1])]
+        df2 = df1.loc[(df1["Higgs_mass_gen"] >= mHrange[0]) & (df1["Higgs_mass_gen"] <= mHrange[1])]
         
         predictions = np.r_[df2["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]]
         if len(predictions) == 0:
@@ -50,7 +50,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
         xerr.append((mHrange[1]-mHrange[0])/2)
 
         mTtots = np.r_[df2["mTtot_reco"]]
-        mHs = np.r_[df2["Higgs_Mass_gen"]]
+        mHs = np.r_[df2["Higgs_mass_gen"]]
         values_NN = predictions/mHs
         values_mTtot = mTtots/mHs
         
@@ -182,7 +182,7 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, mH_min, mH_max, fixed = "?
             var = "{}_{}_layers_{}_neurons{}_output".format(channel, str(at), str(val), bottleneck)
             
         predictions = np.r_[df1[var]]
-        mHs = np.r_[df1["Higgs_Mass_gen"]]
+        mHs = np.r_[df1["Higgs_mass_gen"]]
         values = predictions/mHs
         
         fig, ax = plt.subplots()
@@ -241,7 +241,7 @@ def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max)
     plt.clf()
     fig, ax = plt.subplots()
 
-    predictions, answers = np.r_[_df["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]], np.r_[_df["Higgs_Mass_gen"]]
+    predictions, answers = np.r_[_df["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]], np.r_[_df["Higgs_mass_gen"]]
 
     # Calculate the point density
     from matplotlib.colors import Normalize
