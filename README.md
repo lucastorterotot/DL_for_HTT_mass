@@ -103,13 +103,14 @@ This script will ensure to have a good naming scheme so that any event can be fo
 ## Prepare data for the NN
 One has to define which data the NN will be trained on, which will be kept for testing, and so on. To do so, a dedicated script is provided:
 ```
-analyzed_events_to_NN <input h5 file from previous step> <output_name>
+analyzed_events_to_NN <input h5 file from previous step>
 ```
+It will update the previous file with new information (train, valid or test event).
+
 Options are available for this script:
 
 - `-m` (`min_mass`), minimum mass point to consider;
 - `-M` (`max_mass`), maximum mass point to consider;
-- `-T` (`TeV_switch`), converts GeV to TeV (make sure the previous options are then given in the correct unit);
 - `-t` (`train_frac`), training fraction in the dataset;
 - `-v` (`valid_frac`), validation fraction in the dataset, testing will be the remaining;
 - `-r` (`random_seed`), random seed to use for splitting the dataset into train, valid and test parts;

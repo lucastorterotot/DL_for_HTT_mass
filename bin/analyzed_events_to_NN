@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <input hdf5> <output>"
+usage = "usage: %prog [options] <input hdf5>"
 parser = OptionParser(usage=usage)
 parser.add_option("-m", "--minmass", dest = "min_mass",
-                  default = 0.090)
+                  default = "80.0")
 parser.add_option("-M", "--maxmass", dest = "max_mass",
-                  default = 0.800)
-parser.add_option("-T", "--TeV", dest = "TeV_switch",
-                  default = False, action = 'store_true')
+                  default = "800.0")
 parser.add_option("-t", "--train_frac", dest = "train_frac",
                   default = "0.7")
 parser.add_option("-v", "--valid_frac", dest = "valid_frac",
@@ -28,7 +26,7 @@ options.valid_frac = float(options.valid_frac)
 options.random_seed = int(options.random_seed)
 
 input_file = args[0]
-output_file = args[1]
+output_file = input_file.replace(".h5", "")
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -37,13 +35,6 @@ import pandas as pd
 
 # Load data
 df = pd.read_hdf(input_file)
-
-# GeV to TeV
-GeV_vars = ["MET_cov", "_pt_", "_mass_", "mT", "_E_"]
-if options.TeV_switch:
-    for k in df.keys():
-        if any([GeV_var in k for GeV_var in GeV_vars]):
-            df[k] *= 1./1000
 
 # make transverse masses
 pt_str = "pt"
@@ -106,6 +97,11 @@ df.loc[np_train, ["is_train"]] = 1
 df.loc[np_valid, ["is_valid"]] = 1
 df.loc[np_test, ["is_test"]] = 1
 
+# remove out of range masses
+df.loc[(df[target] < min_mass) | (df[target] > max_mass), ["is_train"]] = 0
+df.loc[(df[target] < min_mass) | (df[target] > max_mass), ["is_valid"]] = 0
+df.loc[(df[target] < min_mass) | (df[target] > max_mass), ["is_test"]] = 0
+
 # ensure flat target distribution
 # compute bin content to use
 df["was_train"] = np.zeros(len(df[target]))
@@ -157,7 +153,7 @@ for k in df:
         df[k] = df[k].astype('bool')
     elif k == 'Event_gen':
         df[k] = df[k].astype('int32')
-    elif any([s in k for s in ["_Charge_", "_PID_", "_charge_", "_pdgId_"]]):
+    elif any([s in k for s in ["_charge_", "_pdgId_"]]):
         df[k] = df[k].astype('int8')
     elif any([s in k for s in ["_eta_", "_phi_", "_pt_", "_mass_", "_btagDeepB_", "mT"]]):
         df[k] = df[k].astype('float16')
