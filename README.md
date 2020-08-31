@@ -118,7 +118,7 @@ Options are available for this script:
 ## Train the deep NN
 Go in the NN directory and activate the conda environment if not already done.
 
-If the hdf5 output files from the previous step are stored in `/data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD/${input}/Htt_merged_NanoAODSIM_${input}.h5` you can run as a test
+You can run as a test
 ```
 NN_trainer -L 1 -N 1 -o TEST <input h5 file from previous step>
 ```
