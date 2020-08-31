@@ -235,23 +235,22 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, mH_min, mH_max, fixed = "?
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
 
-def plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
-    _df = filter_channel(df, channel)
+def plot_pred_vs_ans(predictions, answers, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
+
     # Plot predicted vs answer on a test sample
     plt.clf()
     fig, ax = plt.subplots()
 
-    predictions, answers = np.r_[_df["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]], np.r_[_df["Higgs_mass_gen"]]
     import seaborn as sns
-    sns.kdeplot(predictions, answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
+    sns.kdeplot(answers, predictions, cmap="viridis", n_levels=30, shade=True, bw=.15)
 
     ax.plot(answers, answers, color="C3")
     plt.xlabel("Generated Higgs Mass (GeV)")
     plt.ylabel("Predicted Higgs Mass (GeV)")
     
     #plt.show()
-    plt.xlim(answers.min(), answers.max())
-    plt.ylim(answers.min(), answers.max())
+    plt.xlim(mH_min, mH_max)
+    plt.ylim(mH_min, mH_max)
 
     fig.savefig(
         "predicted_vs_answers_{}_{}_layers_{}_neurons{}.png".format(
