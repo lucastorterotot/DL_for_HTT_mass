@@ -86,40 +86,6 @@ def train_valid_test_split(df, train_size=.6, valid_size=.2, test_size=.2, seed=
     test = perm[valid_end:]
     return train, valid, test
 
-def plot_hist(h, NNname, xsize=6, ysize=10):
-    # Prepare plotting
-    fig_size = plt.rcParams["figure.figsize"]
-    plt.rcParams["figure.figsize"] = [xsize, ysize]
-    fig, axes = plt.subplots(nrows=4, ncols=4, sharex=True)
-    
-    # summarize history for MAE
-    ax=plt.subplot(211)
-    ax.set_yscale('log')
-    plt.plot(h['mean_absolute_error'])
-    plt.plot(h['val_mean_absolute_error'])
-    plt.title('Training vs Validation MAE')
-    plt.ylabel('MAE')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper right')
-    plt.draw()
-    
-    # summarize history for loss
-    ax=plt.subplot(212)
-    ax.set_yscale('log')
-    plt.plot(h['loss'])
-    plt.plot(h['val_loss'])
-    plt.title('Training vs Validation Loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper right')
-    
-    # Plot it all in IPython (non-interactive)
-    # plt.draw()
-    # plt.show()
-    
-    fig.savefig("history_{}.png".format(NNname))
-    plt.close('all')
-
 # Split index ranges into training and testing parts with shuffle
 train_size = options.train_frac
 valid_size = options.valid_frac
