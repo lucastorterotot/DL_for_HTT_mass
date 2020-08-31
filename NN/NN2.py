@@ -23,11 +23,13 @@ parser.add_option("-O", "--optimizer", dest = "optimizer",
 parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
                   default = "uniform")
 parser.add_option("-s", "--source", dest = "source",
-                  default = "Delphes")
+                  default = "FastSim")
 parser.add_option("-m", "--minmass", dest = "min_mass",
                   default = 0.090)
 parser.add_option("-M", "--maxmass", dest = "max_mass",
                   default = 0.800)
+parser.add_option("-c", "--channels", dest = "channels",
+                  default = "inclusive,tt")
 
 (options,args) = parser.parse_args()
 
@@ -538,9 +540,9 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     return df, True
 
 
-channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
+allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
-for channel in channels:
+for channel in [c for c in options.channels.split(",") if c in allowed_channels]:
     df_out, valid = NN_make_train_predict(df, inputs, channel = channel,
                                           Nlayers = options.Nlayers, Nneurons = options.Nneurons,
                                           loss = options.loss,
