@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <input>"
+parser = OptionParser(usage=usage)
+parser.add_option("-o", "--output", dest = "output",
+                  default = "NN")
+parser.add_option("-L", "--Nlayers", dest = "Nlayers",
+                  default = 3)
+parser.add_option("-N", "--Nneurons", dest = "Nneurons",
+                  default = 1000)
+parser.add_option("-g", "--gpu", dest = "gpu",
+                  default = 0)
+parser.add_option("-b", "--bottleneck", dest = "bottleneck",
+                  default =  False, action = 'store_true')
+parser.add_option("-l", "--loss", dest = "loss",
+                  default = "cosine_similarity")
+parser.add_option("-O", "--optimizer", dest = "optimizer",
+                  default = "Adadelta")
+parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
+                  default = "uniform")
+parser.add_option("-s", "--source", dest = "source",
+                  default = "FastSim")
+parser.add_option("-m", "--minmass", dest = "min_mass",
+                  default = 0.090)
+parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  default = 0.800)
+parser.add_option("-c", "--channels", dest = "channels",
+                  default = "inclusive,tt")
+
+(options,args) = parser.parse_args()
+
+options.Nlayers = int(options.Nlayers)
+options.Nneurons = int(options.Nneurons)
+options.gpu = int(options.gpu)
+min_mass = float(options.min_mass)
+max_mass = float(options.max_mass)
+
+input_file = args[0]
+
+print("Selected options are the following:")
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "source", "min_mass", "max_mass"]:
+    print("\t{}\t{}".format(option, getattr(options, option)))
+
+print("Input file:")
+print("\t{}".format(input_file))
+
+# specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
+bottleneck_sequence = [1000, 500, 100]
+
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import tensorflow.keras as keras
+from sklearn.preprocessing import StandardScaler
+from keras.models import Sequential
+from keras import layers, optimizers, regularizers
+from keras.layers import Flatten , Activation
+from keras.layers import Dense
+from keras.utils import multi_gpu_model
+
+import keras.backend.tensorflow_backend as tfback
+
+def _get_available_gpus():
+    """Get a list of available gpu devices (formatted as strings).
+    # Source of this function: https://github.com/keras-team/keras/issues/13684
+    # Returns
+    A list of available GPU devices.
+    """
+    #global _LOCAL_DEVICES
+    if tfback._LOCAL_DEVICES is None:
+        devices = tf.config.list_logical_devices()
+        tfback._LOCAL_DEVICES = [x.name for x in devices]
+    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(gpus[options.gpu], True)
+tf.config.set_visible_devices(gpus[options.gpu], 'GPU')
+
+tfback._get_available_gpus = _get_available_gpus
+print(_get_available_gpus())
+
+import matplotlib.pyplot as plt
+
+# Get available loss_fcts, optimizers and w_init_modes
+
+loss_fcts = [
+    "mean_squared_error",
+    "mean_absolute_error",
+    "mean_absolute_percentage_error",
+    "mean_squared_logarithmic_error",
+    "cosine_similarity",
+    "huber_loss",
+    "log_cosh",
+]
+
+Adam = tf.keras.optimizers.Adam
+Adamax = tf.keras.optimizers.Adamax
+Nadam = tf.keras.optimizers.Nadam
+Adadelta = tf.keras.optimizers.Adadelta
+Adagrad = tf.keras.optimizers.Adagrad
+SGD = tf.keras.optimizers.SGD
+RMSprop = tf.keras.optimizers.RMSprop
+
+optimizers_dict = {
+    "Adam" : Adam,
+    "Adamax" : Adamax,
+    "Nadam" : Nadam,
+    "Adadelta" : Adadelta,
+    "Adagrad" : Adagrad,
+    "SGD" : SGD,
+    "RMSprop" : RMSprop,
+}
+
+w_init_modes = [
+    'uniform',
+    'lecun_uniform',
+    'normal',
+    'zero',
+    'glorot_normal',
+    'glorot_uniform',
+    'he_normal',
+    'he_uniform',
+]
+
+# Load data
+import os
+df = pd.read_hdf(input_file)
+
+# define target and input variables
+target = "Higgs_mass_gen"
+
+print("Target: {}".format(target))
+
+inputs = [
+    "tau1_pt_reco",
+    "tau1_eta_reco",
+    "tau1_phi_reco",
+    "tau2_pt_reco",
+    "tau2_eta_reco",
+    "tau2_phi_reco",
+    "jet1_pt_reco",
+    "jet1_eta_reco",
+    "jet1_phi_reco",
+    "jet2_pt_reco",
+    "jet2_eta_reco",
+    "jet2_phi_reco",
+    # "recoil_pt_reco",
+    # "recoil_eta_reco",
+    # "recoil_phi_reco",
+    "MET_pt_reco",
+    "MET_phi_reco",
+    # "MET_covXX_reco",
+    # "MET_covXY_reco",
+    # "MET_covYY_reco",
+    # "MET_significance_reco",
+    "mT1_reco",
+    "mT2_reco",
+    "mTtt_reco",
+    "mTtot_reco",
+    ]
+
+print("Inputs:")
+for i in inputs:
+    print("\t{}".format(i))
+
+def plot_hist(h, NNname, xsize=6, ysize=10):
+    # Prepare plotting
+    fig_size = plt.rcParams["figure.figsize"]
+    plt.rcParams["figure.figsize"] = [xsize, ysize]
+    fig, axes = plt.subplots(nrows=4, ncols=4, sharex=True)
+    
+    # summarize history for MAE
+    ax=plt.subplot(211)
+    ax.set_yscale('log')
+    plt.plot(h['mean_absolute_error'])
+    plt.plot(h['val_mean_absolute_error'])
+    plt.title('Training vs Validation MAE')
+    plt.ylabel('MAE')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper right')
+    plt.draw()
+    
+    # summarize history for loss
+    ax=plt.subplot(212)
+    ax.set_yscale('log')
+    plt.plot(h['loss'])
+    plt.plot(h['val_loss'])
+    plt.title('Training vs Validation Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper right')
+    
+    # Plot it all in IPython (non-interactive)
+    # plt.draw()
+    # plt.show()
+    
+    fig.savefig("history_{}.png".format(NNname))
+    plt.close('all')
+
+def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer = optimizers_dict[options.optimizer], w_init_mode = options.w_init_mode):
+
+    NNname = "_".join([options.output, channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
+
+    if options.bottleneck:
+        NNname += "_bottleneck"
+
+    print(NNname)
+
+    df_select = df
+
+    df_select = df_select.loc[(df_select[target] >= min_mass) & (df_select[target] <= max_mass)]
+
+    if channel in set(df_select['channel_reco']):
+        df_select = df_select.loc[(df_select['channel_reco'] == channel)]
+    elif channel == "lt":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mt") | (df_select['channel_reco'] == "et")]
+    elif channel == "ll":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
+
+    df_x_train = df_select.loc[(df_select['is_train'] == 1)].drop(columns=[k for k in df_select.keys() if not k in inputs])
+    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
+    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), :].drop(columns=[k for k in df_select.keys() if not k in inputs])
+    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
+
+    print('Size of training set: ', len(df_x_train))
+    print('Size of valid set: ', len(df_x_valid))
+
+    if len(df_x_train) == 0 or len(df_x_valid) == 0:
+        print("Empty set, aborting...")
+        return None, False
+
+    arr_x_train = np.r_[df_x_train]
+    arr_y_train = np.r_[df_y_train[target]]
+    arr_x_valid = np.r_[df_x_valid]
+    arr_y_valid = np.r_[df_y_valid[target]]
+
+    # Create model
+    NN_model = Sequential()
+    from tensorflow.keras.constraints import max_norm
+    my_max_norm = 3.
+
+    Nneurons_sequence = Nneurons * np.ones(Nlayers)
+    if options.bottleneck:
+        for k in range(min([Nlayers, len(bottleneck_sequence)])):
+            Nneurons_sequence[Nlayers-k-1] = min([Nneurons_sequence[Nlayers-k-1], bottleneck_sequence[-k-1]])
+
+    NN_model.add(Dense(int(Nneurons_sequence[0]), activation="relu", kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
+
+    for _Nneurons in Nneurons_sequence[1:]:
+        NN_model.add(Dense(int(_Nneurons), activation="relu", kernel_constraint=max_norm(my_max_norm)))
+            
+    NN_model.add(Dense(1, activation="linear"))
+    print(NN_model.summary())
+    NN_model.compile(loss='mean_squared_error',
+                     optimizer=optimizers.Adam(),
+                     metrics=[keras.metrics.mae])
+    
+    # Train model
+    epochs = 500
+    batch_size = 128
+    print('Epochs: ', epochs)
+    print('Batch size: ', batch_size)
+
+    keras_callbacks = [keras.callbacks.EarlyStopping(monitor='val_mean_absolute_error', patience=20, verbose=0)]
+
+    history = NN_model.fit(arr_x_train, arr_y_train,
+                           batch_size=batch_size,
+                           epochs=epochs,
+                           shuffle=True,
+                           verbose=2, # Change it to 2, if wished to observe execution
+                           validation_data=(arr_x_valid, arr_y_valid),
+                           callbacks=keras_callbacks,
+    )
+
+    # Evaluate and report performance of the trained model
+    train_score = NN_model.evaluate(arr_x_train, arr_y_train, verbose=0)
+    valid_score = NN_model.evaluate(arr_x_valid, arr_y_valid, verbose=0)
+
+    print('Train MAE: ', round(train_score[1], 4), ', Train Loss: ', round(train_score[0], 4))
+    print('Val MAE: ', round(valid_score[1], 4), ', Val Loss: ', round(valid_score[0], 4))
+
+    plot_hist(history.history, NNname, xsize=8, ysize=12)
+
+    # serialize model to JSON
+    NN_model_json = NN_model.to_json()
+    with open("{}.json".format(NNname), "w") as json_file:
+        json_file.write(NN_model_json)
+    # serialize weights to HDF5
+    NN_model.save_weights("NN_weights_{}.h5".format(NNname))
+    print("Saved model to disk")
+
+
+allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
+
+for channel in [c for c in options.channels.split(",") if c in allowed_channels]:
+    NN_make_train_predict(df, inputs, channel = channel,
+                          Nlayers = options.Nlayers, Nneurons = options.Nneurons,
+                          loss = options.loss,
+                          optimizer = optimizers_dict[options.optimizer],
+                          w_init_mode = options.w_init_mode)
