@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
 from optparse import OptionParser
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
@@ -53,7 +55,7 @@ for Nlayers in Nlayers_list:
                         if k not in df:
                             df[k] = _df[k]
 
-df = df.loc[(df["Higgs_mass_gen"] >= options.min_mass) & (df["Higgs_mass_gen"] <= options.max_mass)]
+df = df.loc[(df[NN_default_settings.target] >= options.min_mass) & (df[NN_default_settings.target] <= options.max_mass)]
 df = df.loc[(df["is_valid"] == 1)]
 
 # Get available channels and create the combined NN output

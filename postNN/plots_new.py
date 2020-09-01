@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
 from optparse import OptionParser
 usage = "usage: %prog [options] <NN JSON file> <NN input file>"
 parser = OptionParser(usage=usage)
