@@ -1,5 +1,6 @@
 import DL_for_HTT.HTT_analysis_FastSim_NanoAOD.modules.store_vars as store_vars
 import itertools
+import numpy as np
 
 import DL_for_HTT.common.HTT_cuts as common_cuts
 
@@ -400,4 +401,16 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     for k in range(int(min([2, evt.GetLeaf("Jet_pt").GetLen()]))):
         store_vars.store_jet(evt, output, "jet{}".format(k+1), k)
 
+    # Recoil (other jets) computation and storage
+    recoil_px = 0
+    recoil_py = 0
+    recoil_pz = 0
+    if evt.GetLeaf("Jet_pt").GetLen() > 2:
+        for k in range(2, evt.GetLeaf("Jet_pt").GetLen()):
+            recoil_px += evt.GetLeaf("Jet_pt").GetValue(k) * np.cos(evt.GetLeaf("Jet_phi").GetValue(k))
+            recoil_py += evt.GetLeaf("Jet_pt").GetValue(k) * np.sin(evt.GetLeaf("Jet_phi").GetValue(k))
+            recoil_pz += 0 # not available yet
+    recoil_pt = np.sqrt(recoil_px**2 + recoil_py**2)
+    store_vars.store_recoil(evt, output, "recoil", recoil_pt, recoil_pz)
+        
     return output, cutflow_stats
