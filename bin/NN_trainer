@@ -88,15 +88,15 @@ import matplotlib.pyplot as plt
 
 # Get available loss_fcts, optimizers and w_init_modes
 
-loss_fcts = [
-    "mean_squared_error",
-    "mean_absolute_error",
-    "mean_absolute_percentage_error",
-    "mean_squared_logarithmic_error",
-    "cosine_similarity",
-    "huber_loss",
-    "log_cosh",
-]
+loss_fcts = {
+    "mean_squared_error" : "mse",
+    "mean_absolute_error" : "mae",
+    "mean_absolute_percentage_error" : "mape",
+    "mean_squared_logarithmic_error" : "msle",
+    "cosine_similarity" : "cs",
+    "huber_loss" : "hl",
+    "log_cosh" : "lc",
+}
 
 Adam = tf.keras.optimizers.Adam
 Adamax = tf.keras.optimizers.Adamax
@@ -116,16 +116,16 @@ optimizers_dict = {
     "RMSprop" : RMSprop,
 }
 
-w_init_modes = [
-    'uniform',
-    'lecun_uniform',
-    'normal',
-    'zero',
-    'glorot_normal',
-    'glorot_uniform',
-    'he_normal',
-    'he_uniform',
-]
+w_init_modes = {
+    'uniform' : "u",
+    'lecun_uniform' : "lu",
+    'normal' : "n",
+    'zero' : "z",
+    'glorot_normal' : "gn",
+    'glorot_uniform' : "gu",
+    'he_normal' : "hn",
+    'he_uniform' : "hu",
+}
 
 # Load data
 import os
@@ -202,14 +202,16 @@ def plot_hist(h, NNname, xsize=6, ysize=10):
     fig.savefig("history_{}.png".format(NNname))
     plt.close('all')
 
-def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer = optimizers_dict[options.optimizer], w_init_mode = options.w_init_mode):
+def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode):
 
-    NNname = "_".join([options.output, channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
+    NNname = "-".join([options.output, loss_fcts[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
     if options.bottleneck:
-        NNname += "_bottleneck"
+        NNname += "-bottleneck"
 
     print(NNname)
+
+    optimizer = optimizers_dict[optimizer_name]
 
     df_select = df
 
@@ -291,7 +293,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     with open("{}.json".format(NNname), "w") as json_file:
         json_file.write(NN_model_json)
     # serialize weights to HDF5
-    NN_model.save_weights("NN_weights_{}.h5".format(NNname))
+    NN_model.save_weights("NN_weights-{}.h5".format(NNname))
     print("Saved model to disk")
 
 

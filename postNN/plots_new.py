@@ -20,7 +20,7 @@ from keras.models import model_from_json
 # load json and create model
 input_json = args[0]
 NN_weights_path_and_file = input_json.split('/')
-NN_weights_path_and_file[-1] = "NN_weights_{}".format(NN_weights_path_and_file[-1].replace('.json', '.h5'))
+NN_weights_path_and_file[-1] = "NN_weights-{}".format(NN_weights_path_and_file[-1].replace('.json', '.h5'))
 NN_weights_file = "/".join(NN_weights_path_and_file)
 
 json_file = open(input_json, 'r')
@@ -35,16 +35,20 @@ print("\t{}".format(input_json))
 # Get infos on the trained NN
 infos = NN_weights_path_and_file[-1]
 infos = infos.replace('.h5', '')
-infos = infos.replace('NN_weights_', '')
+infos = infos.replace('NN_weights-', '')
 
-is_bottleneck = ("_bottleneck" == infos[-11:])
+is_bottleneck = ("-bottleneck" == infos[-11:])
 
 if is_bottleneck:
-    infos = infos.replace('_bottleneck', '')
+    infos = infos.replace('-bottleneck', '')
 
-Nneurons = infos.split("_")[-2]
-Nlayers = infos.split("_")[-4]
-channel = infos.split("_")[-5]
+Nneurons = infos.split("-")[-2]
+Nlayers = infos.split("-")[-4]
+channel = infos.split("-")[-5]
+
+w_init_mode = infos.split("-")[-6]
+optimizer = infos.split("-")[-7]
+loss = infos.split("-")[-8]
 
 print(
     "{} channel, {} hidden layers of {} neurons with{} bottleneck".format(
