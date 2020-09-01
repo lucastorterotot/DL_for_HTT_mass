@@ -5,7 +5,7 @@ instal_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # add the bin directory to the current path
 export PATH=$instal_dir/bin/:$instal_dir/Delphes/Delphes-3.4.2/:$PATH
-export PYTHONPATH=$PYTHONPATH:$instal_dir/HTT_analysis_Delphes/python/:$instal_dir/HTT_analysis_FastSim_NanoAOD/python/:$instal_dir/postNN/python/
+export PYTHONPATH=$PYTHONPATH:$instal_dir/python/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$instal_dir/Delphes/Delphes-3.4.2/
 export ROOT_INCLUDE_PATH=$ROOT_INCLUDE_PATH:$instal_dir/Delphes/Delphes-3.4.2/external/
 

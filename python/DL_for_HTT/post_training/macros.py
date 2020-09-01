@@ -1,4 +1,4 @@
-import postNN.utils as utils
+import DL_for_HTT.post_training.utils as utils
 
 import matplotlib.pyplot as plt
 import numpy as np

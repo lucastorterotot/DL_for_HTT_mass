@@ -1,5 +1,5 @@
-import HTT_analysis_Delphes.modules.store_vars as store_vars
-from HTT_analysis_Delphes.modules.utils import DR2
+import DL_for_HTT.HTT_analysis_Delphes.modules.store_vars as store_vars
+from DL_for_HTT.HTT_analysis_Delphes.modules.utils import DR2
 from math import sin, cos
 
 def find_HTT(evt):

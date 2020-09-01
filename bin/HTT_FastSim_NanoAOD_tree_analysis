@@ -61,8 +61,8 @@ for c1 in channel_stats_gen.keys():
     for c2 in channel_stats_gen.keys():
         channel_identification["{} as {}".format(c1, c2)] = 0
 
-from HTT_analysis_FastSim_NanoAOD.analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
-from HTT_analysis_FastSim_NanoAOD.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
+from DL_for_HTT.HTT_analysis_FastSim_NanoAOD.analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
+from DL_for_HTT.HTT_analysis_FastSim_NanoAOD.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
 
 analysis_results = []
 cutflow_stats = {}

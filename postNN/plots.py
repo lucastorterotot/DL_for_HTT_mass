@@ -86,8 +86,8 @@ channels = ["inclusive", "combined6", "combined3"] + channels
 if options.small_test:
     channels = ["inclusive", "combined3", "tt"]
 
-import postNN.utils as utils
-import postNN.macros as macros
+import DL_for_HTT.post_training.utils as utils
+import DL_for_HTT.post_training.macros as macros
 
 for channel in channels:
     macros.mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, mH_min, mH_max)
