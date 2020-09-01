@@ -17,7 +17,7 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
-def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
+def NN_responses(df, channel, NNname, mH_min, mH_max):
     df1 = filter_channel(df, channel)
         
     medians_NN = []
@@ -33,7 +33,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
     xpos = []
     xerr = []
     
-    mHcuts = np.arange(mH_min, mH_max, 10e-3) # [.200, .350]
+    mHcuts = np.arange(mH_min, mH_max, 10) # [.200, .350]
     mHranges = [[mH_min, mHcuts[0]]]
     for mHcut in mHcuts[1:]:
         mHranges.append([mHranges[-1][1], mHcut])
@@ -44,7 +44,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
         
         df2 = df1.loc[(df1[target] >= mHrange[0]) & (df1[target] <= mHrange[1])]
         
-        predictions = np.r_[df2["{}_{}_layers_{}_neurons{}_output".format(channel, str(Nlayers), str(Nneurons), bottleneck)]]
+        predictions = np.r_[df2["predictions"]]
         if len(predictions) == 0:
             continue
 
@@ -87,7 +87,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
         CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
         
     fig, ax = plt.subplots()
-    fig.suptitle("{} channel, {} layers of {} neurons{}".format(channel, str(Nlayers), str(Nneurons), " with bottleneck" if bottleneck != "" else ""))
+    #fig.suptitle(NNname)
     plt.xlabel("Generated mass (GeV)")
     plt.ylabel("Discriminator / Generated mass")
     
@@ -114,32 +114,32 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
     #     fmt=' ', capsize = 3, capthick = .4, color = "black", #label = "DNN",
     # )
 
-    ax.plot(
-        xpos, CL95s_mTtot_do,
-        color = "C7", #alpha = .5,
-        dashes = [1,1],
-    )
-    ax.plot(
-        xpos, CL95s_mTtot_up,
-        color = "C7", #alpha = .5,
-        dashes = [1,1],
-    )
-    ax.plot(
-        xpos, CL68s_mTtot_do,
-        color = "C7", #alpha = .5,
-        dashes = [2,2],
-    )
-    ax.plot(
-        xpos, CL68s_mTtot_up,
-        color = "C7", #alpha = .5,
-        dashes = [2,2],
-    )
-    ax.plot(
-        xpos, medians_mTtot,
-        color = "C7", #alpha = .5,
-        #dashes = [2,1],
-        label = "mTtot",
-    )
+    # ax.plot(
+    #     xpos, CL95s_mTtot_do,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [1,1],
+    # )
+    # ax.plot(
+    #     xpos, CL95s_mTtot_up,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [1,1],
+    # )
+    # ax.plot(
+    #     xpos, CL68s_mTtot_do,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [2,2],
+    # )
+    # ax.plot(
+    #     xpos, CL68s_mTtot_up,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [2,2],
+    # )
+    # ax.plot(
+    #     xpos, medians_mTtot,
+    #     color = "C7", #alpha = .5,
+    #     #dashes = [2,1],
+    #     label = "mTtot",
+    # )
     
     plt.plot([mH_min, mH_max], [1,1], color='C3')    
 
@@ -148,7 +148,7 @@ def NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
 
     ax.legend(loc='upper right')
     
-    fig.savefig("NN_response_{}{}.png".format("_".join([channel, str(Nlayers), "layers", str(Nneurons), "neurons"]), bottleneck))
+    fig.savefig("NN_response_{}.png".format(NNname))
     plt.close('all')
 
 def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, mH_min, mH_max):
@@ -237,8 +237,14 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, mH_min, mH_max, fixed = "?
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
 
-def plot_pred_vs_ans(predictions, answers, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max):
+def plot_pred_vs_ans(df, channel, NNname, mH_min, mH_max):
 
+    df = df.loc[df.is_valid == 1]
+    df = filter_channel(df, channel=channel)
+
+    predictions = df["predictions"]
+    answers = df[target]
+    
     # Plot predicted vs answer on a test sample
     plt.clf()
     fig, ax = plt.subplots()
@@ -254,8 +260,22 @@ def plot_pred_vs_ans(predictions, answers, channel, Nneurons, Nlayers, bottlenec
     plt.xlim(mH_min, mH_max)
     plt.ylim(mH_min, mH_max)
 
-    fig.savefig(
-        "predicted_vs_answers_{}_{}_layers_{}_neurons{}.png".format(
-            channel, Nlayers, Nneurons, bottleneck
-        )
-    )
+    fig.savefig("predicted_vs_answers-{}.png".format(NNname))
+
+    # Plot predicted vs answer on a test sample
+    plt.clf()
+    fig, ax = plt.subplots()
+
+    import seaborn as sns
+    sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
+
+    ax.plot([mH_min, mH_max], [1,1], color='C3')
+    plt.xlabel("Generated Higgs Mass (GeV)")
+    plt.ylabel("Predicted Higgs Mass (GeV)")
+    
+    #plt.show()
+    plt.xlim(mH_min, mH_max)
+    plt.ylim(0, 3)
+
+    fig.savefig("predicted_on_answers-{}.png".format(NNname))
+    

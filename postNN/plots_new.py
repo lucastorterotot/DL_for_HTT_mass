@@ -21,6 +21,8 @@ import numpy as np
 import pandas as pd
 from keras.models import model_from_json
 
+NNname = args[0].split('/')[-1].replace('.json', '')
+
 # load json and create model
 input_json = args[0]
 NN_weights_path_and_file = input_json.split('/')
@@ -43,8 +45,10 @@ infos = infos.replace('NN_weights-', '')
 
 is_bottleneck = ("-bottleneck" == infos[-11:])
 
+bottleneck = ""
 if is_bottleneck:
     infos = infos.replace('-bottleneck', '')
+    bottleneck = "-bottleneck"
 
 Nneurons = infos.split("-")[-2]
 Nlayers = infos.split("-")[-4]
@@ -54,12 +58,21 @@ w_init_mode = infos.split("-")[-6]
 optimizer = infos.split("-")[-7]
 loss = infos.split("-")[-8]
 
+print("Properties:")
+
 print(
-    "{} channel, {} hidden layers of {} neurons with{} bottleneck".format(
+    "\t{} channel, {} hidden layers of {} neurons with{} bottleneck".format(
         channel,
         Nlayers,
         Nneurons,
         "" if is_bottleneck else "out",
+    )
+)
+print(
+    "\ttrained with {} optimizer, w_init {} and {} loss.".format(
+        optimizer,
+        w_init_mode,
+        loss,
     )
 )
 
@@ -67,115 +80,14 @@ print(
 df = pd.read_hdf(args[1])
 
 # evaluate loaded model on test data
-inputs = [
-    "tau1_pt_reco",
-    "tau1_eta_reco",
-    "tau1_phi_reco",
-    "tau2_pt_reco",
-    "tau2_eta_reco",
-    "tau2_phi_reco",
-    "jet1_pt_reco",
-    "jet1_eta_reco",
-    "jet1_phi_reco",
-    "jet2_pt_reco",
-    "jet2_eta_reco",
-    "jet2_phi_reco",
-    # "recoil_pt_reco",
-    # "recoil_eta_reco",
-    # "recoil_phi_reco",
-    "MET_pt_reco",
-    "MET_phi_reco",
-    # "MET_covXX_reco",
-    # "MET_covXY_reco",
-    # "MET_covYY_reco",
-    # "MET_significance_reco",
-    "mT1_reco",
-    "mT2_reco",
-    "mTtt_reco",
-    "mTtot_reco",
-    ]
+inputs = NN_default_settings.inputs
+target = NN_default_settings.target
 
-predictions = loaded_model.predict(df[inputs])
+# tmp removal of metcov
+inputs = [i for i in inputs if not "cov" in i]
 
-if True:
+df["predictions"] = loaded_model.predict(df[inputs])
 
-    df = df.loc[(df["Higgs_mass_gen"] <= 130) & (df["Higgs_mass_gen"] >= 110)]
-    df = df.loc[(df["is_valid"] == 1)]
-    # Plot predicted vs answer on a test sample
-    plt.clf()
-    plt.rcParams["figure.figsize"] = [16, 10]
-    fig, ax = plt.subplots()
-    predictions, answers = loaded_model.predict(df[inputs]), df["Higgs_mass_gen"]
-    # Calculate the point density
-    from matplotlib.colors import Normalize
-    from scipy.interpolate import interpn
-    # data , x_e, y_e = np.histogram2d( answers, predictions[:,0], bins = [50,50], density = True )
-    # z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([answers, predictions[:,0]]).T , method = "splinef2d", bounds_error = False)
-    # z[np.where(np.isnan(z))] = 0.0
-    # # Sort the points by density, so that the densest points are plotted last
-    # idx = z.argsort()
-    # x, y, z = answers[idx], predictions[idx,0], z[idx]
-    # ax.scatter(x,y, c=z, edgecolor='', label="Test")
-    ax.scatter(answers, predictions)
-    ax.plot(answers, answers, color="C3")
-    plt.xlabel("Generated Higgs Mass (TeV)")
-    plt.ylabel("Predicted Higgs Mass (TeV)")
-    
-    # # linear regression on trained output
-    # xerr_for_reg = 1
-    # yerr_for_reg = 1
-    # # linear function to adjust
-    # def f(x,p):
-    #     a,b = p
-    #     return a*x+b
-    
-    # # its derivative
-    # def Dx_f(x,p):
-    #     a,b = p
-    #     return a
-    
-    # # difference to data
-    # def residual(p, y, x):
-    #     return (y-f(x,p))/np.sqrt(yerr_for_reg**2 + (Dx_f(x,p)*xerr_for_reg)**2)
-    
-    # # initial estimation
-    # # usually OK but sometimes one need to give a different
-    # # starting point to make it converge
-    # p0 = np.array([0,0])
-    # # minimizing algorithm
-    # import scipy.optimize as spo
-    # x, y = answers, np.r_[predictions][:,0]
-    # try:
-    #     result = spo.leastsq(residual, p0, args=(y, x), full_output=True)
-    #     # optimized parameters a and b
-    #     popt = result[0];
-    #     # variance-covariance matrix
-    #     pcov = result[1];
-    #     # uncetainties on parameters (1 sigma)
-    #     #uopt = np.sqrt(np.abs(np.diagonal(pcov)))
-    #     x_aj = np.linspace(min(x),max(x),100)
-    #     y_aj = popt[0]*np.linspace(min(x),max(x),100)+popt[1]
-        
-    #     ax.plot(x_aj, y_aj, color="C4")
-    #     y_info = 0.95
-    #     x_info = 0.025
-    #     multialignment='left'
-    #     horizontalalignment='left'
-    #     verticalalignment='top'
-    #     ax.text(x_info, y_info,
-    #             '\n'.join([
-    #                 '$f(x) = ax+b$',
-    #                 '$a = {{ {0:.2e} }}$'.format(popt[0]),
-    #                 '$b = {{ {0:.2e} }}$'.format(popt[1])
-    #             ]),
-    #             transform = ax.transAxes, multialignment=multialignment, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment)
-    # except:
-    #     #import pdb; pdb.set_trace()
-    #     print("No extrapolation possible")
-        
-    #plt.show()
-    fig.savefig("predicted_vs_answers2.png")
-    plt.close('all') 
-
-# import pdb; pdb.set_trace()
-# macros.NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max)            
+import DL_for_HTT.post_training.macros as macros
+macros.plot_pred_vs_ans(df, channel, NNname, options.min_mass, options.max_mass)
+macros.NN_responses(df, channel, NNname, options.min_mass, options.max_mass)
