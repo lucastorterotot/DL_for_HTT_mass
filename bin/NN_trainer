@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
 from optparse import OptionParser
 usage = "usage: %prog [options] <input>"
 parser = OptionParser(usage=usage)
 parser.add_option("-o", "--output", dest = "output",
                   default = "NN")
 parser.add_option("-L", "--Nlayers", dest = "Nlayers",
-                  default = 3)
+                  default = NN_default_settings.Nlayers)
 parser.add_option("-N", "--Nneurons", dest = "Nneurons",
-                  default = 1000)
+                  default = NN_default_settings.Nneurons)
 parser.add_option("-g", "--gpu", dest = "gpu",
                   default = 0)
 parser.add_option("-b", "--bottleneck", dest = "bottleneck",
                   default =  False, action = 'store_true')
 parser.add_option("-l", "--loss", dest = "loss",
-                  default = "cosine_similarity")
+                  default = NN_default_settings.loss)
 parser.add_option("-O", "--optimizer", dest = "optimizer",
-                  default = "Adadelta")
+                  default = NN_default_settings.optimizer)
 parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
-                  default = "uniform")
-parser.add_option("-s", "--source", dest = "source",
-                  default = "FastSim")
+                  default = NN_default_settings.w_init_mode)
 parser.add_option("-m", "--minmass", dest = "min_mass",
-                  default = 0.090)
+                  default = NN_default_settings.min_mass)
 parser.add_option("-M", "--maxmass", dest = "max_mass",
-                  default = 0.800)
+                  default = NN_default_settings.max_mass)
 parser.add_option("-c", "--channels", dest = "channels",
-                  default = "inclusive,tt")
+                  default = NN_default_settings.channels)
 
 (options,args) = parser.parse_args()
 

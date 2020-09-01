@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
 from optparse import OptionParser
 usage = "usage: %prog [options] <input hdf5>"
 parser = OptionParser(usage=usage)
 parser.add_option("-m", "--minmass", dest = "min_mass",
-                  default = "80.0")
+                  default = NN_default_settings.min_mass)
 parser.add_option("-M", "--maxmass", dest = "max_mass",
-                  default = "800.0")
+                  default = NN_default_settings.max_mass)
 parser.add_option("-t", "--train_frac", dest = "train_frac",
-                  default = "0.7")
+                  default = NN_default_settings.train_frac)
 parser.add_option("-v", "--valid_frac", dest = "valid_frac",
-                  default = "0.2")
+                  default = NN_default_settings.valid_frac)
 parser.add_option("-r", "--random_seed", dest = "random_seed",
-                  default = "2020")
+                  default = NN_default_settings.random_seed)
 parser.add_option("-F", "--Flat", dest = "Flat",
                   default = False, action = 'store_true')
 
@@ -98,9 +100,9 @@ df.loc[np_valid, ["is_valid"]] = 1
 df.loc[np_test, ["is_test"]] = 1
 
 # remove out of range masses
-df.loc[(df[target] < min_mass) | (df[target] > max_mass), ["is_train"]] = 0
-df.loc[(df[target] < min_mass) | (df[target] > max_mass), ["is_valid"]] = 0
-df.loc[(df[target] < min_mass) | (df[target] > max_mass), ["is_test"]] = 0
+df.loc[(df[target] < options.min_mass) | (df[target] > options.max_mass), ["is_train"]] = 0
+df.loc[(df[target] < options.min_mass) | (df[target] > options.max_mass), ["is_valid"]] = 0
+df.loc[(df[target] < options.min_mass) | (df[target] > options.max_mass), ["is_test"]] = 0
 
 # ensure flat target distribution
 # compute bin content to use

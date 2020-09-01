@@ -2,11 +2,13 @@ import DL_for_HTT.HTT_analysis_Delphes.modules.store_vars as store_vars
 from DL_for_HTT.HTT_analysis_Delphes.modules.utils import DR2, get_MET_and_METcov
 import itertools
 
+import DL_for_HTT.common.HTT_cuts as common_cuts
+
 def select_tauh_tt(tau):
     return all([
-        tau.PT > 40,
-        abs(tau.Eta) < 2.1,
-        #abs(tau.dz) < 0.2,
+        tau.PT > common_cuts.cut_tauh_tt_pt,
+        abs(tau.Eta) < common_cuts.cut_tauh_tt_eta,
+        #abs(tau.dz) < common_cuts.cut_tauh_tt_dz,
         #tau.tauID('decayModeFinding') > 0.5
         abs(tau.Charge) == 1.,
         #tau.tauID('byVVLooseIsolationMVArun2017v2DBoldDMwLT2017')
@@ -14,9 +16,9 @@ def select_tauh_tt(tau):
 
 def select_tauh_mt(tau):
     return all([
-        tau.PT >= 23,
-        abs(tau.Eta) <= 2.3,
-        #abs(tau.dz) < 0.2,
+        tau.PT >= common_cuts.cut_tauh_mt_pt,
+        abs(tau.Eta) <= common_cuts.cut_tauh_mt_eta,
+        #abs(tau.dz) < common_cuts.cut_tauh_mt_dz,
         #tau.tauID('decayModeFinding') > 0.5,
         abs(tau.Charge) == 1.,
         #tau.tauID('byVVLooseIsolationMVArun2017v2DBoldDMwLT2017'),
@@ -27,54 +29,54 @@ def select_tauh_et(tau):
 
 def select_muon_mt(muon):
     return all([
-        muon.PT >= 21,
-        abs(muon.Eta) <= 2.1,
-        #abs(muon.dxy) < 0.045,
-        #abs(muon.dz) < 0.2,
+        muon.PT >= common_cuts.cut_muon_mt_pt,
+        abs(muon.Eta) <= common_cuts.cut_muon_mt_eta,
+        #abs(muon.dxy) < common_cuts.cut_muon_mt_d0,
+        #abs(muon.dz) < common_cuts.cut_muon_mt_dz,
         #muon.isMediumMuon,
         ])
 
 def select_muon_em(muon):
     return all([
-        muon.PT > 13,
-        abs(muon.Eta) < 2.4,
-        #abs(muon.dxy) < 0.045,
-        #abs(muon.dz) < 0.2,
+        muon.PT > common_cuts.cut_muon_em_pt,
+        abs(muon.Eta) < common_cuts.cut_muon_em_eta,
+        #abs(muon.dxy) < common_cuts.cut_muon_em_d0,
+        #abs(muon.dz) < common_cuts.cut_muon_em_dz,
         #muon.isMediumMuon,
         ])
 
 def select_muon_mm(muon):
     return all([
-        muon.PT > 10,
-        abs(muon.Eta) < 2.4,
+        muon.PT > common_cuts.cut_muon_mm_pt,
+        abs(muon.Eta) < common_cuts.cut_muon_mm_eta,
         ])
 
 def select_muon_mt_dilepton_veto(muon):
     return all([
-        muon.PT > 15,
-        abs(muon.Eta) < 2.4,
+        muon.PT > common_cuts.cut_muon_mt_dilepton_veto_pt,
+        abs(muon.Eta) < common_cuts.cut_muon_mt_dilepton_veto_eta,
         #muon.isLooseLMuon,
-        #abs(muon.dxy) < 0.045,
-        #abs(muon.dz) < 0.2,
-        #muon.iso_htt < 0.3,
+        #abs(muon.dxy) < common_cuts.cut_muon_mt_dilepton_veto_d0,
+        #abs(muon.dz) < common_cuts.cut_muon_mt_dilepton_veto_dz,
+        #muon.iso_htt < common_cuts.cut_muon_mt_dilepton_veto_iso,
         ])
 
 def select_muon_third_lepton_veto(muon):
     return all([
-        muon.PT > 10,
-        abs(muon.Eta) < 2.4,
+        muon.PT > common_cuts.cut_muon_third_lepton_veto_pt,
+        abs(muon.Eta) < common_cuts.cut_muon_third_lepton_veto_eta,
         #muon.isMediumLMuon,
-        #abs(muon.dxy) < 0.045,
-        #abs(muon.dz) < 0.2,
-        #muon.iso_htt < 0.3,
+        #abs(muon.dxy) < common_cuts.cut_muon_third_lepton_veto_d0,
+        #abs(muon.dz) < common_cuts.cut_muon_third_lepton_veto_dz,
+        #muon.iso_htt < common_cuts.cut_muon_third_lepton_veto_iso,
         ])
         
 def select_electron_et(ele):
     return all([
-        ele.PT >= 25,
-        abs(ele.Eta) <= 2.1,
-        #abs(ele.dxy) < 0.045,
-        #abs(ele.dz) < 0.2,
+        ele.PT >= common_cuts.cut_ele_et_pt,
+        abs(ele.Eta) <= common_cuts.cut_ele_et_eta,
+        #abs(ele.dxy) < common_cuts.cut_ele_et_d0,
+        #abs(ele.dz) < common_cuts.cut_ele_et_dz,
         #ele.passConversionVeto,
         #ele.gsfTrack().hitPattern().numberOfLostHits(ROOT.reco.HitPattern.MISSING_INNER_HITS) <= 1,
         #ele.id_passes("mvaEleID-Fall17-noIso-V2","wp90"),
@@ -82,10 +84,10 @@ def select_electron_et(ele):
 
 def select_electron_em(ele):
     return all([
-            ele.PT > 13,
-            abs(ele.Eta) < 2.5,
-            #abs(ele.dxy) < 0.045,
-            #abs(ele.dz) < 0.2,
+            ele.PT > common_cuts.cut_ele_em_pt,
+            abs(ele.Eta) < common_cuts.cut_ele_em_eta,
+            #abs(ele.dxy) < common_cuts.cut_ele_em_d0,
+            #abs(ele.dz) < common_cuts.cut_ele_em_dz,
             #ele.passConversionVeto,
             #ele.gsfTrack().hitPattern().numberOfLostHits(ROOT.reco.HitPattern.MISSING_INNER_HITS) <= 1,
             #ele.id_passes("mvaEleID-Fall17-noIso-V2","wp90"),
@@ -93,32 +95,32 @@ def select_electron_em(ele):
 
 def select_electron_ee(ele):
     return all([
-            ele.PT > 20,
-            abs(ele.Eta) < 2.5,
+            ele.PT > common_cuts.cut_ele_ee_pt,
+            abs(ele.Eta) < common_cuts.cut_ele_ee_eta,
         ])
 
 def select_electron_et_dilepton_veto(ele):
     return all([
-        ele.PT > 15,
-        abs(ele.Eta) < 2.5,
-        #abs(ele.dxy) < 0.045,
-        #abs(ele.dz) < 0.2,
+        ele.PT > common_cuts.cut_ele_et_dilepton_veto_pt,
+        abs(ele.Eta) < common_cuts.cut_ele_et_dilepton_veto_eta,
+        #abs(ele.dxy) < common_cuts.cut_ele_et_dilepton_veto_d0,
+        #abs(ele.dz) < common_cuts.cut_ele_et_dilepton_veto_dz,
         #ele.passConversionVeto,
         #ele.gsfTrack().hitPattern().numberOfLostHits(ROOT.reco.HitPattern.MISSING_INNER_HITS) <= 1,
         #ele.id_passes('cutBasedElectronID-Fall17-94X-V2', 'veto'),
-        #ele.iso_htt < 0.3,
+        #ele.iso_htt < common_cuts.cut_ele_et_dilepton_veto_iso,
         ])
 
 def select_electron_third_lepton_veto(ele):
     return all([
-        ele.PT > 10,
-        abs(ele.Eta) < 2.5,
-        #abs(ele.dxy) < 0.045,
-        #abs(ele.dz) < 0.2,
+        ele.PT > common_cuts.cut_ele_third_lepton_veto_pt,
+        abs(ele.Eta) < common_cuts.cut_ele_third_lepton_veto_eta,
+        #abs(ele.dxy) < common_cuts.cut_ele_third_lepton_veto_d0,
+        #abs(ele.dz) < common_cuts.cut_ele_third_lepton_veto_dz,
         #ele.passConversionVeto,
         #ele.gsfTrack().hitPattern().numberOfLostHits(ROOT.reco.HitPattern.MISSING_INNER_HITS) <= 1,
         #ele.id_passes("mvaEleID-Fall17-noIso-V2","wp90"),
-        #ele.iso_htt < 0.3,
+        #ele.iso_htt < common_cuts.cut_ele_third_lepton_veto_iso,
     ])
     
 def select_tauh(tau, channel):

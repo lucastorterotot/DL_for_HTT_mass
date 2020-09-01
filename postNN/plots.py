@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-mH_min = .090
-mH_max = .8
-
 from optparse import OptionParser
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("-s", "--small", dest = "small_test",
                   default = False, action = 'store_true')
+parser.add_option("-m", "--minmass", dest = "min_mass",
+                  default = NN_default_settings.min_mass)
+parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  default = NN_default_settings.max_mass)
 
 (options,args) = parser.parse_args()
+
+options.min_mass = float(options.min_mass)
+options.max_mass = float(options.max_mass)
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,7 +53,7 @@ for Nlayers in Nlayers_list:
                         if k not in df:
                             df[k] = _df[k]
 
-df = df.loc[(df["Higgs_Mass_gen"] >= mH_min) & (df["Higgs_Mass_gen"] <= mH_max)]
+df = df.loc[(df["Higgs_mass_gen"] >= options.min_mass) & (df["Higgs_mass_gen"] <= options.max_mass)]
 df = df.loc[(df["is_valid"] == 1)]
 
 # Get available channels and create the combined NN output
@@ -89,11 +93,12 @@ if options.small_test:
 import DL_for_HTT.post_training.utils as utils
 import DL_for_HTT.post_training.macros as macros
 
-for channel in channels:
-    macros.mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, mH_min, mH_max)
+print("Plotting...")
+for channel in [channels[0]]:
+    macros.mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, options.min_mass, options.max_mass)
     for bottleneck in bottleneck_list:
         for Nlayers in Nlayers_list:
             for Nneurons in Nneurons_list:
-                macros.NN_responses(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max)
-                macros.plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, mH_min, mH_max)
+                macros.NN_responses(df, channel, Nneurons, Nlayers, bottleneck, options.min_mass, options.max_mass)
+                macros.plot_pred_vs_ans(df, channel, Nneurons, Nlayers, bottleneck, options.min_mass, options.max_mass)
             

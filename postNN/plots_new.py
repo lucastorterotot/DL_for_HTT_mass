@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-mH_min = .090
-mH_max = .8
-
 from optparse import OptionParser
 usage = "usage: %prog [options] <NN JSON file> <NN input file>"
 parser = OptionParser(usage=usage)
-# parser.add_option("-s", "--small", dest = "small_test",
-#                   default = False, action = 'store_true')
+parser.add_option("-m", "--minmass", dest = "min_mass",
+                  default = NN_default_settings.min_mass)
+parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  default = NN_default_settings.max_mass)
 
 (options,args) = parser.parse_args()
+
+options.min_mass = float(options.min_mass)
+options.max_mass = float(options.max_mass)
 
 import matplotlib.pyplot as plt
 import numpy as np

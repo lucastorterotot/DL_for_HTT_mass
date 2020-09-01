@@ -1,15 +1,17 @@
 import DL_for_HTT.HTT_analysis_FastSim_NanoAOD.modules.store_vars as store_vars
 import itertools
 
+import DL_for_HTT.common.HTT_cuts as common_cuts
+
 def select_tauh_tt(evt, index):
     pT = evt.GetLeaf("Tau_pt").GetValue(index)
     eta = evt.GetLeaf("Tau_eta").GetValue(index)
     dz = evt.GetLeaf("Tau_dz").GetValue(index)
     charge = evt.GetLeaf("Tau_charge").GetValue(index)
     return all([
-        pT > 40,
-        abs(eta) < 2.1,
-        abs(dz) < 0.2,
+        pT > common_cuts.cut_tauh_tt_pt,
+        abs(eta) < common_cuts.cut_tauh_tt_eta,
+        abs(dz) < common_cuts.cut_tauh_tt_dz,
         abs(charge) == 1.,
         evt.GetLeaf("Tau_idDecayMode").GetValue(index),
         ])
@@ -20,9 +22,9 @@ def select_tauh_mt(evt, index):
     dz = evt.GetLeaf("Tau_dz").GetValue(index)
     charge = evt.GetLeaf("Tau_charge").GetValue(index)
     return all([
-        pT >= 23,
-        abs(eta) <= 2.3,
-        abs(dz) < 0.2,
+        pT >= common_cuts.cut_tauh_mt_pt,
+        abs(eta) <= common_cuts.cut_tauh_mt_eta,
+        abs(dz) < common_cuts.cut_tauh_mt_dz,
         abs(charge) == 1.,
         evt.GetLeaf("Tau_idDecayMode").GetValue(index),
         ])
@@ -36,10 +38,10 @@ def select_muon_mt(evt, index):
     dxy = evt.GetLeaf("Muon_dxy").GetValue(index)
     dz = evt.GetLeaf("Muon_dz").GetValue(index)
     return all([
-        pT >= 21,
-        abs(eta) <= 2.1,
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
+        pT >= common_cuts.cut_muon_mt_pt,
+        abs(eta) <= common_cuts.cut_muon_mt_eta,
+        abs(dxy) < common_cuts.cut_muon_mt_d0,
+        abs(dz) < common_cuts.cut_muon_mt_dz,
         evt.GetLeaf("Muon_mediumId").GetValue(index),
         evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.15,
         ])
@@ -50,10 +52,10 @@ def select_muon_em(evt, index):
     dxy = evt.GetLeaf("Muon_dxy").GetValue(index)
     dz = evt.GetLeaf("Muon_dz").GetValue(index)
     return all([
-        pT > 13,
-        abs(eta) < 2.4,
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
+        pT > common_cuts.cut_muon_em_pt,
+        abs(eta) < common_cuts.cut_muon_em_eta,
+        abs(dxy) < common_cuts.cut_muon_em_d0,
+        abs(dz) < common_cuts.cut_muon_em_dz,
         evt.GetLeaf("Muon_mediumId").GetValue(index),
         evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.15,
         ])
@@ -64,10 +66,10 @@ def select_muon_mm(evt, index):
     dxy = evt.GetLeaf("Muon_dxy").GetValue(index)
     dz = evt.GetLeaf("Muon_dz").GetValue(index)
     return all([
-        pT > 10,
-        abs(eta) < 2.4,
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
+        pT > common_cuts.cut_muon_mm_pt,
+        abs(eta) < common_cuts.cut_muon_mm_eta,
+        abs(dxy) < common_cuts.cut_muon_mm_d0,
+        abs(dz) < common_cuts.cut_muon_mm_dz,
         evt.GetLeaf("Muon_mediumId").GetValue(index),
         evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.15,
         ])
@@ -78,12 +80,12 @@ def select_muon_mt_dilepton_veto(evt, index):
     dxy = evt.GetLeaf("Muon_dxy").GetValue(index)
     dz = evt.GetLeaf("Muon_dz").GetValue(index)
     return all([
-        pT > 15,
-        abs(eta) < 2.4,
+        pT > common_cuts.cut_muon_mt_dilepton_veto_pt,
+        abs(eta) < common_cuts.cut_muon_mt_dilepton_veto_eta,
         evt.GetLeaf("Muon_looseId").GetValue(index),
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
-        evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.3,
+        abs(dxy) < common_cuts.cut_muon_mt_dilepton_veto_d0,
+        abs(dz) < common_cuts.cut_muon_mt_dilepton_veto_dz,
+        evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < common_cuts.cut_muon_mt_dilepton_veto_iso,
         ])
 
 def select_muon_third_lepton_veto(evt, index):
@@ -92,12 +94,12 @@ def select_muon_third_lepton_veto(evt, index):
     dxy = evt.GetLeaf("Muon_dxy").GetValue(index)
     dz = evt.GetLeaf("Muon_dz").GetValue(index)
     return all([
-        pT > 10,
-        abs(eta) < 2.4,
+        pT > common_cuts.cut_muon_third_lepton_veto_pt,
+        abs(eta) < common_cuts.cut_muon_third_lepton_veto_eta,
         evt.GetLeaf("Muon_mediumId").GetValue(index),
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
-        evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < 0.3,
+        abs(dxy) < common_cuts.cut_muon_third_lepton_veto_d0,
+        abs(dz) < common_cuts.cut_muon_third_lepton_veto_dz,
+        evt.GetLeaf("Muon_pfRelIso04_all").GetValue(index) < common_cuts.cut_muon_third_lepton_veto_iso,
         ])
         
 def select_electron_et(evt, index):
@@ -109,14 +111,14 @@ def select_electron_et(evt, index):
     lostHits = evt.GetLeaf("Electron_lostHits").GetValue(index)
     mvaEleID_Fall17_noIso_V2_wp90 = evt.GetLeaf("Electron_mvaFall17V2noIso_WP90").GetValue(index)
     return all([
-        pT >= 25,
-        abs(eta) <= 2.1,
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
+        pT >= common_cuts.cut_ele_et_pt,
+        abs(eta) <= common_cuts.cut_ele_et_eta,
+        abs(dxy) < common_cuts.cut_ele_et_d0,
+        abs(dz) < common_cuts.cut_ele_et_dz,
         passConversionVeto,
         lostHits <= 1,
         mvaEleID_Fall17_noIso_V2_wp90,
-        evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.15,
+        evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_et_iso,
         ])
 
 def select_electron_em(evt, index):
@@ -128,14 +130,14 @@ def select_electron_em(evt, index):
     lostHits = evt.GetLeaf("Electron_lostHits").GetValue(index)
     mvaEleID_Fall17_noIso_V2_wp90 = evt.GetLeaf("Electron_mvaFall17V2noIso_WP90").GetValue(index)
     return all([
-            pT > 13,
-            abs(eta) < 2.5,
-            abs(dxy) < 0.045,
-            abs(dz) < 0.2,
+            pT > common_cuts.cut_ele_em_pt,
+            abs(eta) < common_cuts.cut_ele_em_eta,
+            abs(dxy) < common_cuts.cut_ele_em_d0,
+            abs(dz) < common_cuts.cut_ele_em_dz,
             passConversionVeto,
             lostHits <= 1,
             mvaEleID_Fall17_noIso_V2_wp90,
-            evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.15,
+            evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_em_iso,
         ])
 
 def select_electron_ee(evt, index):
@@ -147,14 +149,14 @@ def select_electron_ee(evt, index):
     lostHits = evt.GetLeaf("Electron_lostHits").GetValue(index)
     mvaEleID_Fall17_noIso_V2_wp90 = evt.GetLeaf("Electron_mvaFall17V2noIso_WP90").GetValue(index)
     return all([
-            pT > 20,
-            abs(eta) < 2.5,
-            abs(dxy) < 0.045,
-            abs(dz) < 0.2,
+            pT > common_cuts.cut_ele_ee_pt,
+            abs(eta) < common_cuts.cut_ele_ee_eta,
+            abs(dxy) < common_cuts.cut_ele_ee_d0,
+            abs(dz) < common_cuts.cut_ele_ee_dz,
             passConversionVeto,
             lostHits <= 1,
             mvaEleID_Fall17_noIso_V2_wp90,
-            evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.1,
+            evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_ee_iso,
         ])
 
 def select_electron_et_dilepton_veto(evt, index):
@@ -165,14 +167,14 @@ def select_electron_et_dilepton_veto(evt, index):
     passConversionVeto = evt.GetLeaf("Electron_convVeto").GetValue(index)
     lostHits = evt.GetLeaf("Electron_lostHits").GetValue(index)
     return all([
-        pT > 15,
-        abs(eta) < 2.5,
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
+        pT > common_cuts.cut_ele_et_dilepton_veto_pt,
+        abs(eta) < common_cuts.cut_ele_et_dilepton_veto_eta,
+        abs(dxy) < common_cuts.cut_ele_et_dilepton_veto_d0,
+        abs(dz) < common_cuts.cut_ele_et_dilepton_veto_dz,
         passConversionVeto,
         lostHits <= 1,
         #ele.id_passes('cutBasedElectronID-Fall17-94X-V2', 'veto'),
-        evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.3,
+        evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_et_dilepton_veto_iso,
         ])
 
 def select_electron_third_lepton_veto(evt, index):
@@ -184,14 +186,14 @@ def select_electron_third_lepton_veto(evt, index):
     lostHits = evt.GetLeaf("Electron_lostHits").GetValue(index)
     mvaEleID_Fall17_noIso_V2_wp90 = evt.GetLeaf("Electron_mvaFall17V2noIso_WP90").GetValue(index)
     return all([
-        pT > 10,
-        abs(eta) < 2.5,
-        abs(dxy) < 0.045,
-        abs(dz) < 0.2,
+        pT > common_cuts.cut_ele_third_lepton_veto_pt,
+        abs(eta) < common_cuts.cut_ele_third_lepton_veto_eta,
+        abs(dxy) < common_cuts.cut_ele_third_lepton_veto_d0,
+        abs(dz) < common_cuts.cut_ele_third_lepton_veto_dz,
         passConversionVeto,
         lostHits <= 1,
         mvaEleID_Fall17_noIso_V2_wp90,
-        evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < 0.3,
+        evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_third_lepton_veto_iso,
     ])
     
 def select_tauh(evt, tau_idx, channel):
