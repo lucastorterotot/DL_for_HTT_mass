@@ -199,7 +199,7 @@ def plot_hist(h, NNname, xsize=6, ysize=10):
     # plt.draw()
     # plt.show()
     
-    fig.savefig("history_{}.png".format(NNname))
+    fig.savefig("history-{}.png".format(NNname))
     plt.close('all')
 
 def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode):
