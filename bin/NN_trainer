@@ -40,7 +40,7 @@ max_mass = float(options.max_mass)
 input_file = args[0]
 
 print("Selected options are the following:")
-for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "source", "min_mass", "max_mass"]:
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "min_mass", "max_mass"]:
     print("\t{}\t{}".format(option, getattr(options, option)))
 
 print("Input file:")
@@ -277,5 +277,5 @@ for channel in [c for c in options.channels.split(",") if c in allowed_channels]
     NN_make_train_predict(df, inputs, channel = channel,
                           Nlayers = options.Nlayers, Nneurons = options.Nneurons,
                           loss = options.loss,
-                          optimizer = optimizers_dict[options.optimizer],
+                          optimizer_name = options.optimizer,
                           w_init_mode = options.w_init_mode)
