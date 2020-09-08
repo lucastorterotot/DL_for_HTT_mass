@@ -14,7 +14,7 @@ parser.add_option("-v", "--verbose", dest = "verbose",
 
 (options,args) = parser.parse_args()
 
-NNname = args[0].split('/')[-1].replace('.json', '')
+NNname = args[0].split('/')[-1].replace('.json', '').replace("-","_")
 
 # load json and create model
 times.append(time.time())
