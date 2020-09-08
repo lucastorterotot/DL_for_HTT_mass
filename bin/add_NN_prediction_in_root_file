@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import time
+
+times = [time.time()]
+
+import numpy as np
+
+from DL_for_HTT.common.NN_settings import target, inputs, inputs_from_Heppy
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <json file for NN> <input root file> <output file name>"
+parser = OptionParser(usage=usage)
+parser.add_option("-v", "--verbose", dest = "verbose",
+                                    default=0)
+
+(options,args) = parser.parse_args()
+
+from keras.models import model_from_json
+
+# NNname = args[0].split('/')[-1].replace('.json', '')
+to_use = "/data2/ltorterotot/ML/trained_NNs_FastSim/MuTau-cs-Adadelta-u-mt-3-layers-1000-neurons.json"
+
+NNname = to_use.split('/')[-1].replace('.json', '')
+
+times.append(time.time())
+
+# load json and create model
+input_json = to_use # args[0]
+NN_weights_path_and_file = input_json.split('/')
+NN_weights_path_and_file[-1] = "NN_weights-{}".format(NN_weights_path_and_file[-1].replace('.json', '.h5'))
+NN_weights_file = "/".join(NN_weights_path_and_file)
+
+json_file = open(input_json, 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+loaded_model = model_from_json(loaded_model_json)
+# load weights into new model
+loaded_model.load_weights(NN_weights_file)
+print("Loaded model from disk:")
+print("\t{}".format(input_json))
+
+# Get infos on the trained NN
+infos = NN_weights_path_and_file[-1]
+infos = infos.replace('.h5', '')
+infos = infos.replace('NN_weights-', '')
+
+is_bottleneck = ("-bottleneck" == infos[-11:])
+
+bottleneck = ""
+if is_bottleneck:
+    infos = infos.replace('-bottleneck', '')
+    bottleneck = "-bottleneck"
+
+Nneurons = infos.split("-")[-2]
+Nlayers = infos.split("-")[-4]
+channel = infos.split("-")[-5]
+
+w_init_mode = infos.split("-")[-6]
+optimizer = infos.split("-")[-7]
+loss = infos.split("-")[-8]
+
+print("Properties:")
+
+print(
+    "\t{} channel, {} hidden layers of {} neurons with{} bottleneck".format(
+        channel,
+        Nlayers,
+        Nneurons,
+        "" if is_bottleneck else "out",
+    )
+)
+print(
+    "\ttrained with {} optimizer, w_init {} and {} loss.".format(
+        optimizer,
+        w_init_mode,
+        loss,
+    )
+)
+
+times.append(time.time())
+
+# load root file
+import uproot
+
+#root_file = "/data2/htt/trees/fakes/190819%Embedded2017B_mt%embed_nominal_nominal/NtupleProducer/tree.root"
+
+root_file = "/data2/htt/trees/fakes/190819%HiggsSUSYGG450%mt_mssm_nominal/NtupleProducer/tree.root"
+
+#root_file = "/data2/htt/trees/fakes/190819%ZZTo4L%mt_DiB_nominal/NtupleProducer/tree.root"
+
+#root_file = "/data2/htt/trees/fakes/190819%DYJetsToLL_M50_ext%mt_DY_incl_nominal/NtupleProducer/tree.root"
+
+infile = uproot.open(root_file)
+
+inputs = [inputs_from_Heppy[i] for i in inputs]
+df = infile['events'].pandas.df()
+df["mt_tt"] = (2*df["l1_pt"]*df["l2_pt"]*(1-np.cos(df["l1_phi"]-df["l2_phi"])))**.5
+
+times.append(time.time())
+
+df["predictions"] = loaded_model.predict(df[inputs])
+
+times.append(time.time())
+
+print("Time sumary:")
+print("\t- Loading of the NN: {} s;".format(times[-3]-times[-4]))
+print("\t- Loading of the root file: {} s;".format(times[-2]-times[-3]))
+print("\t- Computing predictions on {} events: {} s <=> {} s for 1k events.".format(df.shape[0], int(times[-1]-times[-2]), int((times[-1]-times[-2])/df.shape[0]*1000)))
+
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+bins = np.arange(10, 1000, 10)# [0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,225,250,275,300,325,350,400,500,700,900,1000]
+n, bins, patches = plt.hist(
+    df.predictions,
+    bins = bins,
+    log=True,
+    label = "NN",
+    alpha = .5,
+)
+n, bins, patches = plt.hist(
+    df.mt_tot,
+    bins = bins,
+    log=True,
+    label = "mttot",
+    alpha = .5,
+)
+fig.savefig("predictions_histo.png")
+
+tree_dtype = {}
+tree_data = {}
+for b in df.keys():
+    tree_dtype[b] = df[b].dtype.name
+    if tree_dtype[b] == 'uint64':
+        tree_dtype[b] = 'int64'
+    tree_data[b] = np.array(df[b])
+
+import os
+os.system("cp {} {}".format(root_file, root_file.replace('.root', '-NN.root')))
+
+file = uproot.recreate(root_file.replace('.root', '-NN.root'))
+print("Opened new file")
+#file.newtree('events', {'NN' : 'float32'})
+file.newtree('events', tree_dtype)
+print("Created new tree")
+
+#print("Defined branches types")
+file['events'].extend(tree_data)
