@@ -52,6 +52,11 @@ gen_HTT_at_mass -m <mh in GeV> -N <number of events to generate>
 ## HTT events from FastSim NanoAOD analysis
 Instead of Delphes, one can use NanoAOD from CMS FastSim.
 
+### Generation
+See [this repository](https://github.com/lucastorterotot/cmssw/tree/HTT_generator).
+
+### Get the samples
+
 Get the root NanoAOD input files from  FastSim and go in the directory in which they are stored. A dedicated script has been designed:
 ```
 cd $DL_for_HTT/HTT_analysis_FastSim_NanoAOD
