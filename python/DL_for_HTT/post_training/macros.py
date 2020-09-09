@@ -279,3 +279,21 @@ def plot_pred_vs_ans(df, channel, NNname, mH_min, mH_max):
 
     fig.savefig("predicted_on_answers-{}.png".format(NNname))
     
+def get_distributions(df, channel, NNname):
+    df1 = filter_channel(df, channel=channel)
+    for var in [target]:
+        get_distribution(df1, var, channel, "all_events")
+        for data_category in ["is_train", "is_valid", "is_test"]:
+            df2 = df1.loc[df[data_category] == 1]
+            get_distribution(df2, var, channel, data_category)
+
+def get_distribution(df, var, channel, data_category):
+    plt.clf()
+    fig, ax = plt.subplots()
+    n, bins, patches = ax.hist(df[var], 50)
+    ax.set_xlabel(var)
+    ax.set_ylabel('N events')
+    if var == target:
+        plt.xlim(0, 1000)
+
+    plt.savefig('distribution-{}-{}-{}.png'.format(channel, var, data_category))

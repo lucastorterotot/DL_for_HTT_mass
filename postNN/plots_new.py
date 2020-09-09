@@ -89,5 +89,6 @@ inputs = [i for i in inputs if not "cov" in i]
 df["predictions"] = loaded_model.predict(df[inputs])
 
 import DL_for_HTT.post_training.macros as macros
+macros.get_distributions(df, channel, NNname)
 macros.plot_pred_vs_ans(df, channel, NNname, options.min_mass, options.max_mass)
 macros.NN_responses(df, channel, NNname, options.min_mass, options.max_mass)
