@@ -36,7 +36,7 @@ default_jet_attrs = default_attrs + ["btagDeepB"]
 def store_jet(evt, dic, name, jet_index, attrs = default_jet_attrs):
     store(evt, dic, name, jet_index, "Jet", attrs = attrs)
 
-def store_vars.store_recoil(evt, dic, name, recoil_pt, recoil_pz):
+def store_recoil(evt, dic, name, recoil_pt, recoil_pz):
     dic["{}_{}".format(name, "pt")] = recoil_pt
     dic["{}_{}".format(name, "pz")] = recoil_pz
 
