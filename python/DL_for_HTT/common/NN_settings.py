@@ -1,7 +1,7 @@
 # NN settings
 
 # Higgs mass range in GeV
-min_mass = 90
+min_mass = 50
 max_mass = 800
 
 # channels to process
