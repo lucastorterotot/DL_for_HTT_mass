@@ -36,6 +36,8 @@ if options.small_test:
 data_dir = "/data2/ltorterotot/ML/NN/latest_Delphes/"#latest"
 file_basename = "PROD_{}_layers_{}_neurons{}.h5"
 
+print("Loading data...")
+
 df = None
 for Nlayers in Nlayers_list:
     for Nneurons in Nneurons_list:
@@ -72,6 +74,7 @@ channels = list(set(df.channel_reco)) + ["lt", "ll"]
             
                             
 # Create the combined NN outputs
+print("Create the combined NN outputs...")
 for Nlayers in Nlayers_list:
     for Nneurons in Nneurons_list:
         for bottleneck in bottleneck_list:
