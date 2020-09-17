@@ -83,9 +83,6 @@ df = pd.read_hdf(args[1])
 inputs = NN_default_settings.inputs
 target = NN_default_settings.target
 
-# tmp removal of metcov
-inputs = [i for i in inputs if not "cov" in i]
-
 df["predictions"] = loaded_model.predict(df[inputs])
 
 import DL_for_HTT.post_training.macros as macros
