@@ -33,7 +33,7 @@ if options.small_test:
     bottleneck_list = bottleneck_list[:2]
 
 # Load data
-data_dir = "/data2/ltorterotot/ML/NN/latest_Delphes/"#latest"
+data_dir = "/data2/ltorterotot/ML/NN/latest_FastSim/"#latest"
 file_basename = "PROD_{}_layers_{}_neurons{}.h5"
 
 print("Loading data...")
