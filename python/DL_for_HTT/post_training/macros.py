@@ -51,40 +51,40 @@ def NN_responses(df, channel, NNname, mH_min, mH_max):
         xpos.append((mHrange[1]+mHrange[0])/2)
         xerr.append((mHrange[1]-mHrange[0])/2)
 
-        mTtots = np.r_[df2["mTtot_reco"]]
+        # mTtots = np.r_[df2["mTtot_reco"]]
         mHs = np.r_[df2[target]]
         values_NN = predictions/mHs
-        values_mTtot = mTtots/mHs
+        # values_mTtot = mTtots/mHs
         
         values_NN = [v for v in values_NN]
-        values_mTtot = [v for v in values_mTtot]
+        # values_mTtot = [v for v in values_mTtot]
         values_NN.sort()
-        values_mTtot.sort()
+        # values_mTtot.sort()
 
         try:
             medians_NN.append(values_NN[int(len(values_NN)/2)])
-            medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
+            # medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
         except:
             import pdb; pdb.set_trace()
 
         above_NN = [v for v in values_NN if v >= medians_NN[-1]]
         below_NN = [v for v in values_NN if v <= medians_NN[-1]]
-        above_mTtot = [v for v in values_mTtot if v >= medians_mTtot[-1]]
-        below_mTtot = [v for v in values_mTtot if v <= medians_mTtot[-1]]
+        # above_mTtot = [v for v in values_mTtot if v >= medians_mTtot[-1]]
+        # below_mTtot = [v for v in values_mTtot if v <= medians_mTtot[-1]]
 
         above_NN.sort()
         below_NN.sort(reverse = True)
-        above_mTtot.sort()
-        below_mTtot.sort(reverse = True)
+        # above_mTtot.sort()
+        # below_mTtot.sort(reverse = True)
 
         CL68s_NN_up.append(above_NN[int(0.68 * len(above_NN))])
         CL68s_NN_do.append(below_NN[int(0.68 * len(below_NN))])
         CL95s_NN_up.append(above_NN[int(0.95 * len(above_NN))])
         CL95s_NN_do.append(below_NN[int(0.95 * len(below_NN))])
-        CL68s_mTtot_up.append(above_mTtot[int(0.68 * len(above_mTtot))])
-        CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
-        CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
-        CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
+        # CL68s_mTtot_up.append(above_mTtot[int(0.68 * len(above_mTtot))])
+        # CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
+        # CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
+        # CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
         
     fig, ax = plt.subplots()
     #fig.suptitle(NNname)
