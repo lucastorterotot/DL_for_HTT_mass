@@ -1,0 +1,286 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <input>"
+parser = OptionParser(usage=usage)
+parser.add_option("-o", "--output", dest = "output",
+                  default = "XGB")
+parser.add_option("-m", "--minmass", dest = "min_mass",
+                  default = NN_default_settings.min_mass)
+parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  default = NN_default_settings.max_mass)
+parser.add_option("-c", "--channels", dest = "channels",
+                  default = NN_default_settings.channels)
+parser.add_option("-d", "--max_depth", dest = "max_depth",
+                  default = 20)
+parser.add_option("-e", "--eta", dest = "eta",
+                  default = 0.1)
+parser.add_option("-r", "--num_round", dest = "num_round",
+                  default = 20)
+
+(options,args) = parser.parse_args()
+
+min_mass = float(options.min_mass)
+max_mass = float(options.max_mass)
+options.max_depth = int(options.max_depth)
+options.eta = float(options.eta)
+options.num_round = int(options.num_round)
+
+input_file = args[0]
+
+print("Selected options are the following:")
+for option in ["output", "min_mass", "max_mass"]:
+    print("\t{}\t{}".format(option, getattr(options, option)))
+
+print("Input file:")
+print("\t{}".format(input_file))
+
+import xgboost as xgb
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import pandas as pd
+import tensorflow.keras as keras
+
+# Load data
+import os
+df = pd.read_hdf(input_file)
+
+# define target and input variables
+target = NN_default_settings.target
+
+print("Target: {}".format(target))
+
+inputs = NN_default_settings.inputs
+
+print("Inputs:")
+for i in inputs:
+    print("\t{}".format(i))
+
+def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = options.max_depth, eta = options.eta, num_round = options.num_round):
+
+    param = {'max_depth' : max_depth, 'eta' : eta}
+    # param = {'max_depth' : 20, 'eta' : 0.1}
+    # num_round = 20
+
+    XGBname = "-".join([options.output, channel, 'max_depth', str(param['max_depth']), 'eta', str(param['eta']), 'num_round', str(num_round)])
+
+    print(XGBname)
+
+    df_select = df
+
+    df_select = df_select.loc[(df_select[target] >= min_mass) & (df_select[target] <= max_mass)]
+
+    if channel in set(df_select['channel_reco']):
+        df_select = df_select.loc[(df_select['channel_reco'] == channel)]
+    elif channel == "lt":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mt") | (df_select['channel_reco'] == "et")]
+    elif channel == "ll":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
+
+    df_x_train = df_select.loc[(df_select['is_train'] == 1), inputs]
+    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
+    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), inputs]
+    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
+
+    print('Size of training set: ', len(df_x_train))
+    print('Size of valid set: ', len(df_x_valid))
+
+    if len(df_x_train) == 0 or len(df_x_valid) == 0:
+        print("Empty set, aborting...")
+        return None, False
+
+    arr_x_train = np.r_[df_x_train]
+    arr_y_train = np.r_[df_y_train[target]]
+    arr_x_valid = np.r_[df_x_valid]
+    arr_y_valid = np.r_[df_y_valid[target]]
+
+    # Create XGBoost Dmatrix
+    DM_train = xgb.DMatrix(data = df_x_train, label = df_y_train)
+    DM_valid = xgb.DMatrix(data = df_x_valid, label = df_y_valid)
+    
+    # Train XGB
+    XGB = xgb.train(param, DM_train, num_round)
+
+    # Make predictions
+    XGBpreds = XGB.predict(DM_valid)
+
+    predictions = np.r_[XGBpreds]
+    answers = arr_y_valid
+
+    # Plot predicted vs answer on a test sample
+    plt.rcParams["figure.figsize"] = [7, 7]
+    plt.clf()
+    fig, ax = plt.subplots()
+
+    import seaborn as sns
+    sns.kdeplot(answers, predictions, cmap="viridis", n_levels=30, shade=True, bw=.15)
+
+    ax.plot(answers, answers, color="C3")
+    plt.xlabel("Generated Higgs Mass (GeV)")
+    plt.ylabel("Predicted Higgs Mass (GeV)")
+    
+    #plt.show()
+    mH_min, mH_max = min_mass, max_mass
+    plt.xlim(mH_min, mH_max)
+    plt.ylim(mH_min, mH_max)
+
+    fig.savefig("predicted_vs_answers-{}.png".format(XGBname))
+
+    # Plot predicted vs answer on a test sample
+    plt.clf()
+    fig, ax = plt.subplots()
+
+    import seaborn as sns
+    sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
+
+    ax.plot([mH_min, mH_max], [1,1], color='C3')
+    plt.xlabel("Generated Higgs Mass (GeV)")
+    plt.ylabel("Predicted Higgs Mass (GeV)")
+    
+    #plt.show()
+    plt.xlim(mH_min, mH_max)
+    plt.ylim(0, 3)
+
+    fig.savefig("predicted_on_answers-{}.png".format(XGBname))
+
+    df1 = df_select.loc[(df_select['is_valid'] == 1), [target]]
+    df1["predictions"] = predictions
+    medians_XGB = []
+    CL68s_XGB_up = []
+    CL68s_XGB_do = []
+    CL95s_XGB_up = []
+    CL95s_XGB_do = []
+    medians_mTtot = []
+    CL68s_mTtot_up = []
+    CL68s_mTtot_do = []
+    CL95s_mTtot_up = []
+    CL95s_mTtot_do = []
+    xpos = []
+    xerr = []
+    
+    mHcuts = np.arange(mH_min, mH_max, 10) # [.200, .350]
+    mHranges = [[mH_min, mHcuts[0]]]
+    for mHcut in mHcuts[1:]:
+        mHranges.append([mHranges[-1][1], mHcut])
+    mHranges.append([mHranges[-1][1], mH_max])
+    for mHrange in mHranges:
+        mHrange[0] = np.round(mHrange[0],3)
+        mHrange[1] = np.round(mHrange[1],3)
+        
+        df2 = df1.loc[(df1[target] >= mHrange[0]) & (df1[target] <= mHrange[1])]
+        
+        predictions = np.r_[df2["predictions"]]
+        if len(predictions) == 0:
+            continue
+
+        xpos.append((mHrange[1]+mHrange[0])/2)
+        xerr.append((mHrange[1]-mHrange[0])/2)
+
+        # mTtots = np.r_[df2["mTtot_reco"]]
+        mHs = np.r_[df2[target]]
+        values_XGB = predictions/mHs
+        # values_mTtot = mTtots/mHs
+        
+        values_XGB = [v for v in values_XGB]
+        # values_mTtot = [v for v in values_mTtot]
+        values_XGB.sort()
+        # values_mTtot.sort()
+
+        try:
+            medians_XGB.append(values_XGB[int(len(values_XGB)/2)])
+            # medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
+        except:
+            import pdb; pdb.set_trace()
+
+        above_XGB = [v for v in values_XGB if v >= medians_XGB[-1]]
+        below_XGB = [v for v in values_XGB if v <= medians_XGB[-1]]
+        # above_mTtot = [v for v in values_mTtot if v >= medians_mTtot[-1]]
+        # below_mTtot = [v for v in values_mTtot if v <= medians_mTtot[-1]]
+
+        above_XGB.sort()
+        below_XGB.sort(reverse = True)
+        # above_mTtot.sort()
+        # below_mTtot.sort(reverse = True)
+
+        CL68s_XGB_up.append(above_XGB[int(0.68 * len(above_XGB))])
+        CL68s_XGB_do.append(below_XGB[int(0.68 * len(below_XGB))])
+        CL95s_XGB_up.append(above_XGB[int(0.95 * len(above_XGB))])
+        CL95s_XGB_do.append(below_XGB[int(0.95 * len(below_XGB))])
+        # CL68s_mTtot_up.append(above_mTtot[int(0.68 * len(above_mTtot))])
+        # CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
+        # CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
+        # CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
+        
+    fig, ax = plt.subplots()
+    fig.suptitle(XGBname)
+    plt.xlabel("Generated mass (GeV)")
+    plt.ylabel("Discriminator / Generated mass")
+    
+    ax.fill_between(
+        xpos, CL95s_XGB_do, CL68s_XGB_do,
+        color = "yellow", alpha = .5
+    )
+    ax.fill_between(
+        xpos, CL68s_XGB_up, CL95s_XGB_up,
+        color = "yellow", alpha = .5
+    )
+    ax.fill_between(
+        xpos, CL68s_XGB_do, CL68s_XGB_up,
+        color = "green", alpha = .5
+    )
+    ax.errorbar(
+        xpos, medians_XGB, xerr = xerr, #yerr = sigmas,
+        marker='.', markersize=4, linewidth=0, elinewidth=1,
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "XGB",
+    )
+    # ax.errorbar(
+    #     xpos, medians_XGB, xerr = xerr, #yerr = sigmas,
+    #     marker='+', markersize=4, linewidth=.4, elinewidth=1,
+    #     fmt=' ', capsize = 3, capthick = .4, color = "black", #label = "XGB",
+    # )
+
+    # ax.plot(
+    #     xpos, CL95s_mTtot_do,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [1,1],
+    # )
+    # ax.plot(
+    #     xpos, CL95s_mTtot_up,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [1,1],
+    # )
+    # ax.plot(
+    #     xpos, CL68s_mTtot_do,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [2,2],
+    # )
+    # ax.plot(
+    #     xpos, CL68s_mTtot_up,
+    #     color = "C7", #alpha = .5,
+    #     dashes = [2,2],
+    # )
+    # ax.plot(
+    #     xpos, medians_mTtot,
+    #     color = "C7", #alpha = .5,
+    #     #dashes = [2,1],
+    #     label = "mTtot",
+    # )
+    
+    plt.plot([mH_min, mH_max], [1,1], color='C3')    
+
+    plt.ylim(0,3)
+    plt.xlim(mH_min, mH_max)
+
+    ax.legend(loc='upper right')
+    
+    fig.savefig("XGB_response_{}.png".format(XGBname))
+    plt.close('all')
+
+allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
+
+for channel in [c for c in options.channels.split(",") if c in allowed_channels]:
+    XGB_make_train_predict(df, inputs, channel = channel)
