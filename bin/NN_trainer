@@ -83,8 +83,6 @@ tf.config.set_visible_devices(gpus[options.gpu], 'GPU')
 tfback._get_available_gpus = _get_available_gpus
 print(_get_available_gpus())
 
-import matplotlib.pyplot as plt
-
 # Get available loss_fcts, optimizers and w_init_modes
 
 loss_fcts = {
