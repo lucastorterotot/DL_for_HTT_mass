@@ -5,6 +5,8 @@ from DL_for_HTT.common.NN_settings import target
 import matplotlib.pyplot as plt
 import numpy as np
 
+from xgboost import plot_importance
+
 plt.rcParams["figure.figsize"] = [7, 7]
 
 def filter_channel(df, channel = None):
@@ -297,3 +299,10 @@ def get_distribution(df, var, channel, data_category):
         plt.xlim(0, 1000)
 
     plt.savefig('distribution-{}-{}-{}.png'.format(channel, var, data_category))
+
+def feature_importance(model, inputs, name):
+    plt.clf()
+    fig, ax = plt.subplots()
+    plot_importance(model)
+    plt.subplots_adjust(left=0.25)
+    plt.savefig('feature_importance-{}.png'.format(name))
