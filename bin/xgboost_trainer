@@ -19,7 +19,7 @@ parser.add_option("-d", "--max_depth", dest = "max_depth",
 parser.add_option("-e", "--eta", dest = "eta",
                   default = 0.1)
 parser.add_option("-r", "--num_round", dest = "num_round",
-                  default = 20)
+                  default = 50)
 parser.add_option("-s", "--stop", dest = "early_stopping_rounds",
                   default = None)
 parser.add_option("-l", "--loss", dest = "loss",
@@ -116,7 +116,7 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = option
     DM_test = xgb.DMatrix(data = df_x_test, label = df_y_test, feature_names=inputs)
     
     # Train XGB
-    evals_set = [(DM_train, 'train'), (DM_valid, 'valid')]
+    evals_set = [(DM_train, 'train'), (DM_test, 'test'), (DM_valid, 'valid')]
     evals_result = {}
     params['eval_metric'] = options.loss
     XGB = xgb.train(
@@ -133,17 +133,17 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = option
     import matplotlib.pyplot as plt
     fig = plt.figure(figsize=(6, 6))
     plt.subplot(1, 1, 1)
-    plt.title('Deviance')
-    plt.plot(np.arange(len(evals_result['train']['rmse'])) + 1, evals_result['train']['rmse'], 'b-',
+    # plt.title("Values of loss ({})".format(options.loss))
+    plt.plot(np.arange(len(evals_result['train'][options.loss])) + 1, evals_result['train'][options.loss], 'b-',
              label='Training Set Deviance')
-    plt.plot(np.arange(len(evals_result['valid']['rmse'])) + 1, evals_result['valid']['rmse'], 'r-',
-             label='Valid Set Deviance')
+    plt.plot(np.arange(len(evals_result['test'][options.loss])) + 1, evals_result['test'][options.loss], 'r-',
+             label='Test Set Deviance')
     plt.legend(loc='upper right')
     plt.xlabel('Boosting Iterations')
-    plt.ylabel('Deviance')
+    plt.ylabel("Values of loss ({})".format(options.loss))
     fig.tight_layout()
     plt.ylim(0, 400)
-    plt.savefig("Deviance-{}.png".format(XGBname))
+    plt.savefig("History-{}.png".format(XGBname))
 
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
