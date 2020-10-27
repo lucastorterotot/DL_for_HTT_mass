@@ -133,8 +133,9 @@ if options.Flat:
         flat_mass += flat_step
         for t in min_bin_content.keys():
             bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]])
-            df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["was_{}".format(t)]] = np.concatenate([np.zeros(min_bin_content[t]), np.ones(bin_total-min_bin_content[t])])
-            df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]] = np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
+            if bin_total > min_bin_content[t]:
+                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["was_{}".format(t)]] = np.concatenate([np.zeros(min_bin_content[t]), np.ones(bin_total-min_bin_content[t])])
+                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]] = np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
 
     # control variables
     # df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df[target] >= min_mass) & (df[target] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).hist(figsize = (24,20), bins = 500, log=True)
