@@ -20,6 +20,10 @@ parser.add_option("-e", "--eta", dest = "eta",
                   default = 0.1)
 parser.add_option("-r", "--num_round", dest = "num_round",
                   default = 20)
+parser.add_option("-s", "--stop", dest = "early_stopping_rounds",
+                  default = None)
+parser.add_option("-l", "--loss", dest = "loss",
+                  default = NN_default_settings.loss)
 
 (options,args) = parser.parse_args()
 
@@ -28,7 +32,11 @@ max_mass = float(options.max_mass)
 options.max_depth = int(options.max_depth)
 options.eta = float(options.eta)
 options.num_round = int(options.num_round)
-
+if options.early_stopping_rounds != None:
+    options.early_stopping_rounds = int(options.early_stopping_rounds)
+if options.loss == "mse":
+    options.loss = 'rmse'
+    
 input_file = args[0]
 
 print("Selected options are the following:")
@@ -62,11 +70,11 @@ for i in inputs:
 
 def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = options.max_depth, eta = options.eta, num_round = options.num_round):
 
-    param = {'max_depth' : max_depth, 'eta' : eta}
-    # param = {'max_depth' : 20, 'eta' : 0.1}
+    params = {'max_depth' : max_depth, 'eta' : eta}
+    # params = {'max_depth' : 20, 'eta' : 0.1}
     # num_round = 20
 
-    XGBname = "-".join([options.output, channel, 'max_depth', str(param['max_depth']), 'eta', str(param['eta']), 'num_round', str(num_round)])
+    XGBname = "-".join([options.output, channel, 'max_depth', str(params['max_depth']), 'eta', str(params['eta']), 'num_round', str(num_round)])
 
     print(XGBname)
 
@@ -108,10 +116,34 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = option
     DM_test = xgb.DMatrix(data = df_x_test, label = df_y_test, feature_names=inputs)
     
     # Train XGB
-    XGB = xgb.train(param, DM_train, num_round)
+    evals_set = [(DM_train, 'train'), (DM_valid, 'valid')]
+    evals_result = {}
+    params['eval_metric'] = options.loss
+    XGB = xgb.train(
+        params, DM_train,
+        num_boost_round = num_round,
+        evals = evals_set,
+        early_stopping_rounds = options.early_stopping_rounds,
+        evals_result = evals_result,
+    )
 
     # Save model
     XGB.save_model("XGB-{}.json".format(XGBname))
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure(figsize=(6, 6))
+    plt.subplot(1, 1, 1)
+    plt.title('Deviance')
+    plt.plot(np.arange(len(evals_result['train']['rmse'])) + 1, evals_result['train']['rmse'], 'b-',
+             label='Training Set Deviance')
+    plt.plot(np.arange(len(evals_result['valid']['rmse'])) + 1, evals_result['valid']['rmse'], 'r-',
+             label='Valid Set Deviance')
+    plt.legend(loc='upper right')
+    plt.xlabel('Boosting Iterations')
+    plt.ylabel('Deviance')
+    fig.tight_layout()
+    plt.ylim(0, 400)
+    plt.savefig("Deviance-{}.png".format(XGBname))
 
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
