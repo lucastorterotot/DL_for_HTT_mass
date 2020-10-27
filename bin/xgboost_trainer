@@ -137,9 +137,9 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = option
     plt.subplot(1, 1, 1)
     # plt.title("Values of loss ({})".format(options.loss))
     plt.plot(np.arange(len(evals_result['train'][options.loss])) + 1, evals_result['train'][options.loss], 'b-',
-             label='Training Set Deviance')
+             label='Training Set Loss')
     plt.plot(np.arange(len(evals_result['test'][options.loss])) + 1, evals_result['test'][options.loss], 'r-',
-             label='Test Set Deviance')
+             label='Test Set Loss')
     plt.legend(loc='upper right')
     plt.xlabel('Boosting Iterations')
     plt.ylabel("Values of loss ({})".format(options.loss))
