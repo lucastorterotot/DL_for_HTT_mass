@@ -12,7 +12,7 @@ Nlayers = 3
 Nneurons = 1000
 
 # NN training
-loss = "cosine_similarity"
+loss = "mse"
 optimizer = "Adadelta"
 w_init_mode = "uniform"
 
