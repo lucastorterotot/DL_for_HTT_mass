@@ -15,13 +15,13 @@ parser.add_option("-M", "--maxmass", dest = "max_mass",
 parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
 parser.add_option("-d", "--max_depth", dest = "max_depth",
-                  default = 10)
+                  default = 5)
 parser.add_option("-e", "--eta", dest = "eta",
                   default = 0.1)
 parser.add_option("-r", "--num_round", dest = "num_round",
                   default = 50)
 parser.add_option("-s", "--stop", dest = "early_stopping_rounds",
-                  default = None)
+                  default = 5)
 parser.add_option("-l", "--loss", dest = "loss",
                   default = NN_default_settings.loss)
 
@@ -32,8 +32,10 @@ max_mass = float(options.max_mass)
 options.max_depth = int(options.max_depth)
 options.eta = float(options.eta)
 options.num_round = int(options.num_round)
-if options.early_stopping_rounds != None:
+if options.early_stopping_rounds not in [None, 'None']:
     options.early_stopping_rounds = int(options.early_stopping_rounds)
+else:
+    options.early_stopping_rounds = None
 if options.loss == "mse":
     options.loss = 'rmse'
     
