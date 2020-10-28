@@ -394,6 +394,9 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     
     # MET and METcov
     store_vars.store_reco_MET(evt, output)
+    
+    # PU primary vertices
+    store_vars.store_reco_PU(evt, output)
 
     # Up to two leading jets
     store_vars.store_none(output, "jet1", type="jet")

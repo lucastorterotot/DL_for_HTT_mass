@@ -32,6 +32,10 @@ def store_reco_MET(evt, dic):
     store(evt, dic, "MET", 0, "MET",
           attrs = ["pt", "phi", "covXX", "covXY", "covYY", "significance"])
 
+def store_reco_PU(evt, dic):
+    store(evt, dic, "PU", 0, "PV",
+          attrs = ["npvsGood", "npvs"])
+
 default_jet_attrs = default_attrs + ["btagDeepB"]
 def store_jet(evt, dic, name, jet_index, attrs = default_jet_attrs):
     store(evt, dic, name, jet_index, "Jet", attrs = attrs)
