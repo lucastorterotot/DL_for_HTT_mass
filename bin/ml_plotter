@@ -35,7 +35,7 @@ else:
     args.plots = args.plots.split(',')
     #args.plots = [p for p in args.plots if p in macros.available_plots.keys()]
 
-    loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
+loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
 if model_type != 'XGBoost' and 'feature_importance' in args.plots:
     args.plots.remove('feature_importance')
 
