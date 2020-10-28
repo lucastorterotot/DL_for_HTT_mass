@@ -28,6 +28,8 @@ parser.add_option("-M", "--maxmass", dest = "max_mass",
                   default = NN_default_settings.max_mass)
 parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
+parser.add_option("-a", "--last_activation", dest = "last_activation",
+                  default = "linear")
 
 (options,args) = parser.parse_args()
 
@@ -227,7 +229,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     for _Nneurons in Nneurons_sequence[1:]:
         NN_model.add(Dense(int(_Nneurons), activation="relu", kernel_constraint=max_norm(my_max_norm)))
             
-    NN_model.add(Dense(1, activation="linear"))
+    NN_model.add(Dense(1, activation=options.last_activation))
     print(NN_model.summary())
     NN_model.compile(loss='mean_squared_error',
                      optimizer=optimizers.Adam(),
