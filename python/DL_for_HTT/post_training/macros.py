@@ -19,14 +19,14 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
-def NN_responses(df, channel, NNname, mH_min, mH_max):
+def model_responses(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
     df1 = filter_channel(df, channel)
         
-    medians_NN = []
-    CL68s_NN_up = []
-    CL68s_NN_do = []
-    CL95s_NN_up = []
-    CL95s_NN_do = []
+    medians_model = []
+    CL68s_model_up = []
+    CL68s_model_do = []
+    CL95s_model_up = []
+    CL95s_model_do = []
     medians_mTtot = []
     CL68s_mTtot_up = []
     CL68s_mTtot_do = []
@@ -35,11 +35,11 @@ def NN_responses(df, channel, NNname, mH_min, mH_max):
     xpos = []
     xerr = []
     
-    mHcuts = np.arange(mH_min, mH_max, 10) # [.200, .350]
-    mHranges = [[mH_min, mHcuts[0]]]
+    mHcuts = np.arange(min_mass, max_mass, 10) # [.200, .350]
+    mHranges = [[min_mass, mHcuts[0]]]
     for mHcut in mHcuts[1:]:
         mHranges.append([mHranges[-1][1], mHcut])
-    mHranges.append([mHranges[-1][1], mH_max])
+    mHranges.append([mHranges[-1][1], max_mass])
     for mHrange in mHranges:
         mHrange[0] = np.round(mHrange[0],3)
         mHrange[1] = np.round(mHrange[1],3)
@@ -55,63 +55,63 @@ def NN_responses(df, channel, NNname, mH_min, mH_max):
 
         # mTtots = np.r_[df2["mTtot_reco"]]
         mHs = np.r_[df2[target]]
-        values_NN = predictions/mHs
+        values_model = predictions/mHs
         # values_mTtot = mTtots/mHs
         
-        values_NN = [v for v in values_NN]
+        values_model = [v for v in values_model]
         # values_mTtot = [v for v in values_mTtot]
-        values_NN.sort()
+        values_model.sort()
         # values_mTtot.sort()
 
         try:
-            medians_NN.append(values_NN[int(len(values_NN)/2)])
+            medians_model.append(values_model[int(len(values_model)/2)])
             # medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
         except:
             import pdb; pdb.set_trace()
 
-        above_NN = [v for v in values_NN if v >= medians_NN[-1]]
-        below_NN = [v for v in values_NN if v <= medians_NN[-1]]
+        above_model = [v for v in values_model if v >= medians_model[-1]]
+        below_model = [v for v in values_model if v <= medians_model[-1]]
         # above_mTtot = [v for v in values_mTtot if v >= medians_mTtot[-1]]
         # below_mTtot = [v for v in values_mTtot if v <= medians_mTtot[-1]]
 
-        above_NN.sort()
-        below_NN.sort(reverse = True)
+        above_model.sort()
+        below_model.sort(reverse = True)
         # above_mTtot.sort()
         # below_mTtot.sort(reverse = True)
 
-        CL68s_NN_up.append(above_NN[int(0.68 * len(above_NN))])
-        CL68s_NN_do.append(below_NN[int(0.68 * len(below_NN))])
-        CL95s_NN_up.append(above_NN[int(0.95 * len(above_NN))])
-        CL95s_NN_do.append(below_NN[int(0.95 * len(below_NN))])
+        CL68s_model_up.append(above_model[int(0.68 * len(above_model))])
+        CL68s_model_do.append(below_model[int(0.68 * len(below_model))])
+        CL95s_model_up.append(above_model[int(0.95 * len(above_model))])
+        CL95s_model_do.append(below_model[int(0.95 * len(below_model))])
         # CL68s_mTtot_up.append(above_mTtot[int(0.68 * len(above_mTtot))])
         # CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
         # CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
         # CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
         
     fig, ax = plt.subplots()
-    #fig.suptitle(NNname)
+    #fig.suptitle(model_name)
     plt.xlabel("Generated mass (GeV)")
     plt.ylabel("Discriminator / Generated mass")
     
     ax.fill_between(
-        xpos, CL95s_NN_do, CL68s_NN_do,
-        color = "yellow", alpha = .5
+        xpos, CL95s_model_do, CL68s_model_do,
+        color = "yellow", alpha = .5, label = "$\pm2\sigma$",
     )
     ax.fill_between(
-        xpos, CL68s_NN_up, CL95s_NN_up,
-        color = "yellow", alpha = .5
+        xpos, CL68s_model_up, CL95s_model_up,
+        color = "yellow", alpha = .5,
     )
     ax.fill_between(
-        xpos, CL68s_NN_do, CL68s_NN_up,
-        color = "green", alpha = .5
+        xpos, CL68s_model_do, CL68s_model_up,
+        color = "green", alpha = .5, label = "$\pm1\sigma$",
     )
     ax.errorbar(
-        xpos, medians_NN, xerr = xerr, #yerr = sigmas,
+        xpos, medians_model, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "DNN",
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Medians",
     )
     # ax.errorbar(
-    #     xpos, medians_NN, xerr = xerr, #yerr = sigmas,
+    #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
     #     marker='+', markersize=4, linewidth=.4, elinewidth=1,
     #     fmt=' ', capsize = 3, capthick = .4, color = "black", #label = "DNN",
     # )
@@ -143,30 +143,30 @@ def NN_responses(df, channel, NNname, mH_min, mH_max):
     #     label = "mTtot",
     # )
     
-    plt.plot([mH_min, mH_max], [1,1], color='C3')    
+    plt.plot([min_mass, max_mass], [1,1], color='C3')    
 
     plt.ylim(0,3)
-    plt.xlim(mH_min, mH_max)
+    plt.xlim(min_mass, max_mass)
 
     ax.legend(loc='upper right')
     
-    fig.savefig("NN_response_{}.png".format(NNname))
+    fig.savefig("model_response_{}.png".format(model_name))
     plt.close('all')
 
-def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, mH_min, mH_max):
+def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, min_mass, max_mass):
     for bottleneck in bottleneck_list:
         for Nneurons in Nneurons_list:
-            mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, bottleneck, mH_min, mH_max)
+            mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, bottleneck, min_mass, max_mass)
         for Nlayers in Nlayers_list:
-            mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, bottleneck, mH_min, mH_max)
+            mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, bottleneck, min_mass, max_mass)
 
-def mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, bottleneck, mH_min, mH_max):
-    mean_sigma_mae_fct(df, channel, Nlayers_list, bottleneck, mH_min, mH_max, fixed = "{} neurons per layer".format(str(Nneurons)), at = Nneurons, type = "n")
+def mean_sigma_mae_fct_Nlayers(df, channel, Nneurons, Nlayers_list, bottleneck, min_mass, max_mass):
+    mean_sigma_mae_fct(df, channel, Nlayers_list, bottleneck, min_mass, max_mass, fixed = "{} neurons per layer".format(str(Nneurons)), at = Nneurons, type = "n")
 
-def mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, bottleneck, mH_min, mH_max):
-    mean_sigma_mae_fct(df, channel, Nneurons_list, bottleneck, mH_min, mH_max, fixed = "{} hidden layers".format(str(Nlayers)), at = Nlayers, type = "l")
+def mean_sigma_mae_fct_Nneurons(df, channel, Nneurons_list, Nlayers, bottleneck, min_mass, max_mass):
+    mean_sigma_mae_fct(df, channel, Nneurons_list, bottleneck, min_mass, max_mass, fixed = "{} hidden layers".format(str(Nlayers)), at = Nlayers, type = "l")
 
-def mean_sigma_mae_fct(df, channel, list, bottleneck, mH_min, mH_max, fixed = "?", at = 0, type = "?"):
+def mean_sigma_mae_fct(df, channel, list, bottleneck, min_mass, max_mass, fixed = "?", at = 0, type = "?"):
     df1 = filter_channel(df, channel)
         
     means = []
@@ -239,9 +239,8 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, mH_min, mH_max, fixed = "?
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
 
-def plot_pred_vs_ans(df, channel, NNname, mH_min, mH_max):
+def predictions_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
 
-    df = df.loc[df.is_valid == 1]
     df = filter_channel(df, channel=channel)
 
     predictions = df["predictions"]
@@ -259,10 +258,10 @@ def plot_pred_vs_ans(df, channel, NNname, mH_min, mH_max):
     plt.ylabel("Predicted Higgs Mass (GeV)")
     
     #plt.show()
-    plt.xlim(mH_min, mH_max)
-    plt.ylim(mH_min, mH_max)
+    plt.xlim(min_mass, max_mass)
+    plt.ylim(min_mass, max_mass)
 
-    fig.savefig("predicted_vs_answers-{}.png".format(NNname))
+    fig.savefig("predicted_vs_answers-{}{}.png".format(prefix, model_name))
 
     # Plot predicted vs answer on a test sample
     plt.clf()
@@ -271,25 +270,25 @@ def plot_pred_vs_ans(df, channel, NNname, mH_min, mH_max):
     import seaborn as sns
     sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
 
-    ax.plot([mH_min, mH_max], [1,1], color='C3')
+    ax.plot([min_mass, max_mass], [1,1], color='C3')
     plt.xlabel("Generated Higgs Mass (GeV)")
     plt.ylabel("Predicted Higgs Mass (GeV)")
     
     #plt.show()
-    plt.xlim(mH_min, mH_max)
+    plt.xlim(min_mass, max_mass)
     plt.ylim(0, 3)
 
-    fig.savefig("predicted_on_answers-{}.png".format(NNname))
+    fig.savefig("predicted_on_answers-{}{}.png".format(prefix, model_name))
     
-def get_distributions(df, channel, NNname):
+def variables_distributions(df, channel, model_name, prefix = '', **kwargs):
     df1 = filter_channel(df, channel=channel)
     for var in [target]:
-        get_distribution(df1, var, channel, "all_events")
+        variables_distribution(df1, var, channel, "all_events")
         for data_category in ["is_train", "is_valid", "is_test"]:
             df2 = df1.loc[df[data_category] == 1]
-            get_distribution(df2, var, channel, data_category)
+            variables_distribution(df2, var, channel, data_category, prefix = '', **kwargs)
 
-def get_distribution(df, var, channel, data_category):
+def variables_distribution(df, var, channel, data_category, prefix = '', **kwargs):
     plt.clf()
     fig, ax = plt.subplots()
     n, bins, patches = ax.hist(df[var], 50)
@@ -300,9 +299,16 @@ def get_distribution(df, var, channel, data_category):
 
     plt.savefig('distribution-{}-{}-{}.png'.format(channel, var, data_category))
 
-def feature_importance(model, inputs, name):
+def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
     plt.clf()
     fig, ax = plt.subplots()
     plot_importance(model)
     plt.subplots_adjust(left=0.25)
-    plt.savefig('feature_importance-{}.png'.format(name))
+    plt.savefig('feature_importance-{}{}.png'.format(prefix, model_name))
+
+available_plots = {
+    'model_responses' : model_responses,
+    'predictions_vs_answers' : predictions_vs_answers,
+    'feature_importance' : feature_importance,
+    'variables_distributions': variables_distributions,
+}
