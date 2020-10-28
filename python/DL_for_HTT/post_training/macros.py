@@ -2,12 +2,16 @@ import DL_for_HTT.post_training.utils as utils
 
 from DL_for_HTT.common.NN_settings import target
 
+import locale; locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
 import matplotlib.pyplot as plt
+plt.rcdefaults()
+
 import numpy as np
 
 from xgboost import plot_importance
 
 plt.rcParams["figure.figsize"] = [7, 7]
+plt.rcParams['axes.formatter.use_locale'] = True
 
 def filter_channel(df, channel = None):
     df1 = df
@@ -19,7 +23,7 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
-def model_responses(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
     df1 = filter_channel(df, channel)
         
     medians_model = []
@@ -90,8 +94,8 @@ def model_responses(df, channel, model_name, min_mass, max_mass, prefix = '', **
         
     fig, ax = plt.subplots()
     #fig.suptitle(model_name)
-    plt.xlabel("Generated mass (GeV)")
-    plt.ylabel("Discriminator / Generated mass")
+    plt.xlabel("Masse générée du Higgs (GeV)")
+    plt.ylabel("Prédicition du modèle / Masse générée du Higgs (1/GeV)")
     
     ax.fill_between(
         xpos, CL95s_model_do, CL68s_model_do,
@@ -108,7 +112,7 @@ def model_responses(df, channel, model_name, min_mass, max_mass, prefix = '', **
     ax.errorbar(
         xpos, medians_model, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Medians",
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
     )
     # ax.errorbar(
     #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
@@ -150,6 +154,7 @@ def model_responses(df, channel, model_name, min_mass, max_mass, prefix = '', **
 
     ax.legend(loc='upper right')
     
+    fig.tight_layout()
     fig.savefig("model_response_{}.png".format(model_name))
     plt.close('all')
 
@@ -233,13 +238,14 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, min_mass, max_mass, fixed 
     plt.ylim(0.75,1.25)
     plt.xlim(xmin, xmax)
     
+    fig.tight_layout()
     if type == "n":
         fig.savefig("NN_mean_{}_at_fixed_{}_Nneurons{}.png".format(channel, str(at), bottleneck))
     elif type == "l":
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
 
-def predictions_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
 
     df = filter_channel(df, channel=channel)
 
@@ -254,13 +260,14 @@ def predictions_vs_answers(df, channel, model_name, min_mass, max_mass, prefix =
     sns.kdeplot(answers, predictions, cmap="viridis", n_levels=30, shade=True, bw=.15)
 
     ax.plot(answers, answers, color="C3")
-    plt.xlabel("Generated Higgs Mass (GeV)")
-    plt.ylabel("Predicted Higgs Mass (GeV)")
+    plt.xlabel("Masse générée du Higgs (GeV)")
+    plt.ylabel("Prédicition du modèle")
     
     #plt.show()
     plt.xlim(min_mass, max_mass)
     plt.ylim(min_mass, max_mass)
 
+    fig.tight_layout()
     fig.savefig("predicted_vs_answers-{}{}.png".format(prefix, model_name))
 
     # Plot predicted vs answer on a test sample
@@ -271,44 +278,65 @@ def predictions_vs_answers(df, channel, model_name, min_mass, max_mass, prefix =
     sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
 
     ax.plot([min_mass, max_mass], [1,1], color='C3')
-    plt.xlabel("Generated Higgs Mass (GeV)")
-    plt.ylabel("Predicted Higgs Mass (GeV)")
+    plt.xlabel("Masse générée du Higgs (GeV)")
+    plt.ylabel("Prédicition du modèle / Masse générée du Higgs (1/GeV)")
     
     #plt.show()
     plt.xlim(min_mass, max_mass)
     plt.ylim(0, 3)
 
+    fig.tight_layout()
     fig.savefig("predicted_on_answers-{}{}.png".format(prefix, model_name))
     
-def variables_distributions(df, channel, model_name, prefix = '', **kwargs):
-    df1 = filter_channel(df, channel=channel)
-    for var in [target]:
-        variables_distribution(df1, var, channel, "all_events")
+def variables_distributions(df_all, channel, model_name, prefix = '', variables_list = [target], **kwargs):
+    df1 = filter_channel(df_all, channel=channel)
+    for var in variables_list:
+        _variables_distribution(df1, var, channel, "all_events")
         for data_category in ["is_train", "is_valid", "is_test"]:
-            df2 = df1.loc[df[data_category] == 1]
-            variables_distribution(df2, var, channel, data_category, prefix = '', **kwargs)
+            df2 = df1.loc[df_all[data_category] == 1]
+            _variables_distribution(df2, var, channel, data_category, prefix = '')
 
-def variables_distribution(df, var, channel, data_category, prefix = '', **kwargs):
+var_name_to_label = {
+    'Higgs_mass_gen' : "Masse générée du Higgs (GeV)",
+}
+
+vars_with_y_log_scale = [
+    'tau1_pt_reco',
+    'tau2_pt_reco',
+]
+
+def _variables_distribution(df, var, channel, data_category, prefix = ''):
     plt.clf()
     fig, ax = plt.subplots()
-    n, bins, patches = ax.hist(df[var], 50)
-    ax.set_xlabel(var)
+    n, bins, patches = ax.hist(df[var], 50, log = (var in vars_with_y_log_scale))
+    if var in var_name_to_label:
+        xlabel = var_name_to_label[var]
+    else:
+        xlabel = var
+    ax.set_xlabel(xlabel)
     ax.set_ylabel('N events')
     if var == target:
         plt.xlim(0, 1000)
-
+    fig.tight_layout()
     plt.savefig('distribution-{}-{}-{}.png'.format(channel, var, data_category))
 
 def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
     plt.clf()
     fig, ax = plt.subplots()
-    plot_importance(model)
+    plot_importance(
+        model,
+        title = None,
+        xlabel = 'Score',
+        ylabel = 'Variable',
+        grid = False,
+    )
     plt.subplots_adjust(left=0.25)
+    fig.tight_layout()
     plt.savefig('feature_importance-{}{}.png'.format(prefix, model_name))
 
 available_plots = {
-    'model_responses' : model_responses,
-    'predictions_vs_answers' : predictions_vs_answers,
+    'model_response' : model_response,
+    'predicted_vs_answers' : predicted_vs_answers,
     'feature_importance' : feature_importance,
     'variables_distributions': variables_distributions,
 }

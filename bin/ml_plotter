@@ -23,6 +23,8 @@ parser.add_argument("--plots",
                   default = 'all')
 parser.add_argument("--subsample",
                   default = 'test')
+parser.add_argument("--variables_list",
+                    default = 'default')
 
 args = parser.parse_args()
 
@@ -34,6 +36,19 @@ if args.plots == 'all':
 else:
     args.plots = args.plots.split(',')
     #args.plots = [p for p in args.plots if p in macros.available_plots.keys()]
+
+if args.variables_list == 'default':
+    args.variables_list = 'target'
+args.variables_list = set(args.variables_list.split(','))
+if 'all' in args.variables_list :
+    args.variables_list.remove('all')
+    args.variables_list = args.variables_list.union(['target', 'inputs'])
+if 'target' in args.variables_list :
+    args.variables_list.remove('target')
+    args.variables_list = args.variables_list.union([NN_default_settings.target])
+if 'inputs' in args.variables_list :
+    args.variables_list.remove('inputs')
+    args.variables_list = args.variables_list.union(NN_default_settings.inputs)
 
 loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
 if model_type != 'XGBoost' and 'feature_importance' in args.plots:
@@ -47,9 +62,9 @@ df = utils.load_h5_file_and_predict(
 )
 
 if args.subsample == 'all':
-    df = df.loc[(df['is_train']==1) | (df['is_valid']==1) | (df['is_test']==1)]
+    df_filtered = df.loc[(df['is_train']==1) | (df['is_valid']==1) | (df['is_test']==1)]
 elif args.subsample in ['train', 'valid', 'test']:
-    df = df.loc[df['is_{}'.format(args.subsample)]==1]
+    df_filtered = df.loc[df['is_{}'.format(args.subsample)]==1]
 else:
     print("Using ALL available data for plotting!")
 
@@ -58,7 +73,8 @@ if args.prefix != '':
         args.prefix += '-'
 
 plotting_parameters = {
-    'df' : df,
+    'df' : df_filtered,
+    'df_all' : df,
     'channel' : args.channel,
     'model' : loaded_model,
     'model_name' : model_name,
@@ -67,6 +83,7 @@ plotting_parameters = {
     'inputs' : NN_default_settings.inputs,
     'target' : NN_default_settings.target,
     'prefix' : args.prefix,
+    'variables_list' : args.variables_list,
 }
 
 for plot in args.plots:
