@@ -110,32 +110,39 @@ df["was_train"] = np.zeros(len(df[target]))
 df["was_valid"] = np.zeros(len(df[target]))
 df["was_test"] = np.zeros(len(df[target]))
 if options.Flat:
+    min_evt_per_GeV = 200 # if below, do not cut
     flat_step = 5 # bin width in GeV for which content will be taken as constant
-    flat_mass = options.min_mass+2
+    flat_mass = options.min_mass#+flat_step/2
     min_bin_content = {
         "train" : len(df.loc[df["is_train"] == 1, [target]]),
         "valid" : len(df.loc[df["is_valid"] == 1, [target]]),
         "test"  : len(df.loc[df["is_test"] == 1, [target]]),
     }
 
-    flat_mass -= flat_step
-    while flat_mass < options.max_mass-2:
+    flat_mass += flat_step
+    while flat_mass <= options.max_mass-2*flat_step:
         flat_mass += flat_step
         for t in min_bin_content.keys():
-            bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), [target]])
-            if min_bin_content[t] > bin_content and bin_content != 0:
+            bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), [target]])
+            if min_bin_content[t] > bin_content and bin_content > min_evt_per_GeV * flat_step:
                 min_bin_content[t] = bin_content
 
     # apply bin content
-    flat_mass = options.min_mass
+    np.random.seed(options.random_seed)
+    flat_mass = options.min_mass#+flat_step/2
     flat_mass -= flat_step
-    while flat_mass < options.max_mass:
+    while flat_mass <= options.max_mass-flat_step:
         flat_mass += flat_step
         for t in min_bin_content.keys():
-            bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]])
+            bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), ["is_{}".format(t)]])
             if bin_total > min_bin_content[t]:
-                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["was_{}".format(t)]] = np.concatenate([np.zeros(min_bin_content[t]), np.ones(bin_total-min_bin_content[t])])
-                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] <= flat_mass+flat_step/2), ["is_{}".format(t)]] = np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
+                perm = np.random.permutation(bin_total)
+                keep = perm[:min_bin_content[t]]
+                reject = perm[min_bin_content[t]:]
+                new_array = np.zeros(bin_total)
+                new_array[keep] = 1
+                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), ["was_{}".format(t)]] = 1-new_array
+                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), ["is_{}".format(t)]] = new_array # np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
 
     # control variables
     # df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df[target] >= min_mass) & (df[target] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).hist(figsize = (24,20), bins = 500, log=True)
