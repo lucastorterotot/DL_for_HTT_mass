@@ -32,9 +32,9 @@ args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
 
 if args.plots == 'all':
-    args.plots = macros.available_plots.keys()
+    args.plots = [k for k in macros.available_plots.keys()]
 else:
-    args.plots = args.plots.split(',')
+    args.plots = list(set(args.plots.split(',')))
     #args.plots = [p for p in args.plots if p in macros.available_plots.keys()]
 
 if args.variables_list == 'default':
