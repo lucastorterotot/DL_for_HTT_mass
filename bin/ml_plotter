@@ -51,7 +51,7 @@ if 'inputs' in args.variables_list :
     args.variables_list = args.variables_list.union(NN_default_settings.inputs)
 
 loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
-if model_type != 'XGBoost' and 'feature_importance' in args.plots:
+if model_type == 'DNN' and 'feature_importance' in args.plots:
     args.plots.remove('feature_importance')
 
 df = utils.load_h5_file_and_predict(
