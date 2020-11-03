@@ -141,6 +141,8 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
         df_x_train, df_y_train,
         verbose=True,
         eval_set = eval_set,
+        eval_metric = params['eval_metric'],
+        early_stopping_rounds = params['early_stopping_rounds'],
     )
     evals_result = bst.evals_result()
     evals_result['train'] = evals_result['validation_0']
