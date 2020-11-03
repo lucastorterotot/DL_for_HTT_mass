@@ -8,29 +8,41 @@ import DL_for_HTT.common.NN_settings as NN_default_settings
 def load_model_from_json(input_json):
     model_name = input_json.split('/')[-1].replace('.json', '')
     if  model_name[:3] == 'XGB':
-        model_type = 'XGBoost'
+        model_type = model_name.split("-")[0]
         import xgboost as xgb
-        loaded_model = xgb.Booster()
+        loaded_model = xgb.XGBRegressor()
         loaded_model.load_model(input_json)
         
-        # XGB-XGB-inclusive-max_depth-20-eta-0.1-num_round-20.json
+        # ... -inclusive-max_depth-5-eta-0.1-n_estimators-500-es-5-gamma-0-min_child_weight-1-loss-rmse
         # Get infos on the trained XGB
         infos = model_name
         infos = infos.replace('.json', '')
-        
-        num_round = infos.split("-")[-1]
-        eta = infos.split("-")[-3]
-        max_depth = infos.split("-")[-5]
-        channel = infos.split("-")[-7]
+
+        loss = infos.split("-")[-1]
+        min_child_weight = infos.split("-")[-3]
+        gamma = infos.split("-")[-5]
+        early_stopping_rounds = infos.split("-")[-7]
+        n_estimators = infos.split("-")[-9]
+        eta = infos.split("-")[-11]
+        max_depth = infos.split("-")[-13]
+        channel = infos.split("-")[-15]
         
         print("Properties:")
         
         print(
-            "\t{} channel, eta={}, max_depth={}, num_round={}".format(
+            "\t{} channel, eta = {}, max_depth = {}, n_estimators = {}, early_stopping_rounds = {},".format(
                 channel,
                 eta,
                 max_depth,
-                num_round,
+                n_estimators,
+                early_stopping_rounds,
+            )
+        )
+        print(
+            "\t loss = {}, gamma = {}, min_child_weight = {}".format(
+                loss,
+                gamma,
+                min_child_weight,
             )
         )
     else:

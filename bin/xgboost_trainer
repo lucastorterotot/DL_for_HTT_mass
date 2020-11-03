@@ -7,7 +7,7 @@ from optparse import OptionParser
 usage = "usage: %prog [options] <input>"
 parser = OptionParser(usage=usage)
 parser.add_option("-o", "--output", dest = "output",
-                  default = "XGB")
+                  default = "")
 parser.add_option("-m", "--minmass", dest = "min_mass",
                   default = NN_default_settings.min_mass)
 parser.add_option("-M", "--maxmass", dest = "max_mass",
@@ -15,15 +15,23 @@ parser.add_option("-M", "--maxmass", dest = "max_mass",
 parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
 parser.add_option("-d", "--max_depth", dest = "max_depth",
-                  default = 5)
+                  default = 5) # max depth for trees
 parser.add_option("-e", "--eta", dest = "eta",
-                  default = 0.1)
-parser.add_option("-r", "--num_round", dest = "num_round",
-                  default = 50)
-parser.add_option("-s", "--stop", dest = "early_stopping_rounds",
-                  default = 5)
+                  default = 0.1) # learning rate
+parser.add_option("-n", "--n_estimators", dest = "n_estimators",
+                  default = 500) # max number of estimators
+parser.add_option("-s", "--early_stopping_rounds", dest = "early_stopping_rounds",
+                  default = 5) # early stopping for estimators
 parser.add_option("-l", "--loss", dest = "loss",
                   default = NN_default_settings.loss)
+parser.add_option("-g", "--gamma", dest = "gamma",
+                  default = 0)
+parser.add_option("-w", "--min_child_weight", dest = "min_child_weight",
+                  default = 1)
+parser.add_option("-j", "--n_jobs", dest = "n_jobs",
+                  default = 1)
+parser.add_option("-O", "--objective", dest = "objective",
+                  default = 'reg:squarederror')
 
 (options,args) = parser.parse_args()
 
@@ -31,13 +39,15 @@ min_mass = float(options.min_mass)
 max_mass = float(options.max_mass)
 options.max_depth = int(options.max_depth)
 options.eta = float(options.eta)
-options.num_round = int(options.num_round)
+options.n_estimators = int(options.n_estimators)
 if options.early_stopping_rounds not in [None, 'None']:
     options.early_stopping_rounds = int(options.early_stopping_rounds)
 else:
     options.early_stopping_rounds = None
 if options.loss == "mse":
     options.loss = 'rmse'
+options.gamma = float(options.gamma)
+options.n_jobs = int(options.n_jobs)
     
 input_file = args[0]
 
@@ -48,12 +58,10 @@ for option in ["output", "min_mass", "max_mass"]:
 print("Input file:")
 print("\t{}".format(input_file))
 
-import xgboost as xgb
+from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import pandas as pd
-import tensorflow.keras as keras
 
 # Load data
 import os
@@ -70,18 +78,34 @@ print("Inputs:")
 for i in inputs:
     print("\t{}".format(i))
 
-def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = options.max_depth, eta = options.eta, num_round = options.num_round):
+def XGB_make_train_predict(df, inputs, channel = "inclusive"):
 
-    params = {'max_depth' : max_depth, 'eta' : eta}
-    # params = {'max_depth' : 20, 'eta' : 0.1}
-    # num_round = 20
+    params = {
+        'max_depth' : options.max_depth,
+        'learning_rate' : options.eta,
+        'eta' : options.eta, # duplicate for the name
+        'n_estimators' : options.n_estimators,
+        'gamma' : options.gamma,
+        'min_child_weight' : options.min_child_weight,
+        'n_jobs' : options.n_jobs,
+        'objective' : options.objective,
+        'eval_metric' : options.loss,
+        'loss' : options.loss, # duplicate for the name
+        'early_stopping_rounds' : options.early_stopping_rounds,
+        'es' : options.early_stopping_rounds,
+    }
 
-    XGBname = "-".join([options.output, channel, 'max_depth', str(params['max_depth']), 'eta', str(params['eta']), 'num_round', str(num_round)])
+    XGBname_items = []
+    if options.output != "":
+        XGBname_items.append(options.output)
+    XGBname_items.append(channel)
+    for param in ['max_depth', 'eta', 'n_estimators', 'es', 'gamma', 'min_child_weight', 'loss']:
+        XGBname_items += [param, str(params[param])]
+    XGBname = "-".join(XGBname_items)
 
     print(XGBname)
 
     df_select = df
-
     df_select = df_select.loc[(df_select[target] >= min_mass) & (df_select[target] <= max_mass)]
 
     if channel in set(df_select['channel_reco']):
@@ -105,34 +129,27 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = option
         print("Empty set, aborting...")
         return None, False
 
-    arr_x_train = np.r_[df_x_train]
-    arr_y_train = np.r_[df_y_train[target]]
-    arr_x_valid = np.r_[df_x_valid]
-    arr_y_valid = np.r_[df_y_valid[target]]
-    arr_x_test = np.r_[df_x_test]
-    arr_y_test = np.r_[df_y_test[target]]
-
-    # Create XGBoost Dmatrix
-    DM_train = xgb.DMatrix(data = df_x_train, label = df_y_train, feature_names=inputs)
-    DM_valid = xgb.DMatrix(data = df_x_valid, label = df_y_valid, feature_names=inputs)
-    DM_test = xgb.DMatrix(data = df_x_test, label = df_y_test, feature_names=inputs)
+    # Create XGBRegressor
+    bst = XGBRegressor(**params)
     
-    # Train XGB
-    evals_set = [(DM_train, 'train'), (DM_test, 'test'), (DM_valid, 'valid')]
-    evals_result = {}
-    params['eval_metric'] = options.loss
-    XGB = xgb.train(
-        params, DM_train,
-        num_boost_round = num_round,
-        evals = evals_set,
-        early_stopping_rounds = options.early_stopping_rounds,
-        evals_result = evals_result,
+    # Create subsamples for evaluation
+    eval_set = [(df_x_train, df_y_train), (df_x_test, df_y_test), (df_x_valid, df_y_valid)]
+    eval_order = ['train', 'test', 'valid'] # to get back the order of eval_set later
+
+    # Train XGBRegressor
+    bst.fit(
+        df_x_train, df_y_train,
+        verbose=True,
+        eval_set = eval_set,
     )
+    evals_result = bst.evals_result()
+    evals_result['train'] = evals_result['validation_0']
+    evals_result['test'] = evals_result['validation_1']
+    evals_result['valid'] = evals_result['validation_2']
 
     # Save model
-    XGB.save_model("XGB-{}.json".format(XGBname))
+    bst.save_model("XGBRegressor-{}.json".format(XGBname))
 
-    import matplotlib.pyplot as plt
     fig = plt.figure(figsize=(6, 6))
     plt.subplot(1, 1, 1)
     # plt.title("Values of loss ({})".format(options.loss))
@@ -145,7 +162,7 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive", max_depth = option
     plt.ylabel("Values of loss ({})".format(options.loss))
     fig.tight_layout()
     plt.ylim(0, 400)
-    plt.savefig("History-{}.png".format(XGBname))
+    plt.savefig("History-XGBRegressor-{}.png".format(XGBname))
 
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
