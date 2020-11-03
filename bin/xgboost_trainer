@@ -163,7 +163,9 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
     plt.xlabel('Boosting Iterations')
     plt.ylabel("Values of loss ({})".format(options.loss))
     fig.tight_layout()
-    plt.ylim(0, 400)
+    plt.ylim(40, 400)
+    plt.yscale('log')
+    plt.subplots_adjust(left=0.15)
     plt.savefig("History-XGBRegressor-{}.png".format(XGBname))
 
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
