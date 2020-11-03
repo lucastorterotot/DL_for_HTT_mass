@@ -52,7 +52,7 @@ options.n_jobs = int(options.n_jobs)
 input_file = args[0]
 
 print("Selected options are the following:")
-for option in ["output", "min_mass", "max_mass"]:
+for option in ["output", "min_mass", "max_mass", "channels", "max_depth", "eta", "n_estimators", "loss", "gamma", "early_stopping_rounds", "min_child_weight", "n_jobs", "objective"]:
     print("\t{}\t{}".format(option, getattr(options, option)))
 
 print("Input file:")
