@@ -185,7 +185,11 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
     plt.xlabel('Boosting Iterations')
     plt.ylabel("Values of eval ({})".format(options.eval))
     fig.tight_layout()
-    plt.ylim(40, 400)
+    plt.ylim(60, 200)
+    if options.eval == 'rmse':
+        plt.ylim(90, 150)
+    elif options.eval == 'mae':
+        plt.ylim(70, 110)
     plt.yscale('log')
     plt.subplots_adjust(left=0.15)
     plt.savefig("History-XGBRegressor-{}.png".format(XGBname))
