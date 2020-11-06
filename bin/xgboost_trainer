@@ -22,8 +22,8 @@ parser.add_option("-n", "--n_estimators", dest = "n_estimators",
                   default = 500) # max number of estimators
 parser.add_option("-s", "--early_stopping_rounds", dest = "early_stopping_rounds",
                   default = 5) # early stopping for estimators
-parser.add_option("-l", "--loss", dest = "loss",
-                  default = NN_default_settings.loss)
+parser.add_option("-E", "--eval", dest = "eval",
+                  default = 'rmse')
 parser.add_option("-g", "--gamma", dest = "gamma",
                   default = 0)
 parser.add_option("-w", "--min_child_weight", dest = "min_child_weight",
@@ -44,15 +44,13 @@ if options.early_stopping_rounds not in [None, 'None']:
     options.early_stopping_rounds = int(options.early_stopping_rounds)
 else:
     options.early_stopping_rounds = None
-if options.loss == "mse":
-    options.loss = 'rmse'
 options.gamma = float(options.gamma)
 options.n_jobs = int(options.n_jobs)
     
 input_file = args[0]
 
 print("Selected options are the following:")
-for option in ["output", "min_mass", "max_mass", "channels", "max_depth", "eta", "n_estimators", "loss", "gamma", "early_stopping_rounds", "min_child_weight", "n_jobs", "objective"]:
+for option in ["output", "min_mass", "max_mass", "channels", "max_depth", "eta", "n_estimators", "eval", "gamma", "early_stopping_rounds", "min_child_weight", "n_jobs", "objective"]:
     print("\t{}\t{}".format(option, getattr(options, option)))
 
 print("Input file:")
@@ -110,8 +108,8 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
         'min_child_weight' : options.min_child_weight,
         'n_jobs' : options.n_jobs,
         'objective' : objectives[options.objective],
-        'eval_metric' : options.loss,
-        'loss' : options.loss, # duplicate for the name
+        'eval_metric' : options.eval,
+        'eval' : options.eval, # duplicate for the name
         'early_stopping_rounds' : options.early_stopping_rounds,
         'es' : options.early_stopping_rounds,
     }
@@ -120,7 +118,7 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
     if options.output != "":
         XGBname_items.append(options.output)
     XGBname_items.append(channel)
-    for param in ['max_depth', 'eta', 'n_estimators', 'es', 'gamma', 'min_child_weight', 'loss']:
+    for param in ['max_depth', 'eta', 'n_estimators', 'es', 'gamma', 'min_child_weight', 'eval']:
         XGBname_items += [param, str(params[param])]
     XGBname = "-".join(XGBname_items)
     XGBname += "-objective-{}".format(options.objective)
@@ -176,14 +174,16 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
 
     fig = plt.figure(figsize=(6, 6))
     plt.subplot(1, 1, 1)
-    # plt.title("Values of loss ({})".format(options.loss))
-    plt.plot(np.arange(len(evals_result['train'][options.loss])) + 1, evals_result['train'][options.loss], 'b-',
-             label='Training Set Loss')
-    plt.plot(np.arange(len(evals_result['test'][options.loss])) + 1, evals_result['test'][options.loss], 'r-',
-             label='Test Set Loss')
+    # plt.title("Values of eval ({})".format(options.eval))
+    plt.plot(np.arange(len(evals_result['train'][options.eval])) + 1, evals_result['train'][options.eval], 'b-',
+             label='Training Set Eval')
+    plt.plot(np.arange(len(evals_result['valid'][options.eval])) + 1, evals_result['valid'][options.eval], 'g-',
+             label='Validation Set Eval')
+    plt.plot(np.arange(len(evals_result['test'][options.eval])) + 1, evals_result['test'][options.eval], 'r-',
+             label='Test Set Eval')
     plt.legend(loc='upper right')
     plt.xlabel('Boosting Iterations')
-    plt.ylabel("Values of loss ({})".format(options.loss))
+    plt.ylabel("Values of eval ({})".format(options.eval))
     fig.tight_layout()
     plt.ylim(40, 400)
     plt.yscale('log')
