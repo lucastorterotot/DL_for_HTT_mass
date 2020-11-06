@@ -18,14 +18,15 @@ def load_model_from_json(input_json):
         infos = model_name
         infos = infos.replace('.json', '')
 
-        loss = infos.split("-")[-1]
-        min_child_weight = infos.split("-")[-3]
-        gamma = infos.split("-")[-5]
-        early_stopping_rounds = infos.split("-")[-7]
-        n_estimators = infos.split("-")[-9]
-        eta = infos.split("-")[-11]
-        max_depth = infos.split("-")[-13]
-        channel = infos.split("-")[-15]
+        objective = infos.split("-")[-1]
+        eval_ = infos.split("-")[-3]
+        min_child_weight = infos.split("-")[-5]
+        gamma = infos.split("-")[-7]
+        early_stopping_rounds = infos.split("-")[-9]
+        n_estimators = infos.split("-")[-11]
+        eta = infos.split("-")[-13]
+        max_depth = infos.split("-")[-15]
+        channel = infos.split("-")[-17]
         
         print("Properties:")
         
@@ -39,8 +40,9 @@ def load_model_from_json(input_json):
             )
         )
         print(
-            "\t loss = {}, gamma = {}, min_child_weight = {}".format(
-                loss,
+            "\t objective = {}, eval = {}, gamma = {}, min_child_weight = {}".format(
+                objective,
+                eval_,
                 gamma,
                 min_child_weight,
             )
