@@ -82,10 +82,10 @@ def low_mass(y_true, y_pred):
     grad = y_pred - y_true
     hess = np.ones(len(grad))
 
-    factor = 2
-    for low_mass_cut in [100, 120, 130, 150, 200, 400]:
-        grad[y_true<low_mass_cut] *= factor
-        hess[y_true<low_mass_cut] *= factor
+    low_mass_cut = 400
+    factor = 2*(low_mass_cut/y_true)
+    grad[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
+    hess[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
 
     return grad, hess
     
