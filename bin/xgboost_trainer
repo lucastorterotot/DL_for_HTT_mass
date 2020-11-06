@@ -77,7 +77,28 @@ inputs = NN_default_settings.inputs
 print("Inputs:")
 for i in inputs:
     print("\t{}".format(i))
+    
+# custom objective function
+def low_mass(y_true, y_pred):
 
+    grad = y_pred - y_true
+    hess = np.ones(len(grad))
+
+    factor = 2
+    for low_mass_cut in [100, 120, 130, 150, 200, 400]:
+        grad[y_true<low_mass_cut] *= factor
+        hess[y_true<low_mass_cut] *= factor
+
+    return grad, hess
+    
+objectives = {
+    'low_mass' : low_mass,
+    'linear' : "reg:linear",
+    'squarederror' : "reg:squarederror",
+    'gamma' : "reg:gamma",
+    'tweedie' : "reg:tweedie",
+    }
+    
 def XGB_make_train_predict(df, inputs, channel = "inclusive"):
 
     params = {
@@ -88,7 +109,7 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
         'gamma' : options.gamma,
         'min_child_weight' : options.min_child_weight,
         'n_jobs' : options.n_jobs,
-        'objective' : options.objective,
+        'objective' : objectives[options.objective],
         'eval_metric' : options.loss,
         'loss' : options.loss, # duplicate for the name
         'early_stopping_rounds' : options.early_stopping_rounds,
@@ -102,6 +123,7 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
     for param in ['max_depth', 'eta', 'n_estimators', 'es', 'gamma', 'min_child_weight', 'loss']:
         XGBname_items += [param, str(params[param])]
     XGBname = "-".join(XGBname_items)
+    XGBname += "-objective-{}".format(options.objective)
 
     print(XGBname)
 
