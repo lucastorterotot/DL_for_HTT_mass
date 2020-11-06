@@ -31,7 +31,7 @@ parser.add_option("-w", "--min_child_weight", dest = "min_child_weight",
 parser.add_option("-j", "--n_jobs", dest = "n_jobs",
                   default = 1)
 parser.add_option("-O", "--objective", dest = "objective",
-                  default = 'reg:squarederror')
+                  default = 'squarederror')
 
 (options,args) = parser.parse_args()
 
