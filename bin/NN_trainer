@@ -86,8 +86,7 @@ tfback._get_available_gpus = _get_available_gpus
 print(_get_available_gpus())
 
 # Get available loss_fcts, optimizers and w_init_modes
-
-loss_fcts = {
+loss_fcts_str_to_func = {
     "mean_squared_error" : "mse",
     "mean_absolute_error" : "mae",
     "mean_absolute_percentage_error" : "mape",
@@ -96,6 +95,43 @@ loss_fcts = {
     "huber_loss" : "hl",
     "log_cosh" : "lc",
 }
+
+loss_fcts_for_name = {}
+# loss from module
+for loss in ["mse", "mae", "mape", "msle", "cs", "hl", "lc"] :
+    loss_fcts_str_to_func[loss] = loss
+    loss_fcts_for_name[loss] = loss
+
+# add custom losses
+import keras.backend as kb
+def low_mass(y_true, y_pred):
+
+    low_mass_cut = 400.0
+    factors = 2*(low_mass_cut/y_true)
+
+    loss_squared_error = kb.square(y_pred - y_true)
+    loss_squared_error_factor = kb.square(y_pred - y_true) * 2*(low_mass_cut/y_true)
+
+    low = kb.greater_equal(y_true, low_mass_cut*1.0)
+    high = kb.less(y_true,low_mass_cut*1.0)
+
+    loss_squared_error_low = loss_squared_error_factor[low]
+    loss_squared_error_high = loss_squared_error[high]
+
+    losses = kb.concatenate([loss_squared_error_low, loss_squared_error_high])
+
+    loss = kb.mean(losses, axis=-1)
+
+    #import pdb; pdb.set_trace()
+
+    return loss
+
+loss_fcts_for_name['low_mass'] = 'lm'
+loss_fcts_for_name['lm'] = 'lm'
+loss_fcts_str_to_func['low_mass'] = low_mass
+loss_fcts_str_to_func['lm'] = low_mass
+
+# optimizers
 
 Adam = tf.keras.optimizers.Adam
 Adamax = tf.keras.optimizers.Adamax
@@ -115,6 +151,7 @@ optimizers_dict = {
     "RMSprop" : RMSprop,
 }
 
+# weight init modes
 w_init_modes = {
     'uniform' : "u",
     'lecun_uniform' : "lu",
@@ -177,7 +214,7 @@ def plot_hist(h, NNname, xsize=6, ysize=10):
 
 def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode):
 
-    NNname = "-".join([options.output, loss_fcts[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
+    NNname = "-".join([options.output, loss_fcts_for_name[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
     if options.bottleneck:
         NNname += "-bottleneck"
@@ -231,7 +268,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
             
     NN_model.add(Dense(1, activation=options.last_activation))
     print(NN_model.summary())
-    NN_model.compile(loss=loss,
+    NN_model.compile(loss=loss_fcts_str_to_func[loss],
                      optimizer=optimizers.Adam(),
                      metrics=[keras.metrics.mae])
     
