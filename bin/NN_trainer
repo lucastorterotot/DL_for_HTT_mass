@@ -231,7 +231,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
             
     NN_model.add(Dense(1, activation=options.last_activation))
     print(NN_model.summary())
-    NN_model.compile(loss='mean_squared_error',
+    NN_model.compile(loss=loss,
                      optimizer=optimizers.Adam(),
                      metrics=[keras.metrics.mae])
     
