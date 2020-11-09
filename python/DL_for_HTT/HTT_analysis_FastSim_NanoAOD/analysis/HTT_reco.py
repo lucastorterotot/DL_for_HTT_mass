@@ -404,16 +404,20 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     for k in range(int(min([2, evt.GetLeaf("Jet_pt").GetLen()]))):
         store_vars.store_jet(evt, output, "jet{}".format(k+1), k)
 
-    # Recoil (other jets) computation and storage
-    recoil_px = 0
-    recoil_py = 0
-    recoil_pz = 0
+    # Remaining_Jets (other jets) computation and storage
+    remaining_jets_px = 0
+    remaining_jets_py = 0
+    remaining_jets_pz = 0
+    N_jets = 0
     if evt.GetLeaf("Jet_pt").GetLen() > 2:
         for k in range(2, evt.GetLeaf("Jet_pt").GetLen()):
-            recoil_px += evt.GetLeaf("Jet_pt").GetValue(k) * np.cos(evt.GetLeaf("Jet_phi").GetValue(k))
-            recoil_py += evt.GetLeaf("Jet_pt").GetValue(k) * np.sin(evt.GetLeaf("Jet_phi").GetValue(k))
-            recoil_pz += 0 # not available yet
-    recoil_pt = np.sqrt(recoil_px**2 + recoil_py**2)
-    store_vars.store_recoil(evt, output, "recoil", recoil_pt, recoil_pz)
+            N_jets+=1
+            remaining_jets_px += evt.GetLeaf("Jet_pt").GetValue(k) * np.cos(evt.GetLeaf("Jet_phi").GetValue(k))
+            remaining_jets_py += evt.GetLeaf("Jet_pt").GetValue(k) * np.sin(evt.GetLeaf("Jet_phi").GetValue(k))
+            remaining_jets_pz += evt.GetLeaf("Jet_pt").GetValue(k) * np.sinh(evt.GetLeaf("Jet_eta").GetValue(k))
+    remaining_jets_pt = np.sqrt(remaining_jets_px**2 + remaining_jets_py**2)
+    remaining_jets_phi = np.arcsin(remaining_jets_py/remaining_jets_pt)
+    remaining_jets_eta = np.arccosh(np.sqrt(remaining_jets_px**2 + remaining_jets_py**2 + remaining_jets_pz**2) / remaining_jets_pt) * np.sign(remaining_jets_pz)
+    store_vars.store_remaining_jets(evt, output, "remaining_jets", remaining_jets_pt, remaining_jets_eta, remaining_jets_phi, N_jets)
         
     return output, cutflow_stats

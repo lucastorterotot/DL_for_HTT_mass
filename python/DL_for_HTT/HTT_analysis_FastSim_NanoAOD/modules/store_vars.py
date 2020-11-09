@@ -40,9 +40,11 @@ default_jet_attrs = default_attrs + ["btagDeepB"]
 def store_jet(evt, dic, name, jet_index, attrs = default_jet_attrs):
     store(evt, dic, name, jet_index, "Jet", attrs = attrs)
 
-def store_recoil(evt, dic, name, recoil_pt, recoil_pz):
-    dic["{}_{}".format(name, "pt")] = recoil_pt
-    dic["{}_{}".format(name, "pz")] = recoil_pz
+def store_remaining_jets(evt, dic, name, remaining_jets_pt, remaining_jets_eta, remaining_jets_phi, remaining_jets_N):
+    dic["{}_{}".format(name, "pt")] = remaining_jets_pt
+    dic["{}_{}".format(name, "eta")] = remaining_jets_eta
+    dic["{}_{}".format(name, "phi")] = remaining_jets_phi
+    dic["{}_{}".format(name, "N")] = remaining_jets_N
 
 default_HTT_leg_attrs = default_attrs + ["charge", "pdgId"]
 def store_HTT_leg(evt, dic, name, ptc_index, type=None, attrs = default_HTT_leg_attrs):
