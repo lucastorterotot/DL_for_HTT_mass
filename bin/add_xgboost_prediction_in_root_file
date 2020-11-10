@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import time
+times = [time.time()]
+
+from argparse import ArgumentParser
+usage = "usage: prog [options] <NN JSON file> <NN input file>"
+parser = ArgumentParser(usage=usage)
+parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
+parser.add_argument("--input", required = True, type=str, help="Root file in input")
+parser.add_argument("--suffix",
+                    default = 'XGB')
+parser.add_argument("--verbose",
+                    default = 0)
+
+args = parser.parse_args()
+args.verbose = int(args.verbose)
+
+# load json and create model
+times.append(time.time())
+
+import DL_for_HTT.post_training.utils as utils
+loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
+model_name = model_name.replace("-", "_")
+#model_name.replace(".", "_")
+    
+times.append(time.time())
+
+# load root file
+import uproot
+
+root_file_input = args.input
+#root_file_input = "/data2/htt/trees/fakes/190819%HiggsSUSYGG450%mt_mssm_nominal/NtupleProducer/tree.root" # for debugging without having to provide args
+root_file_output = root_file_input.replace('.root', '-{}.root'.format(args.suffix))
+
+root_file_in = uproot.open(root_file_input)
+df = root_file_in['events'].pandas.df()
+
+import numpy as np
+df["mt_tt"] = (2*df["l1_pt"]*df["l2_pt"]*(1-np.cos(df["l1_phi"]-df["l2_phi"])))**.5
+
+from DL_for_HTT.common.NN_settings import inputs, inputs_from_Heppy
+inputs = [inputs_from_Heppy[i] for i in inputs]
+from xgboost import DMatrix
+times.append(time.time())
+df["predictions_{}".format(model_name)] = loaded_model.predict(np.r_[df[inputs]])
+times.append(time.time())
+
+tree_dtype = {}
+tree_data = {}
+for b in df.keys():
+    tree_dtype[b] = df[b].dtype.name
+    if tree_dtype[b] == 'uint64':
+        tree_dtype[b] = 'int64'
+    tree_data[b] = np.array(df[b])
+
+root_file_out = uproot.recreate(root_file_output)
+print("Opened new file")
+root_file_out.newtree('events', tree_dtype)
+print("Created new tree")
+root_file_out['events'].extend(tree_data)
+print("New tree filled")
+
+
+times.append(time.time())
+
+print("Time sumary:")
+print("\t- Loading of the NN: {} s;".format(np.round(times[-4]-times[-5], 3)))
+print("\t- Loading of the root file: {} s;".format(np.round(times[-3]-times[-4], 3)))
+print("\t- Computing predictions on {} events: {} s <=> {} s for 10k events.".format(df.shape[0], np.round(times[-2]-times[-3],3), np.round((times[-2]-times[-3])/df.shape[0]*10000, 3)))
+print("\t- Creating new root file: {} s <=> {} s for 10k events.".format(np.round(times[-1]-times[-2],3), np.round((times[-1]-times[-2])/df.shape[0]*10000,3)))
