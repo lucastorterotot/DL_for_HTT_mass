@@ -62,7 +62,7 @@ Get the root NanoAOD input files from  FastSim and go in the directory in which 
 cd $DL_for_HTT/HTT_analysis_FastSim_NanoAOD
 ./get_all_NanoAODSIM_to_data2 -u <YOUR_LYOSERV_USERNAME>
 ```
-On `lyovis10`, it creates a directory `/data2/${USER}/ML/HTT_analysis_FastSim_NanoAOD` and run `rsync` on `/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_*` from `lyoserv`.
+On `lyovis10`, it creates a directory `/data2/${USER}/ML/FastSim_NanoAOD_to_NN` and run `rsync` on `/gridgroup/cms/htt/shared_files/Data/NanoAODSIM/nevents_*` from `lyoserv`.
 
 ## Analyze the samples and get a `.txt` output table
 To run the `root` to `txt` analysis on a file, do

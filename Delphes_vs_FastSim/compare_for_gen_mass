@@ -15,7 +15,7 @@ from ROOT import TFile, TCanvas, TH1F, TLegend, TLine
 
 files = {
     "Delphes" : "/data2/ltorterotot/ML/Delphes_prods/HTT_{}_Delphes_N{}.root".format(options.mass, options.nevents),
-    "FastSim": "/data2/ltorterotot/ML/HTT_analysis_FastSim_NanoAOD/nevents_{}/Htt_{}_NanoAODSIM.root".format(options.nevents, options.mass),
+    "FastSim": "/data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/nevents_{}/Htt_{}_NanoAODSIM.root".format(options.nevents, options.mass),
 }
 
 root_files = {}
