@@ -415,9 +415,14 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
             remaining_jets_px += evt.GetLeaf("Jet_pt").GetValue(k) * np.cos(evt.GetLeaf("Jet_phi").GetValue(k))
             remaining_jets_py += evt.GetLeaf("Jet_pt").GetValue(k) * np.sin(evt.GetLeaf("Jet_phi").GetValue(k))
             remaining_jets_pz += evt.GetLeaf("Jet_pt").GetValue(k) * np.sinh(evt.GetLeaf("Jet_eta").GetValue(k))
-    remaining_jets_pt = np.sqrt(remaining_jets_px**2 + remaining_jets_py**2)
-    remaining_jets_phi = np.arcsin(remaining_jets_py/remaining_jets_pt)
-    remaining_jets_eta = np.arccosh(np.sqrt(remaining_jets_px**2 + remaining_jets_py**2 + remaining_jets_pz**2) / remaining_jets_pt) * np.sign(remaining_jets_pz)
+    if N_jets == 0:
+        remaining_jets_pt = 0
+        remaining_jets_phi = 0
+        remaining_jets_eta = 0
+    else:
+        remaining_jets_pt = np.sqrt(remaining_jets_px**2 + remaining_jets_py**2)
+        remaining_jets_phi = np.arcsin(remaining_jets_py/remaining_jets_pt)
+        remaining_jets_eta = np.arccosh(np.sqrt(remaining_jets_px**2 + remaining_jets_py**2 + remaining_jets_pz**2) / remaining_jets_pt) * np.sign(remaining_jets_pz)
     store_vars.store_remaining_jets(evt, output, "remaining_jets", remaining_jets_pt, remaining_jets_eta, remaining_jets_phi, N_jets)
         
     return output, cutflow_stats
