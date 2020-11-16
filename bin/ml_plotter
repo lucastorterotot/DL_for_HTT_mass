@@ -25,11 +25,16 @@ parser.add_argument("--subsample",
                   default = 'test')
 parser.add_argument("--variables_list",
                     default = 'default')
+parser.add_argument("--model_inputs",
+                    default = 'with_METcov_j1j2jr_Npu')
 
 args = parser.parse_args()
 
 args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
+
+model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
+model_inputs = model_inputs_file.inputs
 
 if args.plots == 'all':
     args.plots = [k for k in macros.available_plots.keys()]
@@ -42,13 +47,13 @@ if args.variables_list == 'default':
 args.variables_list = set(args.variables_list.split(','))
 if 'all' in args.variables_list :
     args.variables_list.remove('all')
-    args.variables_list = args.variables_list.union(['target', 'inputs'])
+    args.variables_list = args.variables_list.union(['target', 'model_inputs'])
 if 'target' in args.variables_list :
     args.variables_list.remove('target')
     args.variables_list = args.variables_list.union([NN_default_settings.target])
-if 'inputs' in args.variables_list :
-    args.variables_list.remove('inputs')
-    args.variables_list = args.variables_list.union(NN_default_settings.inputs)
+if 'model_inputs' in args.variables_list :
+    args.variables_list.remove('model_inputs')
+    args.variables_list = args.variables_list.union(model_inputs)
 
 loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
 if model_type == 'DNN' and 'feature_importance' in args.plots:
@@ -57,7 +62,7 @@ if model_type == 'DNN' and 'feature_importance' in args.plots:
 df = utils.load_h5_file_and_predict(
     args.events,
     loaded_model, model_type,
-    inputs = NN_default_settings.inputs,
+    inputs = model_inputs,
     target = NN_default_settings.target,
 )
 
@@ -80,7 +85,7 @@ plotting_parameters = {
     'model_name' : model_name,
     'min_mass' : args.min_mass,
     'max_mass' : args.max_mass,
-    'inputs' : NN_default_settings.inputs,
+    'inputs' : model_inputs,
     'target' : NN_default_settings.target,
     'prefix' : args.prefix,
     'variables_list' : args.variables_list,

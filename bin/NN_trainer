@@ -30,6 +30,8 @@ parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
 parser.add_option("-a", "--last_activation", dest = "last_activation",
                   default = "linear")
+parser.add_option("-i", "--model_inputs", dest = "model_inputs",
+                  default = 'with_METcov_j1j2jr_Npu')
 
 (options,args) = parser.parse_args()
 
@@ -172,10 +174,11 @@ target = NN_default_settings.target
 
 print("Target: {}".format(target))
 
-inputs = NN_default_settings.inputs
+model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(options.model_inputs), fromlist=[''])
+model_inputs = model_inputs_file.inputs
 
-print("Inputs:")
-for i in inputs:
+print("Model_Inputs:")
+for i in model_inputs:
     print("\t{}".format(i))
 
 def plot_hist(h, NNname, xsize=6, ysize=10):
@@ -212,7 +215,7 @@ def plot_hist(h, NNname, xsize=6, ysize=10):
     fig.savefig("history-{}.png".format(NNname))
     plt.close('all')
 
-def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode):
+def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode):
 
     NNname = "-".join([options.output, loss_fcts_for_name[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
@@ -234,9 +237,9 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
     elif channel == "ll":
         df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
 
-    df_x_train = df_select.loc[(df_select['is_train'] == 1), inputs]
+    df_x_train = df_select.loc[(df_select['is_train'] == 1), model_inputs]
     df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
-    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), inputs]
+    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), model_inputs]
     df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
 
     print('Size of training set: ', len(df_x_train))
@@ -310,7 +313,7 @@ def NN_make_train_predict(df, inputs, channel = "inclusive", Nlayers = options.N
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
 for channel in [c for c in options.channels.split(",") if c in allowed_channels]:
-    NN_make_train_predict(df, inputs, channel = channel,
+    NN_make_train_predict(df, model_inputs, channel = channel,
                           Nlayers = options.Nlayers, Nneurons = options.Nneurons,
                           loss = options.loss,
                           optimizer_name = options.optimizer,

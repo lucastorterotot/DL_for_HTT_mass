@@ -32,6 +32,8 @@ parser.add_option("-j", "--n_jobs", dest = "n_jobs",
                   default = 1)
 parser.add_option("-O", "--objective", dest = "objective",
                   default = 'squarederror')
+parser.add_option("-i", "--model_inputs", dest = "model_inputs",
+                  default = 'with_METcov_j1j2jr_Npu')
 
 (options,args) = parser.parse_args()
 
@@ -70,10 +72,11 @@ target = NN_default_settings.target
 
 print("Target: {}".format(target))
 
-inputs = NN_default_settings.inputs
+model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(options.model_inputs), fromlist=[''])
+model_inputs = model_inputs_file.inputs
 
-print("Inputs:")
-for i in inputs:
+print("Model_Inputs:")
+for i in model_inputs:
     print("\t{}".format(i))
     
 # custom objective function
@@ -97,7 +100,7 @@ objectives = {
     'tweedie' : "reg:tweedie",
     }
     
-def XGB_make_train_predict(df, inputs, channel = "inclusive"):
+def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
 
     params = {
         'max_depth' : options.max_depth,
@@ -135,11 +138,11 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
     elif channel == "ll":
         df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
 
-    df_x_train = df_select.loc[(df_select['is_train'] == 1), inputs]
+    df_x_train = df_select.loc[(df_select['is_train'] == 1), model_inputs]
     df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
-    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), inputs]
+    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), model_inputs]
     df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
-    df_x_test = df_select.loc[(df_select['is_test'] == 1), inputs]
+    df_x_test = df_select.loc[(df_select['is_test'] == 1), model_inputs]
     df_y_test = df_select.loc[(df_select['is_test'] == 1), [target]]
 
     print('Size of training set: ', len(df_x_train))
@@ -197,4 +200,4 @@ def XGB_make_train_predict(df, inputs, channel = "inclusive"):
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
 for channel in [c for c in options.channels.split(",") if c in allowed_channels]:
-    XGB_make_train_predict(df, inputs, channel = channel)
+    XGB_make_train_predict(df, model_inputs, channel = channel)
