@@ -106,6 +106,7 @@ for loss in ["mse", "mae", "mape", "msle", "cs", "hl", "lc"] :
 
 # add custom losses
 import keras.backend as kb
+from tensorflow import where
 def low_mass(y_true, y_pred):
 
     low_mass_cut = 400.0
@@ -115,17 +116,9 @@ def low_mass(y_true, y_pred):
     loss_squared_error_factor = kb.square(y_pred - y_true) * 2*(low_mass_cut/y_true)
 
     low = kb.greater_equal(y_true, low_mass_cut*1.0)
-    high = kb.less(y_true,low_mass_cut*1.0)
 
-    loss_squared_error_low = loss_squared_error_factor[low]
-    loss_squared_error_high = loss_squared_error[high]
-
-    losses = kb.concatenate([loss_squared_error_low, loss_squared_error_high])
-
-    loss = kb.mean(losses, axis=-1)
-
-    #import pdb; pdb.set_trace()
-
+    loss = where(low, loss_squared_error, loss_squared_error_factor)
+    
     return loss
 
 loss_fcts_for_name['low_mass'] = 'lm'
