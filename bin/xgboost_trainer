@@ -75,6 +75,14 @@ print("Target: {}".format(target))
 model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(options.model_inputs), fromlist=[''])
 model_inputs = model_inputs_file.inputs
 
+if "N_neutrinos_reco" in model_inputs:
+    df["N_neutrinos_reco"] = 2*np.ones(len(df["channel_reco"]), dtype='int')
+    df.loc[(df["channel_reco"] == "mt"), ["N_neutrinos_reco"]] = 3
+    df.loc[(df["channel_reco"] == "et"), ["N_neutrinos_reco"]] = 3
+    df.loc[(df["channel_reco"] == "mm"), ["N_neutrinos_reco"]] = 4
+    df.loc[(df["channel_reco"] == "em"), ["N_neutrinos_reco"]] = 4
+    df.loc[(df["channel_reco"] == "ee"), ["N_neutrinos_reco"]] = 4
+
 print("Model_Inputs:")
 for i in model_inputs:
     print("\t{}".format(i))

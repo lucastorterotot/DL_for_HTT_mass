@@ -106,6 +106,15 @@ def load_model_from_json(input_json):
 
 def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_default_settings.inputs, target = NN_default_settings.target):
     df = pd.read_hdf(input_h5)
+    
+    if "N_neutrinos_reco" in inputs:
+        df["N_neutrinos_reco"] = 2*np.ones(len(df["channel_reco"]), dtype='int')
+        df.loc[(df["channel_reco"] == "mt"), ["N_neutrinos_reco"]] = 3
+        df.loc[(df["channel_reco"] == "et"), ["N_neutrinos_reco"]] = 3
+        df.loc[(df["channel_reco"] == "mm"), ["N_neutrinos_reco"]] = 4
+        df.loc[(df["channel_reco"] == "em"), ["N_neutrinos_reco"]] = 4
+        df.loc[(df["channel_reco"] == "ee"), ["N_neutrinos_reco"]] = 4
+    
     if model_type == 'XGBoost':
         from xgboost import DMatrix
         df["predictions"] = loaded_model.predict(DMatrix(data = np.r_[df[inputs]], feature_names=inputs))
