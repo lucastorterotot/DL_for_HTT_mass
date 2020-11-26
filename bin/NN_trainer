@@ -53,6 +53,7 @@ print("\t{}".format(input_file))
 # specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
 bottleneck_sequence = [1000, 500, 100]
 
+import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -308,6 +309,7 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
         json_file.write(NN_model_json)
     # serialize weights to HDF5
     NN_model.save_weights("NN_weights-{}.h5".format(NNname))
+    os.system("cp {} inputs_for_models_in_this_dir.py".format(model_inputs_file.__file__))
     print("Saved model to disk")
 
 

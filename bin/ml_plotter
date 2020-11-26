@@ -26,14 +26,19 @@ parser.add_argument("--subsample",
 parser.add_argument("--variables_list",
                     default = 'default')
 parser.add_argument("--model_inputs",
-                    default = 'with_METcov_j1j2jr_Npu')
+                    default = None)
 
 args = parser.parse_args()
 
 args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
 
-model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
+if args.model_inputs == None:
+    import sys
+    sys.path.append(args.model.rstrip(args.model.split('/')[-1]))
+    import inputs_for_models_in_this_dir as model_inputs_file
+else:
+    model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
 model_inputs = model_inputs_file.inputs
 
 if args.plots == 'all':
