@@ -257,7 +257,10 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
     fig, ax = plt.subplots()
 
     import seaborn as sns
-    sns.kdeplot(answers, predictions, cmap="viridis", n_levels=30, shade=True, bw=.15)
+    try:
+        sns.kdeplot(answers, predictions, cmap="viridis", n_levels=30, shade=True, bw=.15)
+    except:
+        print("Singular matrix?")
 
     ax.plot(answers, answers, color="C3")
     plt.xlabel("Masse générée du Higgs (GeV)")
@@ -274,8 +277,10 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
     plt.clf()
     fig, ax = plt.subplots()
 
-    import seaborn as sns
-    sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
+    try:
+        sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
+    except:
+        print("Singular matrix?")
 
     ax.plot([min_mass, max_mass], [1,1], color='C3')
     plt.xlabel("Masse générée du Higgs (GeV)")
