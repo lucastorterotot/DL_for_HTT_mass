@@ -88,7 +88,7 @@ Then you may delete `root` and `txt` files
 find . -type f -iname Htt_\*_NanoAODSIM\*.{root,txt} -delete
 ```
 
-## Prepare data for the NN
+## Prepare data for model training
 One has to define which data the NN will be trained on, which will be kept for testing, and so on. To do so, a dedicated script is provided:
 ```
 analyzed_events_to_NN <input h5 file from previous step>
@@ -118,7 +118,7 @@ In the working directory, a file named `inputs_for_models_in_this_dir.py` will m
 
 Output `.json` and `.h5` files containing the NN structure will have a name containing `TEST` (`-o` or `--output`), the channel the NN has been trained on, the number of hidden layers and the base number of neurons per layer.
 
-Others options are:
+Other options are:
 
 - `-g` or `--gpu`: the GPU unit to use. If several are available this makes it possible to give one GPU for two parallelized processes;
 - `-l` or `--loss`: the loss function to use for training;
@@ -142,7 +142,7 @@ In the working directory, a file named `inputs_for_models_in_this_dir.py` will m
 
 Output `.json` file containing the model structure will have a name containing `TEST` (`-o` or `--output`) and other information on the model.
 
-Others options are:
+Other options are:
 
 - `-e` or `--eta`: the learning rate;
 - `-s` or `--early_stopping_rounds`: the number of rounds to wait before stopping training once evaluation reaches a plateau;
