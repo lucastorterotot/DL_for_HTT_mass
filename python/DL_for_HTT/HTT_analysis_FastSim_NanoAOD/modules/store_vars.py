@@ -31,6 +31,8 @@ def store_gen_MET(evt, dic):
 def store_reco_MET(evt, dic):
     store(evt, dic, "MET", 0, "MET",
           attrs = ["pt", "phi", "covXX", "covXY", "covYY", "significance"])
+    store(evt, dic, "PuppiMET", 0, "PuppiMET",
+          attrs = ["pt", "phi"])
 
 def store_reco_PU(evt, dic):
     store(evt, dic, "PU", 0, "PV",
