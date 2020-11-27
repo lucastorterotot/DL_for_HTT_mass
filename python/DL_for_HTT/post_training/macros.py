@@ -310,10 +310,10 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
 def variables_distributions(df_all, channel, model_name, prefix = '', variables_list = [target], **kwargs):
     df1 = filter_channel(df_all, channel=channel)
     for var in variables_list:
-        _variables_distribution(df1, var, channel, "all_events")
+        _variables_distribution(df1, var, channel, "all_events", model_name = model_name)
         for data_category in ["is_train", "is_valid", "is_test"]:
             df2 = df1.loc[df_all[data_category] == 1]
-            _variables_distribution(df2, var, channel, data_category, prefix = '')
+            _variables_distribution(df2, var, channel, data_category, model_name = model_name, prefix = '')
 
 var_name_to_label = {
     'Higgs_mass_gen' : "Masse générée du Higgs (GeV)",
@@ -324,20 +324,32 @@ vars_with_y_log_scale = [
     'tau2_pt_reco',
 ]
 
-def _variables_distribution(df, var, channel, data_category, prefix = ''):
+def _variables_distribution(df, var, channel, data_category, model_name = None, prefix = ''):
+    _variable_distribution(df, var, channel, data_category, model_name = model_name, prefix = prefix, weighted = False)
+    _variable_distribution(df, var, channel, data_category, model_name = model_name, prefix = prefix, weighted = True)
+
+def _variable_distribution(df, var, channel, data_category, model_name = None, prefix = '', weighted = False):
     plt.clf()
     fig, ax = plt.subplots()
-    n, bins, patches = ax.hist(df[var], 50, log = (var in vars_with_y_log_scale))
+    weights = None
+    weights_in_output_name = 'raw'
+    if weighted:
+        weights = df["sample_weight"]
+        weights_in_output_name = 'weighted'        
+    n, bins, patches = ax.hist(df[var], 50, weights = weights, log = (var in vars_with_y_log_scale))
     if var in var_name_to_label:
         xlabel = var_name_to_label[var]
     else:
         xlabel = var
     ax.set_xlabel(xlabel)
     ax.set_ylabel('N events')
-    if var == target:
+    if var in [target, 'predictions']:
         plt.xlim(0, 1000)
     fig.tight_layout()
-    plt.savefig('distribution-{}-{}-{}.png'.format(channel, var, data_category))
+    if var == "predictions":
+        plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, "-".join([var, model_name]), weights_in_output_name, data_category))
+    else:
+        plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, var, weights_in_output_name, data_category))
 
 def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
     plt.clf()

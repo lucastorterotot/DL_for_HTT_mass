@@ -114,8 +114,10 @@ def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_def
         df.loc[(df["channel_reco"] == "mm"), ["N_neutrinos_reco"]] = 4
         df.loc[(df["channel_reco"] == "em"), ["N_neutrinos_reco"]] = 4
         df.loc[(df["channel_reco"] == "ee"), ["N_neutrinos_reco"]] = 4
-    
-    if model_type == 'XGBoost':
+
+    if model_type == None:
+        df["predictions"] = np.zeros(len(df))
+    elif model_type == 'XGBoost':
         from xgboost import DMatrix
         df["predictions"] = loaded_model.predict(DMatrix(data = np.r_[df[inputs]], feature_names=inputs))
     else:

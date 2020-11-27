@@ -33,13 +33,16 @@ args = parser.parse_args()
 args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
 
-if args.model_inputs == None:
+if args.model_inputs == None and args.model != "None":
     import sys
     sys.path.append(args.model.rstrip(args.model.split('/')[-1]))
     import inputs_for_models_in_this_dir as model_inputs_file
-else:
+    model_inputs = model_inputs_file.inputs
+elif args.model != "None":
     model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
-model_inputs = model_inputs_file.inputs
+    model_inputs = model_inputs_file.inputs
+else:
+    model_inputs = []
 
 if args.plots == 'all':
     args.plots = [k for k in macros.available_plots.keys()]
@@ -48,11 +51,11 @@ else:
     #args.plots = [p for p in args.plots if p in macros.available_plots.keys()]
 
 if args.variables_list == 'default':
-    args.variables_list = 'target'
+    args.variables_list = 'target,predictions'
 args.variables_list = set(args.variables_list.split(','))
 if 'all' in args.variables_list :
     args.variables_list.remove('all')
-    args.variables_list = args.variables_list.union(['target', 'model_inputs'])
+    args.variables_list = args.variables_list.union(['target', 'predictions', 'model_inputs'])
 if 'target' in args.variables_list :
     args.variables_list.remove('target')
     args.variables_list = args.variables_list.union([NN_default_settings.target])
@@ -60,9 +63,16 @@ if 'model_inputs' in args.variables_list :
     args.variables_list.remove('model_inputs')
     args.variables_list = args.variables_list.union(model_inputs)
 
-loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
+if args.model != "None":
+    loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
+else:
+    loaded_model, model_type, model_name = None, None, None
 if model_type == 'DNN' and 'feature_importance' in args.plots:
     args.plots.remove('feature_importance')
+elif model_type == None:
+    args.plots = ["variables_distributions"]
+    if 'predictions' in args.variables_list:
+        args.variables_list.remove('predictions')
 
 df = utils.load_h5_file_and_predict(
     args.events,
