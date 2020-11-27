@@ -147,11 +147,11 @@ def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
         df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
 
     df_x_train = df_select.loc[(df_select['is_train'] == 1), model_inputs]
-    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
+    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target, "sample_weight"]]
     df_x_valid = df_select.loc[(df_select['is_valid'] == 1), model_inputs]
-    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
+    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target, "sample_weight"]]
     df_x_test = df_select.loc[(df_select['is_test'] == 1), model_inputs]
-    df_y_test = df_select.loc[(df_select['is_test'] == 1), [target]]
+    df_y_test = df_select.loc[(df_select['is_test'] == 1), [target, "sample_weight"]]
 
     print('Size of training set: ', len(df_x_train))
     print('Size of valid set: ', len(df_x_valid))
@@ -164,16 +164,17 @@ def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
     bst = XGBRegressor(**params)
     
     # Create subsamples for evaluation
-    eval_set = [(df_x_train, df_y_train), (df_x_test, df_y_test), (df_x_valid, df_y_valid)]
+    eval_set = [(df_x_train, df_y_train[target]), (df_x_test, df_y_test[target]), (df_x_valid, df_y_valid[target])]
     eval_order = ['train', 'test', 'valid'] # to get back the order of eval_set later
 
     # Train XGBRegressor
     bst.fit(
-        df_x_train, df_y_train,
+        df_x_train, df_y_train[target],
         verbose=True,
         eval_set = eval_set,
         eval_metric = params['eval_metric'],
         early_stopping_rounds = params['early_stopping_rounds'],
+        sample_weight = np.r_[df_y_train["sample_weight"]],
     )
     evals_result = bst.evals_result()
     evals_result['train'] = evals_result['validation_0']

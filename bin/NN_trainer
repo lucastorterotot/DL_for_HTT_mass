@@ -240,9 +240,9 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
         df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
 
     df_x_train = df_select.loc[(df_select['is_train'] == 1), model_inputs]
-    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target]]
+    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target, "sample_weight"]]
     df_x_valid = df_select.loc[(df_select['is_valid'] == 1), model_inputs]
-    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target]]
+    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target, "sample_weight"]]
 
     print('Size of training set: ', len(df_x_train))
     print('Size of valid set: ', len(df_x_valid))
@@ -255,6 +255,7 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
     arr_y_train = np.r_[df_y_train[target]]
     arr_x_valid = np.r_[df_x_valid]
     arr_y_valid = np.r_[df_y_valid[target]]
+    sample_weight = np.r_[df_y_train["sample_weight"]]
 
     # Create model
     NN_model = Sequential()
@@ -292,6 +293,7 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
                            verbose=2, # Change it to 2, if wished to observe execution
                            validation_data=(arr_x_valid, arr_y_valid),
                            callbacks=keras_callbacks,
+                           sample_weight = sample_weight,
     )
 
     # Evaluate and report performance of the trained model

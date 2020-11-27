@@ -16,8 +16,6 @@ parser.add_option("-v", "--valid_frac", dest = "valid_frac",
                   default = NN_default_settings.valid_frac)
 parser.add_option("-r", "--random_seed", dest = "random_seed",
                   default = NN_default_settings.random_seed)
-parser.add_option("-F", "--Flat", dest = "Flat",
-                  default = False, action = 'store_true')
 
 (options,args) = parser.parse_args()
 
@@ -104,59 +102,20 @@ df.loc[(df[target] < options.min_mass) | (df[target] > options.max_mass), ["is_t
 df.loc[(df[target] < options.min_mass) | (df[target] > options.max_mass), ["is_valid"]] = 0
 df.loc[(df[target] < options.min_mass) | (df[target] > options.max_mass), ["is_test"]] = 0
 
-# ensure flat target distribution
-# compute bin content to use
-df["was_train"] = np.zeros(len(df[target]))
-df["was_valid"] = np.zeros(len(df[target]))
-df["was_test"] = np.zeros(len(df[target]))
-if options.Flat:
-    min_evt_per_GeV = 200 # if below, do not cut
-    flat_step = 5 # bin width in GeV for which content will be taken as constant
-    flat_mass = options.min_mass#+flat_step/2
-    min_bin_content = {
-        "train" : len(df.loc[df["is_train"] == 1, [target]]),
-        "valid" : len(df.loc[df["is_valid"] == 1, [target]]),
-        "test"  : len(df.loc[df["is_test"] == 1, [target]]),
-    }
-
-    flat_mass += flat_step
-    while flat_mass <= options.max_mass-2*flat_step:
-        flat_mass += flat_step
-        for t in min_bin_content.keys():
-            bin_content = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), [target]])
-            if min_bin_content[t] > bin_content and bin_content > min_evt_per_GeV * flat_step:
-                min_bin_content[t] = bin_content
-
-    # apply bin content
-    np.random.seed(options.random_seed)
-    flat_mass = options.min_mass#+flat_step/2
-    flat_mass -= flat_step
-    while flat_mass <= options.max_mass-flat_step:
-        flat_mass += flat_step
-        for t in min_bin_content.keys():
-            bin_total = len(df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), ["is_{}".format(t)]])
-            if bin_total > min_bin_content[t]:
-                perm = np.random.permutation(bin_total)
-                keep = perm[:min_bin_content[t]]
-                reject = perm[min_bin_content[t]:]
-                new_array = np.zeros(bin_total)
-                new_array[keep] = 1
-                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), ["was_{}".format(t)]] = 1-new_array
-                df.loc[(df["is_{}".format(t)] == 1) & (df[target] >= flat_mass-flat_step/2) & (df[target] < flat_mass+flat_step/2), ["is_{}".format(t)]] = new_array # np.concatenate([np.ones(min_bin_content[t]), np.zeros(bin_total-min_bin_content[t])])
-
-    # control variables
-    # df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df[target] >= min_mass) & (df[target] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).hist(figsize = (24,20), bins = 500, log=True)
-    # plt.plot()
-    # plt.savefig("variables_flat_target.png")
-    # plt.close('all')
-    # C_mat = df.loc[(df["is_test"] == 1) | (df["is_valid"] == 1) | (df["is_train"] == 1)].loc[(df[target] >= min_mass) & (df[target] <= max_mass)].drop(columns=[k for k in df.keys() if any(t in k for t in ["_test", "_valid", "_train"])]).corr()
-    # fig = plt.figure(figsize = (15,15))
-    # mask = np.zeros_like(C_mat)
-    # mask[np.triu_indices_from(mask)] = True
-    # import seaborn as sb
-    # sb.heatmap(C_mat, vmax = 1, square = True, center=0, cmap='coolwarm', mask=mask)
-    # fig.savefig("correlations_flat_target.png")
-    # plt.close('all')
+# compute samples weights to account for non flat mass distribution
+df["sample_weight"] = np.ones(len(df))
+mass_step_GeV = 2
+for subsample in ["is_train", "is_valid", "is_test"]:
+    for mH in range(int(options.min_mass), int(options.max_mass)+1, mass_step_GeV):
+        population = len(df.loc[(df[subsample] == 1) & (df[target] >= mH - mass_step_GeV/2) & (df[target] < mH + mass_step_GeV/2), ["sample_weight"]])
+        if population > 0:
+            df.loc[(df[subsample] == 1) & (df[target] >= mH - mass_step_GeV/2) & (df[target] < mH + mass_step_GeV/2), ["sample_weight"]] *= 1./population
+        elif population == 0:
+            df.loc[(df[subsample] == 1) & (df[target] >= mH - mass_step_GeV/2) & (df[target] < mH + mass_step_GeV/2), ["sample_weight"]] *= 0
+    df.loc[(df[subsample] == 1), ["sample_weight"]] *= 1./df.loc[(df[subsample] == 1), ["sample_weight"]].mean()
+    # avoid overweighted samples
+    # df.loc[(df[subsample] == 1) & (df["sample_weight"] > 2), ["sample_weight"]] = 2
+    # df.loc[(df[subsample] == 1), ["sample_weight"]] *= 1./df.loc[(df[subsample] == 1), ["sample_weight"]].mean()
 
 for k in df:
     if any([s in k for s in ["is_", "was_"]]):
