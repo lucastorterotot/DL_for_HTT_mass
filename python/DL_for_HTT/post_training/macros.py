@@ -244,13 +244,27 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, min_mass, max_mass, fixed 
     elif type == "l":
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
-
+            
 def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
 
     df = filter_channel(df, channel=channel)
 
+    df = df.copy()
+    df["use"] = np.ones(len(df))
+    step = 2
+    cut = 500
+    for mH in range(int(min_mass), int(max_mass)+1, step):
+        population = len(df.loc[(df[target] >= mH - step/2) & (df[target] <= mH + step/2)])
+        if population > cut:
+            to_keep = np.concatenate([np.ones(cut), np.zeros(population-cut)])
+            np.random.shuffle(to_keep)
+            df.loc[(df[target] >= mH - step/2) & (df[target] <= mH + step/2), ["use"]] = to_keep
+
+    df = df.loc[df["use"]==1]
+
     predictions = df["predictions"]
     answers = df[target]
+    weights = df["sample_weight"]
     
     # Plot predicted vs answer on a test sample
     plt.clf()
