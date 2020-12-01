@@ -100,9 +100,36 @@ def low_mass(y_true, y_pred):
 
     return grad, hess
     
+def linear_low_mass(y_true, y_pred):
+
+    grad = y_pred - y_true
+    hess = np.ones(len(grad))
+
+    max_factor = 50
+    max_m = 200
+    min_m = 50
+    factor = (max_factor-1) * (max_m - y_true) / (max_m - min_m) + 1
+    grad[y_true<max_m] *= factor[y_true<max_m]
+    hess[y_true<max_m] *= factor[y_true<max_m]
+
+    return grad, hess
+    
+def custom_low_mass(y_true, y_pred):
+
+    grad = y_pred/y_true-1
+    hess = 1./y_true
+
+    for low_mass_cut in [100, 200, 300, 400]:
+        factor = low_mass_cut/y_true
+        grad[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
+        hess[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
+
+    return grad, hess
+    
 objectives = {
+    'custom_low_mass' : custom_low_mass,
+    'linear_low_mass' : linear_low_mass,
     'low_mass' : low_mass,
-    'linear' : "reg:linear",
     'squarederror' : "reg:squarederror",
     'gamma' : "reg:gamma",
     'tweedie' : "reg:tweedie",
