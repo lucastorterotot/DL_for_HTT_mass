@@ -115,6 +115,13 @@ def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_def
         df.loc[(df["channel_reco"] == "em"), ["N_neutrinos_reco"]] = 4
         df.loc[(df["channel_reco"] == "ee"), ["N_neutrinos_reco"]] = 4
 
+    if "tau1_px_reco" in inputs:
+        for ptc in ["tau1", "tau2", "jet1", "jet2", "remaining_jets", "MET", "PuppiMET"]:
+            if "{}_eta_reco".format(ptc) in df.keys():
+                df["{}_pz_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sinh(df["{}_eta_reco".format(ptc)])
+            df["{}_px_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.cos(df["{}_phi_reco".format(ptc)])
+            df["{}_py_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sin(df["{}_phi_reco".format(ptc)])
+        
     if model_type == None:
         df["predictions"] = np.zeros(len(df))
     elif model_type == 'XGBoost':
