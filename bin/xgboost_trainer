@@ -165,6 +165,10 @@ low_mass_cuts_list = [
     [100,200,300],
     [100,200,300,300],
     [100,200,300,400],
+    [400],
+    [400,400],
+    [400,400,400],
+    [400,400,400,400],
 ]
 for low_mass_cuts in low_mass_cuts_list:
     objectives[''.join(['custom_low_mass_'] + [str(int(low_mass_cut/100)) for low_mass_cut in low_mass_cuts])] = get_custom(low_mass_cuts)
@@ -172,7 +176,9 @@ for low_mass_cuts in low_mass_cuts_list:
 objectives['custom_low_mass_Higgs1'] = get_custom([125])
 objectives['custom_low_mass_Higgs2'] = get_custom([125,125*2])
 objectives['custom_low_mass_Higgs3'] = get_custom([125,125*2,125*3])
+objectives['custom_low_mass_Higgs4'] = get_custom([125,125*2,125*3,125*4])
 objectives['custom_low_mass_HiggsD3'] = get_custom([125*2,125*2,125*2])
+objectives['custom_low_mass_HiggsD4'] = get_custom([125*2,125*2,125*2,125*2])
 
 def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
 
