@@ -132,6 +132,22 @@ def custom_low_mass(y_true, y_pred):
         hess[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
 
     return grad, hess
+
+def get_custom(low_mass_cuts = [100, 200, 300, 300]):
+    
+    def custom(y_true, y_pred, low_mass_cuts = low_mass_cuts):
+
+        grad = y_pred - y_true
+        hess = np.ones(len(grad))
+
+        for low_mass_cut in low_mass_cuts:
+            factor = low_mass_cut/y_true
+            grad[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
+            hess[y_true<low_mass_cut] *= factor[y_true<low_mass_cut]
+            
+        return grad, hess
+    
+    return custom
     
 objectives = {
     'custom_low_mass' : custom_low_mass,
@@ -141,7 +157,23 @@ objectives = {
     'gamma' : "reg:gamma",
     'tweedie' : "reg:tweedie",
     }
-    
+
+low_mass_cuts_list = [
+    [100],
+    [100,200],
+    [100,200,200],
+    [100,200,300],
+    [100,200,300,300],
+    [100,200,300,400],
+]
+for low_mass_cuts in low_mass_cuts_list:
+    objectives[''.join(['custom_low_mass_'] + [str(int(low_mass_cut/100)) for low_mass_cut in low_mass_cuts])] = get_custom(low_mass_cuts)
+
+objectives['custom_low_mass_Higgs1'] = get_custom([125])
+objectives['custom_low_mass_Higgs2'] = get_custom([125,125*2])
+objectives['custom_low_mass_Higgs3'] = get_custom([125,125*2,125*3])
+objectives['custom_low_mass_HiggsD3'] = get_custom([125*2,125*2,125*2])
+
 def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
 
     params = {
