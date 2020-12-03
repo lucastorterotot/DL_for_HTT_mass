@@ -130,6 +130,32 @@ loss_fcts_for_name['lm'] = 'lm'
 loss_fcts_str_to_func['low_mass'] = low_mass
 loss_fcts_str_to_func['lm'] = low_mass
 
+def new_loss(y_true, y_pred):
+
+    old_loss = kb.square(y_pred - y_true)
+    N = 4
+    mass_cut = 400.0
+
+    return old_loss * (y_true/mass_cut + N * (mass_cut/y_true) )
+
+loss_fcts_for_name['new'] = 'new'
+loss_fcts_for_name['new'] = 'new'
+loss_fcts_str_to_func['new'] = new_loss
+loss_fcts_str_to_func['new'] = new_loss
+
+def new_loss2(y_true, y_pred):
+
+    old_loss = kb.square(y_pred - y_true)
+    N = 4
+    mass_cut = 400.0
+
+    return old_loss * (y_true/mass_cut + N * (mass_cut/y_true)**2 )
+
+loss_fcts_for_name['new2'] = 'new2'
+loss_fcts_for_name['new2'] = 'new2'
+loss_fcts_str_to_func['new2'] = new_loss2
+loss_fcts_str_to_func['new2'] = new_loss2
+
 # optimizers
 
 Adam = tf.keras.optimizers.Adam
