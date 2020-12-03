@@ -156,6 +156,41 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
     
     fig.tight_layout()
     fig.savefig("model_response_{}.png".format(model_name))
+
+    plt.clf()
+    fig, ax = plt.subplots()
+
+    plt.xlabel("Masse générée du Higgs (GeV)")
+    plt.ylabel("Résolution relative normée du modèle")
+
+    CL68s_model_up = [CL68s_model_up[k]/medians_model[k]-1 for k in range(len(medians_model))]
+    CL68s_model_do = [CL68s_model_do[k]/medians_model[k]-1 for k in range(len(medians_model))]
+    CL95s_model_up = [CL95s_model_up[k]/medians_model[k]-1 for k in range(len(medians_model))]
+    CL95s_model_do = [CL95s_model_do[k]/medians_model[k]-1 for k in range(len(medians_model))]
+    
+    ax.fill_between(
+        xpos, CL95s_model_do, CL68s_model_do,
+        color = "yellow", alpha = .5, label = "$\pm2\sigma$",
+    )
+    ax.fill_between(
+        xpos, CL68s_model_up, CL95s_model_up,
+        color = "yellow", alpha = .5,
+    )
+    ax.fill_between(
+        xpos, CL68s_model_do, CL68s_model_up,
+        color = "green", alpha = .5, label = "$\pm1\sigma$",
+    )
+
+    plt.plot([min_mass, max_mass], [0,0], color='C3')    
+
+    plt.ylim(-1,2)
+    plt.xlim(min_mass, max_mass)
+
+    ax.legend(loc='upper right')
+    
+    fig.tight_layout()
+    fig.savefig("model_resolution_{}.png".format(model_name))
+
     plt.close('all')
 
 def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, min_mass, max_mass):
