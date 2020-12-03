@@ -66,13 +66,14 @@ if 'model_inputs' in args.variables_list :
 if args.model != "None":
     loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
 else:
-    loaded_model, model_type, model_name = None, None, None
+    loaded_model, model_type, model_name = None, None, "mTtot_reco"
 if model_type == 'DNN' and 'feature_importance' in args.plots:
     args.plots.remove('feature_importance')
 elif model_type == None:
-    args.plots = ["variables_distributions"]
+    args.plots = ["variables_distributions", "predicted_vs_answers", "model_response"]
     if 'predictions' in args.variables_list:
         args.variables_list.remove('predictions')
+        args.variables_list.add('mTtot_reco')
 
 df = utils.load_h5_file_and_predict(
     args.events,

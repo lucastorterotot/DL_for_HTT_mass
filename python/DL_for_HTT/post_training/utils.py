@@ -123,7 +123,7 @@ def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_def
             df["{}_py_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sin(df["{}_phi_reco".format(ptc)])
         
     if model_type == None:
-        df["predictions"] = np.zeros(len(df))
+        df["predictions"] = df["mTtot_reco"]
     elif model_type == 'XGBoost':
         from xgboost import DMatrix
         df["predictions"] = loaded_model.predict(DMatrix(data = np.r_[df[inputs]], feature_names=inputs))
