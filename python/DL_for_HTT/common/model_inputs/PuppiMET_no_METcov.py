@@ -21,9 +21,9 @@ inputs = [
     # "MET_covXY_reco",
     # "MET_covYY_reco",
     # "MET_significance_reco",
-    "mT1_reco",
-    "mT2_reco",
-    "mTtt_reco",
-    "mTtot_reco",
+    "PuppimT1_reco",
+    "PuppimT2_reco",
+    "PuppimTtt_reco",
+    "PuppimTtot_reco",
     # "PU_npvsGood_reco",
     ]

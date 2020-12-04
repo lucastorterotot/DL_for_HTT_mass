@@ -45,6 +45,11 @@ for ana in ["reco", "gen"]:
     df["mTtt_{ana}".format(ana=ana)] = (2*df["tau1_{pt}_{ana}".format(pt=pt_str, ana=ana)].astype('float32')*df["tau2_{pt}_{ana}".format(pt=pt_str, ana=ana)].astype('float32')*(1-np.cos(df["tau1_{phi}_{ana}".format(phi=phi_str, ana=ana)].astype('float32')-df["tau2_{phi}_{ana}".format(phi=phi_str, ana=ana)].astype('float32'))))**.5
     df["mTtot_{ana}".format(ana=ana)] = (df["mT1_{ana}".format(ana=ana)].astype('float32')**2+df["mT2_{ana}".format(ana=ana)].astype('float32')**2+df["mTtt_{ana}".format(ana=ana)].astype('float32')**2)**.5
 
+df["PuppimT1_{ana}".format(ana="reco")] = (2*df["tau1_{pt}_{ana}".format(pt=pt_str, ana="reco")].astype('float32')*df["PuppiMET_{pt}_{ana}".format(pt=pt_str, ana="reco")].astype('float32')*(1-np.cos(df["tau1_{phi}_{ana}".format(phi=phi_str, ana="reco")].astype('float32')-df["PuppiMET_{phi}_{ana}".format(phi=phi_str, ana="reco")].astype('float32'))))**.5
+df["PuppimT2_{ana}".format(ana="reco")] = (2*df["tau2_{pt}_{ana}".format(pt=pt_str, ana="reco")].astype('float32')*df["PuppiMET_{pt}_{ana}".format(pt=pt_str, ana="reco")].astype('float32')*(1-np.cos(df["tau2_{phi}_{ana}".format(phi=phi_str, ana="reco")].astype('float32')-df["PuppiMET_{phi}_{ana}".format(phi=phi_str, ana="reco")].astype('float32'))))**.5
+df["PuppimTtt_{ana}".format(ana="reco")] = df["mTtt_{ana}".format(ana="reco")]
+df["PuppimTtot_{ana}".format(ana="reco")] = (df["PuppimT1_{ana}".format(ana="reco")].astype('float32')**2+df["PuppimT2_{ana}".format(ana="reco")].astype('float32')**2+df["PuppimTtt_{ana}".format(ana="reco")].astype('float32')**2)**.5
+
 # define target and input variables
 target = "Higgs_mass_gen"
 
