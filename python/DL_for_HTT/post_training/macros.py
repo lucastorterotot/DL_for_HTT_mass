@@ -155,7 +155,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response_{}.png".format(model_name))
+    fig.savefig("model_response-{}{}.png".format(prefix,model_name))
+
+    plt.xlim(min_mass, 200)
+    plt.xticks(np.arange(min_mass, 201, step=10))
+    fig.savefig("model_response_lowmass-{}{}.png".format(prefix,model_name))
 
     plt.clf()
     fig, ax = plt.subplots()
@@ -189,7 +193,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_resolution_{}.png".format(model_name))
+    fig.savefig("model_resolution-{}{}.png".format(prefix,model_name))
 
     plt.close('all')
 
