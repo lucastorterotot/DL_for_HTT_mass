@@ -367,26 +367,35 @@ def _variables_distribution(df, var, channel, data_category, model_name = None, 
     _variable_distribution(df, var, channel, data_category, model_name = model_name, prefix = prefix, weighted = False)
     _variable_distribution(df, var, channel, data_category, model_name = model_name, prefix = prefix, weighted = True)
 
-def _variable_distribution(df, var, channel, data_category, model_name = None, prefix = '', weighted = False):
+def _variable_distribution(df, var, channel, data_category, model_name = None, prefix = '', weighted = False, density = False):
     plt.clf()
     fig, ax = plt.subplots()
     weights = None
     weights_in_output_name = 'raw'
     if weighted:
         weights = df["sample_weight"]
-        weights_in_output_name = 'weighted'        
-    n, bins, patches = ax.hist(df[var], 50, weights = weights, log = (var in vars_with_y_log_scale))
+        weights_in_output_name = 'weighted'
+    binning_default = 50
+    bin_width = 2
+    min_value = df[var].min()
+    max_value = df[var].max()
+    binning = np.arange(min_value, max_value, 10)
+    if len(binning) < 50:
+        binning = binning_default
+    n, bins, patches = ax.hist(df[var], binning, weights = weights, log = (var in vars_with_y_log_scale), density = density)
     if var in var_name_to_label:
         xlabel = var_name_to_label[var]
     else:
         xlabel = var
     ax.set_xlabel(xlabel)
     ax.set_ylabel('N events')
+    if density:
+        ax.set_ylabel('Probability')
     if var in [target, 'predictions']:
         plt.xlim(0, 1000)
     fig.tight_layout()
     if var == "predictions":
-        plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, "-".join([var, model_name]), weights_in_output_name, data_category))
+        plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, "-".join([var, "{}{}".format(prefix,model_name)]), weights_in_output_name, data_category))
     else:
         plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, var, weights_in_output_name, data_category))
 
