@@ -20,7 +20,7 @@ parser.add_argument("--max_mass",
 parser.add_argument("--channel",
                   default = "inclusive")
 parser.add_argument("--plots",
-                  default = 'all')
+                    default = 'model_response,predicted_vs_answers,feature_importance')
 parser.add_argument("--subsample",
                   default = 'test')
 parser.add_argument("--variables_list",
@@ -93,6 +93,9 @@ if args.prefix != '':
     if args.prefix[-1] != '-':
         args.prefix += '-'
 
+if args.subsample != "test":
+    args.prefix += args.subsample + "-sample-"
+    
 plotting_parameters = {
     'df' : df_filtered,
     'df_all' : df,
@@ -105,6 +108,7 @@ plotting_parameters = {
     'target' : NN_default_settings.target,
     'prefix' : args.prefix,
     'variables_list' : args.variables_list,
+    'subsample' : args.subsample,
 }
 
 for plot in args.plots:
