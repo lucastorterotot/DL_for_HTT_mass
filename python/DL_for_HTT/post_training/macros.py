@@ -345,6 +345,16 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
 
     fig.tight_layout()
     fig.savefig("predicted_on_answers-{}{}.png".format(prefix, model_name))
+
+def predictions_distributions(df_all, channel, model_name, prefix = '', **kwargs):
+    mass_points_GeV = [90, 125, 300, 500, 700, 800]
+    width_GeV = 1.0
+    for data_category in ["is_train", "is_valid", "is_test"]:
+        for mass_point_GeV in mass_points_GeV:
+            df = filter_channel(df_all, channel=channel)
+            df = df.loc[df[data_category] == 1]
+            df = df.loc[abs(df[target]-mass_point_GeV) <= width_GeV]
+            _variable_distribution(df, "predictions", channel, data_category, model_name = model_name, prefix="mH_{}GeV".format(mass_point_GeV)+'-', weighted = False, density = True)
     
 def variables_distributions(df_all, channel, model_name, prefix = '', variables_list = [target], **kwargs):
     df1 = filter_channel(df_all, channel=channel)
@@ -418,4 +428,5 @@ available_plots = {
     'predicted_vs_answers' : predicted_vs_answers,
     'feature_importance' : feature_importance,
     'variables_distributions': variables_distributions,
+    'predictions_distributions' : predictions_distributions,
 }
