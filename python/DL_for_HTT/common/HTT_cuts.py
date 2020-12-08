@@ -1,10 +1,10 @@
 # HTT analysis cuts
 
-cut_tauh_tt_pt = 40
+cut_tauh_tt_pt = 20#40
 cut_tauh_tt_eta = 2.1
 cut_tauh_tt_dz = 0.2
 
-cut_tauh_mt_pt = 23
+cut_tauh_mt_pt = 20#23
 cut_tauh_mt_eta = 2.3
 cut_tauh_mt_dz = cut_tauh_tt_dz
 
@@ -12,7 +12,7 @@ cut_tauh_et_pt = cut_tauh_mt_pt
 cut_tauh_et_eta = cut_tauh_mt_eta
 cut_tauh_et_dz = cut_tauh_mt_dz
 
-cut_muon_mt_pt = 21
+cut_muon_mt_pt = 20#21
 cut_muon_mt_eta = 2.1
 cut_muon_mt_d0 = 0.045
 cut_muon_mt_dz = cut_tauh_tt_dz
@@ -41,7 +41,7 @@ cut_muon_third_lepton_veto_d0 = cut_muon_mt_d0
 cut_muon_third_lepton_veto_dz = cut_tauh_tt_dz
 cut_muon_third_lepton_veto_iso = cut_iso_lepton
 
-cut_ele_et_pt = 25
+cut_ele_et_pt = 20#25
 cut_ele_et_eta = 2.1
 cut_ele_et_d0 = cut_muon_mt_d0
 cut_ele_et_dz = cut_tauh_tt_dz
