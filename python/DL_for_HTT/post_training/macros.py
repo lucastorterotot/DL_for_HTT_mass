@@ -284,7 +284,7 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, min_mass, max_mass, fixed 
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
             
-def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', cmap="ocean_r", **kwargs):
 
     df = filter_channel(df, channel=channel)
 
@@ -311,7 +311,7 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
 
     import seaborn as sns
     try:
-        sns.kdeplot(answers, predictions, cmap="viridis", n_levels=30, shade=True, bw=.15)
+        sns.kdeplot(answers, predictions, cmap=cmap, n_levels=30, shade=True, bw=.15)
     except:
         print("Singular matrix?")
 
@@ -331,7 +331,7 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
     fig, ax = plt.subplots()
 
     try:
-        sns.kdeplot(answers, predictions/answers, cmap="viridis", n_levels=30, shade=True, bw=.15)
+        sns.kdeplot(answers, predictions/answers, cmap=cmap, n_levels=30, shade=True, bw=.15)
     except:
         print("Singular matrix?")
 
