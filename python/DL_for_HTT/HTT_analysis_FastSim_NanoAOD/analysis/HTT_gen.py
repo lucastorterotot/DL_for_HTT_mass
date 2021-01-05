@@ -45,14 +45,38 @@ def determine_gen_channel(evt, tau1, tau2):
     else:
         raise RuntimeError("Tau decay not found!")
     channel = leg1+leg2
+    gen_vis_tau1, gen_vis_tau2 = new_tau1[0], new_tau2[0]
     # sort legs and channel
     if leg1 == leg2:
         if evt.GetLeaf("GenPart_pt").GetValue(tau2) > evt.GetLeaf("GenPart_pt").GetValue(tau1):
             tau1, tau2 = tau2, tau1
+            gen_vis_tau1, gen_vis_tau2 = gen_vis_tau2, gen_vis_tau1
     elif channel in ["tm", "te", "me"]:
         leg1, leg2 = leg2, leg1
         tau1, tau2 = tau2, tau1
-    return leg1+leg2, tau1, tau2
+        gen_vis_tau1, gen_vis_tau2 = gen_vis_tau2, gen_vis_tau1
+    return leg1+leg2, tau1, tau2, gen_vis_tau1, gen_vis_tau2
+
+def get_gen_leg_pt_eta_phi(evt, leg, subchannel = "t"):
+    if subchannel == "t":
+        for k in range(int(evt.GetLeaf("nGenVisTau").GetValue(0))):
+            if evt.GetLeaf("GenVisTau_genPartIdxMother").GetValue(k) == leg or evt.GetLeaf("GenVisTau_genPartIdxMother").GetValue(k) == evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg):
+                return evt.GetLeaf("GenVisTau_pt").GetValue(k), evt.GetLeaf("GenVisTau_eta").GetValue(k), evt.GetLeaf("GenVisTau_phi").GetValue(k)
+            print(evt.GetLeaf("GenVisTau_genPartIdxMother").GetValue(k), leg, evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg))
+    if subchannel == "m":
+        for k in range(int(evt.GetLeaf("nMuon").GetValue(0))):
+            gen_muon_idx = int(evt.GetLeaf("Muon_genPartIdx").GetValue(k))
+            if evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_muon_idx) == leg or evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_muon_idx) == evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg):
+                return evt.GetLeaf("GenPart_pt").GetValue(gen_muon_idx), evt.GetLeaf("GenPart_eta").GetValue(gen_muon_idx), evt.GetLeaf("GenPart_phi").GetValue(gen_muon_idx)
+            print( evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_muon_idx), leg, evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg))
+    if subchannel == "e":
+        for k in range(int(evt.GetLeaf("nElectron").GetValue(0))):
+            gen_electron_idx = int(evt.GetLeaf("Electron_genPartIdx").GetValue(k))
+            if evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_electron_idx) == leg or evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_electron_idx) == evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg):
+                return evt.GetLeaf("GenPart_pt").GetValue(gen_electron_idx), evt.GetLeaf("GenPart_eta").GetValue(gen_electron_idx), evt.GetLeaf("GenPart_phi").GetValue(gen_electron_idx)
+
+    return -10, -10, -10
+    
                         
 def HTT_analysis(evt, verbose = 0, fast=True):
     output = {}
@@ -60,11 +84,21 @@ def HTT_analysis(evt, verbose = 0, fast=True):
     if not Higgs :
         return output
 
-    output["channel"], tau1, tau2 = determine_gen_channel(evt, tau1, tau2)
+    output["channel"], tau1, tau2, new_tau1, new_tau2 = determine_gen_channel(evt, tau1, tau2)
 
     store_vars.store_gen_ptc(evt, output, "Higgs", Higgs)
     store_vars.store_gen_ptc(evt, output, "tau1", tau1)
     store_vars.store_gen_ptc(evt, output, "tau2", tau2)
+
+    leg1_pt, leg1_eta, leg1_phi = get_gen_leg_pt_eta_phi(evt, new_tau1, subchannel = output["channel"][0])
+    leg2_pt, leg2_eta, leg2_phi = get_gen_leg_pt_eta_phi(evt, new_tau2, subchannel = output["channel"][1])
+
+    output["leg1_pt"] = leg1_pt
+    output["leg1_eta"] = leg1_eta
+    output["leg1_phi"] = leg1_phi
+    output["leg2_pt"] = leg2_pt
+    output["leg2_eta"] = leg2_eta
+    output["leg2_phi"] = leg2_phi
 
     if verbose > 2:
         print("\tHiggs energy is {} GeV.".format(Higgs.E))
