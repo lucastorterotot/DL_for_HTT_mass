@@ -62,13 +62,11 @@ def get_gen_leg_pt_eta_phi(evt, leg, subchannel = "t"):
         for k in range(int(evt.GetLeaf("nGenVisTau").GetValue(0))):
             if evt.GetLeaf("GenVisTau_genPartIdxMother").GetValue(k) == leg or evt.GetLeaf("GenVisTau_genPartIdxMother").GetValue(k) == evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg):
                 return evt.GetLeaf("GenVisTau_pt").GetValue(k), evt.GetLeaf("GenVisTau_eta").GetValue(k), evt.GetLeaf("GenVisTau_phi").GetValue(k)
-            print(evt.GetLeaf("GenVisTau_genPartIdxMother").GetValue(k), leg, evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg))
     if subchannel == "m":
         for k in range(int(evt.GetLeaf("nMuon").GetValue(0))):
             gen_muon_idx = int(evt.GetLeaf("Muon_genPartIdx").GetValue(k))
             if evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_muon_idx) == leg or evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_muon_idx) == evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg):
                 return evt.GetLeaf("GenPart_pt").GetValue(gen_muon_idx), evt.GetLeaf("GenPart_eta").GetValue(gen_muon_idx), evt.GetLeaf("GenPart_phi").GetValue(gen_muon_idx)
-            print( evt.GetLeaf("GenPart_genPartIdxMother").GetValue(gen_muon_idx), leg, evt.GetLeaf("GenPart_genPartIdxMother").GetValue(leg))
     if subchannel == "e":
         for k in range(int(evt.GetLeaf("nElectron").GetValue(0))):
             gen_electron_idx = int(evt.GetLeaf("Electron_genPartIdx").GetValue(k))
