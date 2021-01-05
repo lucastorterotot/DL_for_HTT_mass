@@ -152,6 +152,62 @@ def new_loss2(y_true, y_pred):
 loss_fcts_for_name['new2'] = 'new2'
 loss_fcts_str_to_func['new2'] = new_loss2
 
+def upper_tails(y_true, y_pred):
+
+    loss = kb.square(y_pred - y_true)
+
+    # apply new loss
+    N = 4
+    mass_cut = 400.0
+    loss *= (y_true/mass_cut + N * (mass_cut/y_true) )
+
+    # apply upper tail punishment for very low mass region
+    factor = 2
+    large_tail_above = 1.1
+    loss_upper_tails = loss * factor
+    low_mass_cut = 100
+
+    loss = where(
+        kb.greater_equal(y_true, low_mass_cut*1.0),
+        loss,
+        where(
+            kb.greater_equal(y_pred, large_tail_above*y_true),
+            loss_upper_tails,
+            loss,
+            ),
+        )
+
+    return loss
+
+loss_fcts_for_name['ut'] = 'ut'
+loss_fcts_str_to_func['ut'] = upper_tails
+
+def mape_upper_tails(y_true, y_pred):
+
+    # apply mape
+    loss = tf.keras.losses.MAPE(y_true, y_pred)
+
+    # apply upper tail punishment for very low mass region
+    factor = 2
+    large_tail_above = 1.1
+    loss_upper_tails = loss * factor
+    low_mass_cut = 100
+
+    loss = where(
+        kb.greater_equal(y_true, low_mass_cut*1.0),
+        loss,
+        where(
+            kb.greater_equal(y_pred, large_tail_above*y_true),
+            loss_upper_tails,
+            loss,
+            ),
+        )
+
+    return loss
+
+loss_fcts_for_name['mapeut'] = 'mapeut'
+loss_fcts_str_to_func['mapeut'] = mape_upper_tails
+
 # optimizers
 
 Adam = tf.keras.optimizers.Adam
