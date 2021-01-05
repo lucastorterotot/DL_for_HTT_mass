@@ -23,6 +23,107 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
+def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+    gen_vars = [k for k in df.keys() if "_gen" in k]
+    reco_vars = [k for k in df.keys() if "_reco" in k]
+    for reco_var in reco_vars:
+        gen_var = reco_var.replace("_reco", "_gen")
+        if not gen_var in gen_vars:
+            continue
+
+        var = reco_var.replace("_reco", "")
+        if any([v in var for v in ["phi", "channel", "Nevt", "pdgId", "Event"]]):
+            continue
+
+        print("\t gen_vs_reco on {}".format(var))
+
+        df1 = filter_channel(df, channel)
+        
+        medians_model = []
+        CL68s_model_up = []
+        CL68s_model_do = []
+        CL95s_model_up = []
+        CL95s_model_do = []
+        xpos = []
+        xerr = []
+    
+        mHcuts = np.arange(min_mass, max_mass, 10) # [.200, .350]
+        mHranges = [[min_mass, mHcuts[0]]]
+        for mHcut in mHcuts[1:]:
+            mHranges.append([mHranges[-1][1], mHcut])
+        mHranges.append([mHranges[-1][1], max_mass])
+        for mHrange in mHranges:
+            mHrange[0] = np.round(mHrange[0],3)
+            mHrange[1] = np.round(mHrange[1],3)
+        
+            df2 = df1.loc[(df1[target] >= mHrange[0]) & (df1[target] <= mHrange[1])]
+        
+            predictions = np.r_[df2[reco_var]]
+            if len(predictions) == 0:
+                continue
+
+            xpos.append((mHrange[1]+mHrange[0])/2)
+            xerr.append((mHrange[1]-mHrange[0])/2)
+
+            # mTtots = np.r_[df2["mTtot_reco"]]
+            mHs = np.r_[df2[gen_var]]
+            values_model = predictions/mHs
+            # values_mTtot = mTtots/mHs
+        
+            values_model = [v for v in values_model]
+            # values_mTtot = [v for v in values_mTtot]
+            values_model.sort()
+            # values_mTtot.sort()
+
+            try:
+                medians_model.append(values_model[int(len(values_model)/2)])
+            except:
+                import pdb; pdb.set_trace()
+
+            above_model = [v for v in values_model if v >= medians_model[-1]]
+            below_model = [v for v in values_model if v <= medians_model[-1]]
+
+            above_model.sort()
+            below_model.sort(reverse = True)
+            
+            CL68s_model_up.append(above_model[int(0.68 * len(above_model))])
+            CL68s_model_do.append(below_model[int(0.68 * len(below_model))])
+            CL95s_model_up.append(above_model[int(0.95 * len(above_model))])
+            CL95s_model_do.append(below_model[int(0.95 * len(below_model))])
+        
+        fig, ax = plt.subplots()
+        #fig.suptitle(model_name)
+        plt.xlabel("Masse générée du Higgs (GeV)")
+        plt.ylabel("{} reco/gen".format(var))
+    
+        ax.fill_between(
+            xpos, CL95s_model_do, CL68s_model_do,
+            color = "yellow", alpha = .5, label = "$\pm2\sigma$",
+        )
+        ax.fill_between(
+            xpos, CL68s_model_up, CL95s_model_up,
+            color = "yellow", alpha = .5,
+        )
+        ax.fill_between(
+            xpos, CL68s_model_do, CL68s_model_up,
+            color = "green", alpha = .5, label = "$\pm1\sigma$",
+        )
+        ax.errorbar(
+            xpos, medians_model, xerr = xerr, #yerr = sigmas,
+            marker='.', markersize=4, linewidth=0, elinewidth=1,
+            fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+        )
+    
+        plt.plot([min_mass, max_mass], [1,1], color='C3')    
+        
+        plt.ylim(0,3)
+        plt.xlim(min_mass, max_mass)
+        
+        ax.legend(loc='upper right')
+        
+        fig.tight_layout()
+        fig.savefig("gen_vs_reco-{}{}.png".format(prefix,var))
+
 def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
     df1 = filter_channel(df, channel)
         
@@ -303,7 +404,6 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
 
     predictions = df["predictions"]
     answers = df[target]
-    weights = df["sample_weight"]
     
     # Plot predicted vs answer on a test sample
     plt.clf()
@@ -429,4 +529,5 @@ available_plots = {
     'feature_importance' : feature_importance,
     'variables_distributions': variables_distributions,
     'predictions_distributions' : predictions_distributions,
+    'gen_vs_reco' : gen_vs_reco,
 }

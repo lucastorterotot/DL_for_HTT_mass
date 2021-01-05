@@ -33,12 +33,12 @@ args = parser.parse_args()
 args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
 
-if args.model_inputs == None and args.model != "None":
+if args.model_inputs == None and args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
     import sys
     sys.path.append(args.model.rstrip(args.model.split('/')[-1]))
     import inputs_for_models_in_this_dir as model_inputs_file
     model_inputs = model_inputs_file.inputs
-elif args.model != "None":
+elif args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
     model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
     model_inputs = model_inputs_file.inputs
 else:
@@ -63,21 +63,24 @@ if 'model_inputs' in args.variables_list :
     args.variables_list.remove('model_inputs')
     args.variables_list = args.variables_list.union(model_inputs)
 
-if args.model != "None":
+if args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
     loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
 else:
-    loaded_model, model_type, model_name = None, None, "mTtot_reco"
-if model_type == 'DNN' and 'feature_importance' in args.plots:
+    loaded_model, model_type, model_name = None, None, args.model
+    if model_name == "None":
+        model_name = "mTtot_reco"
+if model_type != 'XGB' and 'feature_importance' in args.plots:
     args.plots.remove('feature_importance')
 elif model_type == None:
-    args.plots = ["variables_distributions", "predicted_vs_answers", "model_response"]
+    #args.plots = ["variables_distributions", "predicted_vs_answers", "model_response"]
     if 'predictions' in args.variables_list:
         args.variables_list.remove('predictions')
         args.variables_list.add('mTtot_reco')
+        args.variables_list.add('PuppimTtot_reco')
 
 df = utils.load_h5_file_and_predict(
     args.events,
-    loaded_model, model_type,
+    loaded_model, model_type, model_name,
     inputs = model_inputs,
     target = NN_default_settings.target,
 )

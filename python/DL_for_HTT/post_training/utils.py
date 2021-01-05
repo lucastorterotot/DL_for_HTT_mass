@@ -104,7 +104,7 @@ def load_model_from_json(input_json):
         )
     return loaded_model, model_type, model_name
 
-def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_default_settings.inputs, target = NN_default_settings.target):
+def load_h5_file_and_predict(input_h5, loaded_model, model_type, model_name, inputs = NN_default_settings.inputs, target = NN_default_settings.target):
     df = pd.read_hdf(input_h5)
     
     if "N_neutrinos_reco" in inputs:
@@ -129,7 +129,7 @@ def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_def
                     df.loc[(df["{leg}_{variable}_gen".format(leg=leg, variable=variable)] == -10), [subsample]] = False
         
     if model_type == None:
-        df["predictions"] = df["mTtot_reco"]
+        df["predictions"] = df[model_name]
     elif model_type == 'XGBoost':
         from xgboost import DMatrix
         df["predictions"] = loaded_model.predict(DMatrix(data = np.r_[df[inputs]], feature_names=inputs))
