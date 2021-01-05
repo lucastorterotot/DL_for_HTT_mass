@@ -28,8 +28,8 @@ parser.add_option("-M", "--maxmass", dest = "max_mass",
                   default = NN_default_settings.max_mass)
 parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
-parser.add_option("-a", "--last_activation", dest = "last_activation",
-                  default = "linear")
+parser.add_option("-a", "--activation", dest = "activation",
+                  default = "relu")
 parser.add_option("-i", "--model_inputs", dest = "model_inputs",
                   default = 'with_METcov_j1j2jr_Npu')
 parser.add_option("-B", "--batch_size", dest = "batch_size",
@@ -47,7 +47,7 @@ options.batch_size = int(options.batch_size)
 input_file = args[0]
 
 print("Selected options are the following:")
-for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "min_mass", "max_mass", "batch_size"]:
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "min_mass", "max_mass", "batch_size", "activation"]:
     print("\t{}\t{}".format(option, getattr(options, option)))
 
 print("Input file:")
@@ -255,9 +255,9 @@ def plot_hist(h, NNname, xsize=6, ysize=10):
     fig.savefig("history-{}.png".format(NNname))
     plt.close('all')
 
-def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode, batch_size = options.batch_size):
+def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode, batch_size = options.batch_size, activation=options.activation):
 
-    NNname = "-".join([options.output, "batch_size", str(batch_size), loss_fcts_for_name[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
+    NNname = "-".join([options.output, "activation", str(activation), "batch_size", str(batch_size), loss_fcts_for_name[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
 
     if options.bottleneck:
         NNname += "-bottleneck"
@@ -305,12 +305,12 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
         for k in range(min([Nlayers, len(bottleneck_sequence)])):
             Nneurons_sequence[Nlayers-k-1] = min([Nneurons_sequence[Nlayers-k-1], bottleneck_sequence[-k-1]])
 
-    NN_model.add(Dense(int(Nneurons_sequence[0]), activation="relu", kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
+    NN_model.add(Dense(int(Nneurons_sequence[0]), activation=activation, kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
 
     for _Nneurons in Nneurons_sequence[1:]:
-        NN_model.add(Dense(int(_Nneurons), activation="relu", kernel_constraint=max_norm(my_max_norm)))
+        NN_model.add(Dense(int(_Nneurons), activation=activation, kernel_constraint=max_norm(my_max_norm)))
             
-    NN_model.add(Dense(1, activation=options.last_activation))
+    NN_model.add(Dense(1, activation="linear"))
     print(NN_model.summary())
     NN_model.compile(loss=loss_fcts_str_to_func[loss],
                      optimizer=optimizers.Adam(),
