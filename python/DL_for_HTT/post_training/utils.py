@@ -121,6 +121,12 @@ def load_h5_file_and_predict(input_h5, loaded_model, model_type, inputs = NN_def
                 df["{}_pz_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sinh(df["{}_eta_reco".format(ptc)])
             df["{}_px_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.cos(df["{}_phi_reco".format(ptc)])
             df["{}_py_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sin(df["{}_phi_reco".format(ptc)])
+
+    for leg in ["leg1", "leg2"]:
+        for variable in ["pt", "eta", "phi"]:
+            for subsample in ["is_train", "is_valid", "is_test"]:
+                if "{leg}_{variable}_gen".format(leg=leg, variable=variable) in model_inputs:
+                    df.loc[(df["{leg}_{variable}_gen".format(leg=leg, variable=variable)] == -10), [subsample]] = False
         
     if model_type == None:
         df["predictions"] = df["mTtot_reco"]

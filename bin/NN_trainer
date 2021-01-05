@@ -211,6 +211,12 @@ if "tau1_px_reco" in model_inputs:
         df["{}_px_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.cos(df["{}_phi_reco".format(ptc)])
         df["{}_py_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sin(df["{}_phi_reco".format(ptc)])
 
+for leg in ["leg1", "leg2"]:
+    for variable in ["pt", "eta", "phi"]:
+        for subsample in ["is_train", "is_valid", "is_test"]:
+            if "{leg}_{variable}_gen".format(leg=leg, variable=variable) in model_inputs:
+                df.loc[(df["{leg}_{variable}_gen".format(leg=leg, variable=variable)] == -10), [subsample]] = False
+    
 print("Model_Inputs:")
 for i in model_inputs:
     print("\t{}".format(i))
