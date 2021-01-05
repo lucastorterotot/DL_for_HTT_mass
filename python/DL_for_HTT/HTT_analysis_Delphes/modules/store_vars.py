@@ -14,6 +14,11 @@ default_gen_ptc_attrs = ["PID", "IsPU", "Charge", "Mass", "E", "PT", "Eta", "Phi
 def store_gen_ptc(dic, name, gen_ptc, attrs = default_gen_ptc_attrs):
     store(dic, name, gen_ptc, attrs = attrs)
 
+
+def store_reco_PU(evt, dic):
+    raise(NotImplementedError)
+    # store(evt, dic, "PU", 0, "PV",
+    #       attrs = ["npvsGood", "npvs"])
     
 default_jet_attrs = ["Mass", "PT", "Eta", "Phi", "Flavor", "BTag"]
 def store_jet(dic, name, jet, attrs = default_jet_attrs):
@@ -22,6 +27,12 @@ def store_jet(dic, name, jet, attrs = default_jet_attrs):
             dic["{}_{}".format(name, attr)] = 0
     else:
         store(dic, name, jet, attrs = attrs)
+
+def store_remaining_jets(evt, dic, name, remaining_jets_pt, remaining_jets_eta, remaining_jets_phi, remaining_jets_N):
+    dic["{}_{}".format(name, "pt")] = remaining_jets_pt
+    dic["{}_{}".format(name, "eta")] = remaining_jets_eta
+    dic["{}_{}".format(name, "phi")] = remaining_jets_phi
+    dic["{}_{}".format(name, "N")] = remaining_jets_N
 
 default_real_tau_decays_attrs = list(set(default_attrs+["Charge"]+default_jet_attrs))
 default_real_tau_decays_attrs.remove("Flavor")
