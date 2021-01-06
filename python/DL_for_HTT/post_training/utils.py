@@ -125,7 +125,7 @@ def load_h5_file_and_predict(input_h5, loaded_model, model_type, model_name, inp
     for leg in ["leg1", "leg2"]:
         for variable in ["pt", "eta", "phi"]:
             for subsample in ["is_train", "is_valid", "is_test"]:
-                if "{leg}_{variable}_gen".format(leg=leg, variable=variable) in model_inputs:
+                if "{leg}_{variable}_gen".format(leg=leg, variable=variable) in inputs:
                     df.loc[(df["{leg}_{variable}_gen".format(leg=leg, variable=variable)] == -10), [subsample]] = False
         
     if model_type == None:
