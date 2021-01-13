@@ -4,6 +4,25 @@ import numpy as np
 
 import DL_for_HTT.common.HTT_cuts as common_cuts
 
+def tauh_vs_jet_filter(evt, index, good_jets_list):
+    eta = evt.GetLeaf("Tau_eta").GetValue(index)
+    phi = evt.GetLeaf("Tau_phi").GetValue(index)
+    for jet in good_jets_list:
+        jet_eta = evt.GetLeaf("Jet_eta").GetValue(jet)
+        jet_phi = evt.GetLeaf("Jet_phi").GetValue(jet)
+
+        Delta_eta = abs(eta-jet_eta)
+        Delta_phi = abs(phi-jet_phi)
+        while Delta_phi > np.pi:
+            Delta_phi -= 2*np.pi
+
+        Delta_R2 = Delta_eta**2 + Delta_phi**2
+
+        if Delta_R2 < 0.4**2:
+            return False
+
+    return True
+
 def select_tauh_tt(evt, index):
     pT = evt.GetLeaf("Tau_pt").GetValue(index)
     eta = evt.GetLeaf("Tau_eta").GetValue(index)
@@ -197,7 +216,10 @@ def select_electron_third_lepton_veto(evt, index):
         evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_third_lepton_veto_iso,
     ])
     
-def select_tauh(evt, tau_idx, channel):
+def select_tauh(evt, tau_idx, channel, good_jets_list):
+    jet_clean = tauh_vs_jet_filter(evt, tau_idx, good_jets_list)
+    if not jet_clean:
+        return False
     if channel == "tt":
         return select_tauh_tt(evt, tau_idx)
     elif channel == "mt":
@@ -252,6 +274,16 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     nTau = int(evt.GetLeaf("nTau").GetValue(0))
     nJet = int(evt.GetLeaf("nJet").GetValue(0))
 
+    bad_jets_list = []
+    for tau in range(nTau):
+        bad_jets_list.append(evt.GetLeaf("Tau_jetIdx").GetValue(tau))
+
+    # tauh cleaning
+    good_jets_list = [idx for idx in range(nJet) if not idx in bad_jets_list]
+
+    # jet ID tight lepton veto
+    good_jets_list = [idx for idx in good_jets_list if evt.GetLeaf("Jet_jetId").GetValue(idx) >= 6]
+
     # select leptons for accepted channels
     selections = {}
     possible_channels = [c for c in accepted_channels]
@@ -259,7 +291,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         min_to_found = 2 if channel[0] == channel[1] else 1
         selections[channel] = {}
         if "t" in channel:
-            selections[channel]["Taus"] = [tau for tau in range(nTau) if select_tauh(evt, tau, channel)]
+            selections[channel]["Taus"] = [tau for tau in range(nTau) if select_tauh(evt, tau, channel, good_jets_list)]
             if len(selections[channel]["Taus"]) < min_to_found:
                 possible_channels.remove(channel)
                 continue
@@ -401,20 +433,21 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     # Up to two leading jets
     store_vars.store_none(output, "jet1", type="jet")
     store_vars.store_none(output, "jet2", type="jet")
-    for k in range(int(min([2, evt.GetLeaf("Jet_pt").GetLen()]))):
-        store_vars.store_jet(evt, output, "jet{}".format(k+1), k)
+    for k in range(int(min([2, len(good_jets_list)]))):
+        store_vars.store_jet(evt, output, "jet{}".format(k+1), good_jets_list[k])
 
     # Remaining_Jets (other jets) computation and storage
     remaining_jets_px = 0
     remaining_jets_py = 0
     remaining_jets_pz = 0
     N_jets = 0
-    if evt.GetLeaf("Jet_pt").GetLen() > 2:
-        for k in range(2, evt.GetLeaf("Jet_pt").GetLen()):
+    if len(good_jets_list) > 2:
+        for k in range(2, len(good_jets_list)):
+            jet_idx = good_jets_list[k]
             N_jets+=1
-            remaining_jets_px += evt.GetLeaf("Jet_pt").GetValue(k) * np.cos(evt.GetLeaf("Jet_phi").GetValue(k))
-            remaining_jets_py += evt.GetLeaf("Jet_pt").GetValue(k) * np.sin(evt.GetLeaf("Jet_phi").GetValue(k))
-            remaining_jets_pz += evt.GetLeaf("Jet_pt").GetValue(k) * np.sinh(evt.GetLeaf("Jet_eta").GetValue(k))
+            remaining_jets_px += evt.GetLeaf("Jet_pt").GetValue(jet_idx) * np.cos(evt.GetLeaf("Jet_phi").GetValue(jet_idx))
+            remaining_jets_py += evt.GetLeaf("Jet_pt").GetValue(jet_idx) * np.sin(evt.GetLeaf("Jet_phi").GetValue(jet_idx))
+            remaining_jets_pz += evt.GetLeaf("Jet_pt").GetValue(jet_idx) * np.sinh(evt.GetLeaf("Jet_eta").GetValue(jet_idx))
     if N_jets == 0:
         remaining_jets_pt = 0
         remaining_jets_phi = 0
