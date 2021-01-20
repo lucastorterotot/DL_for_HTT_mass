@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <input hdf5>"
+parser = OptionParser(usage=usage)
+# parser.add_option("-m", "--minmass", dest = "min_mass",
+#                   default = NN_default_settings.min_mass)
+# parser.add_option("-M", "--maxmass", dest = "max_mass",
+#                   default = NN_default_settings.max_mass)
+# parser.add_option("-t", "--train_frac", dest = "train_frac",
+#                   default = NN_default_settings.train_frac)
+# parser.add_option("-v", "--valid_frac", dest = "valid_frac",
+#                   default = NN_default_settings.valid_frac)
+# parser.add_option("-r", "--random_seed", dest = "random_seed",
+#                   default = NN_default_settings.random_seed)
+
+(options,args) = parser.parse_args()
+
+input_file = args[0]
+output_file = input_file.replace(".h5", "")
+
+# Load data
+import pandas as pd
+df = pd.read_hdf(input_file)
+
+mapper = {}
+
+for k in df.keys():
+    if "Charge" in k:
+        mapper[k] = k.replace("Charge", "charge")
+    if "Eta" in k:
+        mapper[k] = k.replace("Eta", "eta")
+    if "Mass" in k:
+        mapper[k] = k.replace("Mass", "mass")
+    if "PID" in k:
+        mapper[k] = k.replace("PID", "pdgId")
+    if "_PT_" in k:
+        mapper[k] = k.replace("_PT_", "_pt_")
+    if "Phi" in k:
+        mapper[k] = k.replace("Phi", "phi")
+    if "METcov_xx" in k:
+        mapper[k] = k.replace("METcov_xx", "MET_covXX")
+    if "METcov_xy" in k:
+        mapper[k] = k.replace("METcov_xy", "MET_covXY")
+    if "METcov_yy" in k:
+        mapper[k] = k.replace("METcov_yy", "MET_covYY")
+
+df.rename(columns = mapper, inplace=True)
+
+df.to_hdf("{}.h5".format(output_file), key='df')
