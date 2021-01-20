@@ -1,0 +1,19 @@
+#!/bin/bash
+
+output_file=merged_txt_file.txt
+
+while getopts ":o:" opt
+do
+    case $opt in
+        o) output_file="$OPTARG"
+           shift
+           shift
+           ;;
+    esac
+done
+
+head -n1 $1 > $output_file
+for arg in "$@"
+do
+    tail -n $(($(cat $arg | wc -l) -1)) $arg >> $output_file
+done

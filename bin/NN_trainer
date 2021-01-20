@@ -1,0 +1,431 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
+from optparse import OptionParser
+usage = "usage: %prog [options] <input>"
+parser = OptionParser(usage=usage)
+parser.add_option("-o", "--output", dest = "output",
+                  default = "NN")
+parser.add_option("-L", "--Nlayers", dest = "Nlayers",
+                  default = NN_default_settings.Nlayers)
+parser.add_option("-N", "--Nneurons", dest = "Nneurons",
+                  default = NN_default_settings.Nneurons)
+parser.add_option("-g", "--gpu", dest = "gpu",
+                  default = 0)
+parser.add_option("-b", "--bottleneck", dest = "bottleneck",
+                  default =  False, action = 'store_true')
+parser.add_option("-l", "--loss", dest = "loss",
+                  default = NN_default_settings.loss)
+parser.add_option("-O", "--optimizer", dest = "optimizer",
+                  default = NN_default_settings.optimizer)
+parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
+                  default = NN_default_settings.w_init_mode)
+parser.add_option("-m", "--minmass", dest = "min_mass",
+                  default = NN_default_settings.min_mass)
+parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  default = NN_default_settings.max_mass)
+parser.add_option("-c", "--channels", dest = "channels",
+                  default = NN_default_settings.channels)
+parser.add_option("-a", "--activation", dest = "activation",
+                  default = "relu")
+parser.add_option("-i", "--model_inputs", dest = "model_inputs",
+                  default = 'with_METcov_j1j2jr_Npu')
+parser.add_option("-B", "--batch_size", dest = "batch_size",
+                  default =  2048)
+
+(options,args) = parser.parse_args()
+
+options.Nlayers = int(options.Nlayers)
+options.Nneurons = int(options.Nneurons)
+options.gpu = int(options.gpu)
+min_mass = float(options.min_mass)
+max_mass = float(options.max_mass)
+options.batch_size = int(options.batch_size)
+
+input_file = args[0]
+
+print("Selected options are the following:")
+for option in ["output", "Nlayers", "Nneurons", "bottleneck", "loss", "optimizer", "w_init_mode", "gpu", "min_mass", "max_mass", "batch_size", "activation"]:
+    print("\t{}\t{}".format(option, getattr(options, option)))
+
+print("Input file:")
+print("\t{}".format(input_file))
+
+# specify the max amount of neurons allowed in the last hidden layers if bottleneck is used
+bottleneck_sequence = [1000, 500, 100]
+
+import os
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import pandas as pd
+import tensorflow.keras as keras
+from sklearn.preprocessing import StandardScaler
+from keras.models import Sequential
+from keras import layers, optimizers, regularizers
+from keras.layers import Flatten , Activation
+from keras.layers import Dense
+from keras.utils import multi_gpu_model
+
+import keras.backend.tensorflow_backend as tfback
+
+def _get_available_gpus():
+    """Get a list of available gpu devices (formatted as strings).
+    # Source of this function: https://github.com/keras-team/keras/issues/13684
+    # Returns
+    A list of available GPU devices.
+    """
+    #global _LOCAL_DEVICES
+    if tfback._LOCAL_DEVICES is None:
+        devices = tf.config.list_logical_devices()
+        tfback._LOCAL_DEVICES = [x.name for x in devices]
+    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(gpus[options.gpu], True)
+tf.config.set_visible_devices(gpus[options.gpu], 'GPU')
+
+tfback._get_available_gpus = _get_available_gpus
+print(_get_available_gpus())
+
+# Get available loss_fcts, optimizers and w_init_modes
+loss_fcts_str_to_func = {
+    "mean_squared_error" : "mse",
+    "mean_absolute_error" : "mae",
+    "mean_absolute_percentage_error" : "mape",
+    "mean_squared_logarithmic_error" : "msle",
+    "cosine_similarity" : "cs",
+    "huber_loss" : "hl",
+    "log_cosh" : "lc",
+}
+
+loss_fcts_for_name = {}
+# loss from module
+for loss in ["mse", "mae", "mape", "msle", "cs", "hl", "lc"] :
+    loss_fcts_str_to_func[loss] = loss
+    loss_fcts_for_name[loss] = loss
+
+# add custom losses
+import keras.backend as kb
+from tensorflow import where
+def low_mass(y_true, y_pred):
+
+    low_mass_cut = 400.0
+    factors = 2*(low_mass_cut/y_true)
+
+    loss_squared_error = kb.square(y_pred - y_true)
+    loss_squared_error_factor = kb.square(y_pred - y_true) * 2*(low_mass_cut/y_true)
+
+    low = kb.greater_equal(y_true, low_mass_cut*1.0)
+
+    loss = where(low, loss_squared_error, loss_squared_error_factor)
+    
+    return loss
+
+loss_fcts_for_name['low_mass'] = 'lm'
+loss_fcts_for_name['lm'] = 'lm'
+loss_fcts_str_to_func['low_mass'] = low_mass
+loss_fcts_str_to_func['lm'] = low_mass
+
+def mmape1(y_true, y_pred):
+
+    # apply mape
+    loss = tf.keras.losses.MAPE(y_true, y_pred)
+
+    N = 4
+    mass_cut = 400.0
+
+    return loss * (y_true/mass_cut + N * (mass_cut/y_true) )
+
+loss_fcts_for_name['mmape1'] = 'mmape1'
+loss_fcts_str_to_func['mmape1'] = mmape1
+
+def new_loss(y_true, y_pred):
+
+    old_loss = kb.square(y_pred - y_true)
+    N = 4
+    mass_cut = 400.0
+
+    return old_loss * (y_true/mass_cut + N * (mass_cut/y_true) )
+
+loss_fcts_for_name['new'] = 'new'
+loss_fcts_str_to_func['new'] = new_loss
+
+def new_loss2(y_true, y_pred):
+
+    old_loss = kb.square(y_pred - y_true)
+    N = 4
+    mass_cut = 400.0
+
+    return old_loss * (y_true/mass_cut + N * (mass_cut/y_true)**2 )
+
+loss_fcts_for_name['new2'] = 'new2'
+loss_fcts_str_to_func['new2'] = new_loss2
+
+def upper_tails(y_true, y_pred):
+
+    loss = kb.square(y_pred - y_true)
+
+    # apply new loss
+    N = 4
+    mass_cut = 400.0
+    loss *= (y_true/mass_cut + N * (mass_cut/y_true) )
+
+    # apply upper tail punishment for very low mass region
+    factor = 2
+    large_tail_above = 1.1
+    loss_upper_tails = loss * factor
+    low_mass_cut = 100
+
+    loss = where(
+        kb.greater_equal(y_true, low_mass_cut*1.0),
+        loss,
+        where(
+            kb.greater_equal(y_pred, large_tail_above*y_true),
+            loss_upper_tails,
+            loss,
+            ),
+        )
+
+    return loss
+
+loss_fcts_for_name['ut'] = 'ut'
+loss_fcts_str_to_func['ut'] = upper_tails
+
+def mape_upper_tails(y_true, y_pred):
+
+    # apply mape
+    loss = tf.keras.losses.MAPE(y_true, y_pred)
+
+    # apply upper tail punishment for very low mass region
+    factor = 2
+    large_tail_above = 1.1
+    loss_upper_tails = loss * factor
+    low_mass_cut = 100
+
+    loss = where(
+        kb.greater_equal(y_true, low_mass_cut*1.0),
+        loss,
+        where(
+            kb.greater_equal(y_pred, large_tail_above*y_true),
+            loss_upper_tails,
+            loss,
+            ),
+        )
+
+    return loss
+
+loss_fcts_for_name['mapeut'] = 'mapeut'
+loss_fcts_str_to_func['mapeut'] = mape_upper_tails
+
+# optimizers
+
+Adam = tf.keras.optimizers.Adam
+Adamax = tf.keras.optimizers.Adamax
+Nadam = tf.keras.optimizers.Nadam
+Adadelta = tf.keras.optimizers.Adadelta
+Adagrad = tf.keras.optimizers.Adagrad
+SGD = tf.keras.optimizers.SGD
+RMSprop = tf.keras.optimizers.RMSprop
+
+optimizers_dict = {
+    "Adam" : Adam,
+    "Adamax" : Adamax,
+    "Nadam" : Nadam,
+    "Adadelta" : Adadelta,
+    "Adagrad" : Adagrad,
+    "SGD" : SGD,
+    "RMSprop" : RMSprop,
+}
+
+# weight init modes
+w_init_modes = {
+    'uniform' : "u",
+    'lecun_uniform' : "lu",
+    'normal' : "n",
+    'zero' : "z",
+    'glorot_normal' : "gn",
+    'glorot_uniform' : "gu",
+    'he_normal' : "hn",
+    'he_uniform' : "hu",
+}
+
+# Load data
+import os
+df = pd.read_hdf(input_file)
+
+# define target and input variables
+target = NN_default_settings.target
+
+print("Target: {}".format(target))
+
+model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(options.model_inputs), fromlist=[''])
+model_inputs = model_inputs_file.inputs
+
+if "N_neutrinos_reco" in model_inputs:
+    df["N_neutrinos_reco"] = 2*np.ones(len(df["channel_reco"]), dtype='int')
+    df.loc[(df["channel_reco"] == "mt"), ["N_neutrinos_reco"]] = 3
+    df.loc[(df["channel_reco"] == "et"), ["N_neutrinos_reco"]] = 3
+    df.loc[(df["channel_reco"] == "mm"), ["N_neutrinos_reco"]] = 4
+    df.loc[(df["channel_reco"] == "em"), ["N_neutrinos_reco"]] = 4
+    df.loc[(df["channel_reco"] == "ee"), ["N_neutrinos_reco"]] = 4
+
+if "tau1_px_reco" in model_inputs:
+    for ptc in ["tau1", "tau2", "jet1", "jet2", "remaining_jets", "MET", "PuppiMET"]:
+        if "{}_eta_reco".format(ptc) in df.keys():
+            df["{}_pz_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sinh(df["{}_eta_reco".format(ptc)])
+        df["{}_px_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.cos(df["{}_phi_reco".format(ptc)])
+        df["{}_py_reco".format(ptc)] = df["{}_pt_reco".format(ptc)] * np.sin(df["{}_phi_reco".format(ptc)])
+
+for leg in ["leg1", "leg2"]:
+    for variable in ["pt", "eta", "phi"]:
+        for subsample in ["is_train", "is_valid", "is_test"]:
+            if "{leg}_{variable}_gen".format(leg=leg, variable=variable) in model_inputs:
+                df.loc[(df["{leg}_{variable}_gen".format(leg=leg, variable=variable)] == -10), [subsample]] = False
+    
+print("Model_Inputs:")
+for i in model_inputs:
+    print("\t{}".format(i))
+
+def plot_hist(h, NNname, xsize=6, ysize=10):
+    # Prepare plotting
+    fig_size = plt.rcParams["figure.figsize"]
+    plt.rcParams["figure.figsize"] = [xsize, ysize]
+    fig, axes = plt.subplots(nrows=4, ncols=4, sharex=True)
+    
+    # summarize history for MAE
+    ax=plt.subplot(211)
+    ax.set_yscale('log')
+    plt.plot(h['mean_absolute_error'])
+    plt.plot(h['val_mean_absolute_error'])
+    plt.title('Training vs Validation MAE')
+    plt.ylabel('MAE')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper right')
+    plt.draw()
+    
+    # summarize history for loss
+    ax=plt.subplot(212)
+    ax.set_yscale('log')
+    plt.plot(h['loss'])
+    plt.plot(h['val_loss'])
+    plt.title('Training vs Validation Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper right')
+    
+    # Plot it all in IPython (non-interactive)
+    # plt.draw()
+    # plt.show()
+    
+    fig.savefig("history-{}.png".format(NNname))
+    plt.close('all')
+
+def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = options.Nlayers, Nneurons = options.Nneurons, loss = options.loss, optimizer_name = options.optimizer, w_init_mode = options.w_init_mode, batch_size = options.batch_size, activation=options.activation):
+
+    NNname = "-".join([options.output, "activation", str(activation), "batch_size", str(batch_size), loss_fcts_for_name[loss], optimizer_name, w_init_modes[w_init_mode], channel, str(Nlayers), "layers", str(Nneurons), "neurons"])
+
+    if options.bottleneck:
+        NNname += "-bottleneck"
+
+    print(NNname)
+
+    optimizer = optimizers_dict[optimizer_name]
+
+    df_select = df
+
+    df_select = df_select.loc[(df_select[target] >= min_mass) & (df_select[target] <= max_mass)]
+
+    if channel in set(df_select['channel_reco']):
+        df_select = df_select.loc[(df_select['channel_reco'] == channel)]
+    elif channel == "lt":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mt") | (df_select['channel_reco'] == "et")]
+    elif channel == "ll":
+        df_select = df_select.loc[(df_select['channel_reco'] == "mm") | (df_select['channel_reco'] == "em") | (df_select['channel_reco'] == "ee")]
+
+    df_x_train = df_select.loc[(df_select['is_train'] == 1), model_inputs]
+    df_y_train = df_select.loc[(df_select['is_train'] == 1), [target, "sample_weight"]]
+    df_x_valid = df_select.loc[(df_select['is_valid'] == 1), model_inputs]
+    df_y_valid = df_select.loc[(df_select['is_valid'] == 1), [target, "sample_weight"]]
+
+    print('Size of training set: ', len(df_x_train))
+    print('Size of valid set: ', len(df_x_valid))
+
+    if len(df_x_train) == 0 or len(df_x_valid) == 0:
+        print("Empty set, aborting...")
+        return None, False
+
+    arr_x_train = np.r_[df_x_train]
+    arr_y_train = np.r_[df_y_train[target]]
+    arr_x_valid = np.r_[df_x_valid]
+    arr_y_valid = np.r_[df_y_valid[target]]
+    sample_weight = np.r_[df_y_train["sample_weight"]]
+
+    # Create model
+    NN_model = Sequential()
+    from tensorflow.keras.constraints import max_norm
+    my_max_norm = 3.
+
+    Nneurons_sequence = Nneurons * np.ones(Nlayers)
+    if options.bottleneck:
+        for k in range(min([Nlayers, len(bottleneck_sequence)])):
+            Nneurons_sequence[Nlayers-k-1] = min([Nneurons_sequence[Nlayers-k-1], bottleneck_sequence[-k-1]])
+
+    NN_model.add(Dense(int(Nneurons_sequence[0]), activation=activation, kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
+
+    for _Nneurons in Nneurons_sequence[1:]:
+        NN_model.add(Dense(int(_Nneurons), activation=activation, kernel_constraint=max_norm(my_max_norm)))
+            
+    NN_model.add(Dense(1, activation="linear"))
+    print(NN_model.summary())
+    NN_model.compile(loss=loss_fcts_str_to_func[loss],
+                     optimizer=optimizers.Adam(),
+                     metrics=[keras.metrics.mae])
+    
+    # Train model
+    epochs = 500
+    print('Epochs: ', epochs)
+    print('Batch size: ', batch_size)
+
+    keras_callbacks = [keras.callbacks.EarlyStopping(monitor='val_mean_absolute_error', patience=20, verbose=0)]
+
+    history = NN_model.fit(arr_x_train, arr_y_train,
+                           batch_size=batch_size,
+                           epochs=epochs,
+                           shuffle=True,
+                           verbose=2, # Change it to 2, if wished to observe execution
+                           validation_data=(arr_x_valid, arr_y_valid),
+                           callbacks=keras_callbacks,
+                           sample_weight = sample_weight,
+    )
+
+    # Evaluate and report performance of the trained model
+    train_score = NN_model.evaluate(arr_x_train, arr_y_train, verbose=0)
+    valid_score = NN_model.evaluate(arr_x_valid, arr_y_valid, verbose=0)
+
+    print('Train MAE: ', round(train_score[1], 4), ', Train Loss: ', round(train_score[0], 4))
+    print('Val MAE: ', round(valid_score[1], 4), ', Val Loss: ', round(valid_score[0], 4))
+
+    plot_hist(history.history, NNname, xsize=8, ysize=12)
+
+    # serialize model to JSON
+    NN_model_json = NN_model.to_json()
+    with open("{}.json".format(NNname), "w") as json_file:
+        json_file.write(NN_model_json)
+    # serialize weights to HDF5
+    NN_model.save_weights("NN_weights-{}.h5".format(NNname))
+    os.system("cp {} inputs_for_models_in_this_dir.py".format(model_inputs_file.__file__))
+    print("Saved model to disk")
+
+
+allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
+
+for channel in [c for c in options.channels.split(",") if c in allowed_channels]:
+    NN_make_train_predict(df, model_inputs, channel = channel,
+                          Nlayers = options.Nlayers, Nneurons = options.Nneurons,
+                          loss = options.loss,
+                          optimizer_name = options.optimizer,
+                          w_init_mode = options.w_init_mode)

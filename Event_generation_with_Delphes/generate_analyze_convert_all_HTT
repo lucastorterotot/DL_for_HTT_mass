@@ -1,0 +1,99 @@
+#!/bin/bash
+
+mkdir -p /data2/${USER}/ML/HTT_analysis_Delphes
+cd /data2/${USER}/ML/HTT_analysis_Delphes
+
+find . -type f -iname \*.txt -delete
+find . -type f -iname \*.h5 -delete
+find . -type f -iname \*_merged_\* -delete
+
+N_events=120000
+for Higgs_mass in {80..109}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=90000
+for Higgs_mass in {110..125}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=60000
+for Higgs_mass in {126..299}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=20000
+for Higgs_mass in {300..499}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=15000
+for Higgs_mass in {500..649}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=30000
+for Higgs_mass in {650..699}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=45000
+for Higgs_mass in {700..749}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+N_events=60000
+for Higgs_mass in {750..800}
+do
+    gen_HTT_at_mass -m ${Higgs_mass} -N ${N_events}
+    HTT_Delphes_tree_analysis HTT_${Higgs_mass}_Delphes_N${N_events}.root HTT_${Higgs_mass}_Delphes_N${N_events}
+    rm HTT_${Higgs_mass}_Delphes_N${N_events}.root
+done
+
+txt_merger -o HTT_merged_Delphes.txt $(ls | grep HTT_.*_Delphes_N.*.txt | grep -ve _merged_)
+txt_to_hdf5 HTT_merged_Delphes.txt HTT_merged_Delphes
+find . -type f -iname HTT_\*.txt -delete
+
+mkdir -p /data2/ltorterotot/ML/NN/latest_Delphes
+cd /data2/ltorterotot/ML/NN/latest_Delphes
+
+gpu=0
+for Nlayers in {2..10} 15
+do
+    for Nneurons in 500 1000 1500 2000
+    do
+        $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8
+        if [[ $Nlayers > 3 ]] # avoid doing twice same NN
+        then
+            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8 -b
+        elif [[ $Nlayers > 2 ]] || [[ $Nneurons < 1001 ]]
+        then
+            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8 -b
+        elif [[ $Nneurons < 501 ]]
+        then
+            $DL_for_HTT/NN/NN2.py -L $Nlayers -N $Nneurons -o PROD -g $gpu -s Delphes -m 0.08 -M 0.8 -b
+        fi
+    done
+done
+

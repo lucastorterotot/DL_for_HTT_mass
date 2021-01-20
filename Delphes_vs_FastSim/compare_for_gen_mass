@@ -1,0 +1,246 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+from optparse import OptionParser
+usage = "usage: %prog [options]"
+parser = OptionParser(usage=usage)
+parser.add_option("-m", "--mass", dest = "mass",
+                  default = "345")
+parser.add_option("-N", "--Nevents", dest = "nevents",
+                  default = "20000")
+
+(options,args) = parser.parse_args()
+
+from ROOT import TFile, TCanvas, TH1F, TLegend, TLine
+
+files = {
+    "Delphes" : "/data2/ltorterotot/ML/Delphes_prods/HTT_{}_Delphes_N{}.root".format(options.mass, options.nevents),
+    "FastSim": "/data2/ltorterotot/ML/FastSim_NanoAOD_to_NN/nevents_{}/Htt_{}_NanoAODSIM.root".format(options.nevents, options.mass),
+}
+
+root_files = {}
+for k in files:
+    root_files[k] = TFile(files[k], "READ")
+
+trees = {
+    "Delphes" : root_files["Delphes"].Get('Delphes'),
+    "FastSim" : root_files["FastSim"].Get('Events'),
+}
+
+def buildCanvas(name):
+    can = TCanvas('can'+name, '', 800, 800)
+    can.Divide(1, 2, 0.0, 0.0)
+    
+    pad = can.GetPad(1)
+    padr = can.GetPad(2)
+    
+    # Set Pad sizes
+    pad.SetPad(0.0, 0.32, 1., 1.0)
+    padr.SetPad(0.0, 0.00, 1., 0.34)
+    
+    pad.SetTopMargin(0.08)
+    pad.SetLeftMargin(0.16)
+    pad.SetBottomMargin(0.05)
+    pad.SetRightMargin(0.05)
+    
+    padr.SetBottomMargin(0.25)
+    padr.SetLeftMargin(0.16)
+    padr.SetRightMargin(0.05)
+    
+    can.cd()
+    import locale; locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    can.Draw()
+    pad.Draw()
+    padr.Draw()
+    
+    return can, pad, padr
+
+def add_legend_entry(TH1Finstance, label, hfls, legend):
+    id = str(len(hfls))
+    hfls.append(TH1F(label+id, label, 2, 0, 0))
+    hfls[-1].SetMarkerColor(TH1Finstance.GetLineColor())
+    hfls[-1].SetMarkerStyle(TH1Finstance.GetMarkerStyle())
+    hfls[-1].SetLineWidth(TH1Finstance.GetLineWidth())
+    hfls[-1].SetLineColor(TH1Finstance.GetLineColor())
+    hfls[-1].Draw("same")
+    legend.AddEntry(label+id, label)
+
+def draw_comparison(
+        basic_variable = "Higgs_mass_gen",
+        xaxis = "Gen Higgs Mass (GeV)",
+        Delphes_var = "Particle.Mass",
+        Delphes_cut = "Particle.PID == 25",
+        FastSim_var = "GenPart_mass",
+        FastSim_cut = "GenPart_pdgId == 25",
+        bins = (50, 0., 1000.)
+):
+
+    hfls = []
+    can, pad, padr = buildCanvas(basic_variable)
+    pad.cd()
+    
+    hd = TH1F("hd", "{} on {} events with settings at {} GeV".format(basic_variable, options.nevents, options.mass), *bins)
+    trees["Delphes"].Project(hd.GetName(), Delphes_var, Delphes_cut)
+    hd.SetLineColor(2)
+    hd.SetStats(0)
+    
+    hf = TH1F("hf", '', *bins)
+    trees["FastSim"].Project(hf.GetName(), FastSim_var, FastSim_cut)
+    hf.SetLineColor(1)
+    hf.SetStats(0)
+    
+    hf.Draw("E1")
+    hd.Draw("E1 SAME")
+
+    legend = TLegend(.75,.8,.925,.9)
+    legend.SetLineColor(0)
+    legend.Draw()
+    add_legend_entry(hd, "Delphes", hfls, legend)
+    add_legend_entry(hf, "FastSim", hfls, legend)
+    
+    pad.SetLogy()
+    Xaxis = hf.GetXaxis()
+    Xaxis.SetLabelSize(0)
+
+    Yaxis = hf.GetYaxis()
+    Yaxis.SetTitle('N events')
+    Yaxis.SetTitleSize(.075)
+    
+    padr.cd()
+    rh = hd.Clone()
+    rh.SetTitle('')
+    rh.Divide(hf)
+    for b in range(rh.GetNbinsX()):
+        if hf.GetBinContent(b) != 0:
+            rh.SetBinError(b, rh.GetBinError(b)/(hf.GetBinContent(b))**.5)
+    rh.Draw("E1")
+
+    lines = []
+    for v in [1, 1-.5, 1+.5]:
+        lines.append(TLine(rh.GetXaxis().GetBinUpEdge(0),v,rh.GetXaxis().GetBinUpEdge(b+1),v))
+        lines[-1].Draw("same")
+    
+    Xaxis = rh.GetXaxis()
+    Xaxis.SetLabelSize(0.075)
+    Xaxis.SetTitle(xaxis)
+    Xaxis.SetTitleSize(.075)
+    
+    Yaxis = rh.GetYaxis()
+    Yaxis.SetRangeUser(0, 2)
+    Yaxis.SetTitle('Ratio D/FS')
+    Yaxis.SetTitleSize(.075)
+    
+    can.SaveAs("{}_{}_{}.pdf".format(basic_variable, options.mass, options.nevents))
+
+# Higgs_mass_gen
+draw_comparison()
+
+# Higgs_eta_gen
+draw_comparison(
+    basic_variable = "Higgs_eta_gen",
+    xaxis = "Gen Higgs eta",
+    Delphes_var = "Particle.Eta",
+    Delphes_cut = "Particle.PID == 25",
+    FastSim_var = "GenPart_eta",
+    FastSim_cut = "GenPart_pdgId == 25",
+    bins = (50, -10, 10)
+)
+
+# Higgs_pt_gen
+draw_comparison(
+    basic_variable = "Higgs_pt_gen",
+    xaxis = "Gen Higgs pT",
+    Delphes_var = "Particle.PT",
+    Delphes_cut = "Particle.PID == 25",
+    FastSim_var = "GenPart_pt",
+    FastSim_cut = "GenPart_pdgId == 25",
+    bins = (50, 0, 1500)
+)
+
+# MET_pt_gen
+draw_comparison(
+    basic_variable = "MET_pt_gen",
+    xaxis = "Gen MET pT",
+    Delphes_var = "GenMissingET.MET",
+    Delphes_cut = "1",
+    FastSim_var = "GenMET_pt",
+    FastSim_cut = "1",
+    bins = (50, 0, 1500)
+)
+
+# MET_pt_reco
+draw_comparison(
+    basic_variable = "MET_pt_reco",
+    xaxis = "Reco MET pT",
+    Delphes_var = "MissingET.MET",
+    Delphes_cut = "1",
+    FastSim_var = "MET_pt",
+    FastSim_cut = "1",
+    bins = (50, 0, 1500)
+)
+
+# reco leading jet pt
+draw_comparison(
+        basic_variable = "jet1_pt_reco",
+        xaxis = "Reco jet1 pT",
+        Delphes_var = "Jet.PT[0]",
+        Delphes_cut = "Jet.PT[0] > 0",
+        FastSim_var = "Jet_pt[0]",
+        FastSim_cut = "Jet_pt[0] > 0",
+        bins = (50, 0, 1500)
+)
+
+# reco trailing jet pt
+draw_comparison(
+        basic_variable = "jet2_pt_reco",
+        xaxis = "Reco jet2 pT",
+        Delphes_var = "Jet.PT[1]",
+        Delphes_cut = "Jet.PT[1] > 0",
+        FastSim_var = "Jet_pt[1]",
+        FastSim_cut = "Jet_pt[1] > 0",
+        bins = (50, 0, 1500)
+)
+
+# reco leading muon pt
+draw_comparison(
+        basic_variable = "muon1_pt_reco",
+        xaxis = "Reco muon1 pT",
+        Delphes_var = "Muon.PT[0]",
+        Delphes_cut = "Muon.PT[0] > 0",
+        FastSim_var = "Muon_pt[0]",
+        FastSim_cut = "Muon_pt[0] > 0",
+        bins = (50, 0, 400)
+)
+
+# reco trailing muon pt
+draw_comparison(
+        basic_variable = "muon2_pt_reco",
+        xaxis = "Reco muon2 pT",
+        Delphes_var = "Muon.PT[1]",
+        Delphes_cut = "Muon.PT[1] > 0",
+        FastSim_var = "Muon_pt[1]",
+        FastSim_cut = "Muon_pt[1] > 0",
+        bins = (50, 0, 150)
+)
+
+# reco leading electron pt
+draw_comparison(
+        basic_variable = "electron1_pt_reco",
+        xaxis = "Reco electron1 pT",
+        Delphes_var = "Electron.PT[0]",
+        Delphes_cut = "Electron.PT[0] > 0",
+        FastSim_var = "Electron_pt[0]",
+        FastSim_cut = "Electron_pt[0] > 0",
+        bins = (50, 0, 1500)
+)
+
+# reco trailing electron pt
+draw_comparison(
+        basic_variable = "electron2_pt_reco",
+        xaxis = "Reco electron2 pT",
+        Delphes_var = "Electron.PT[1]",
+        Delphes_cut = "Electron.PT[1] > 0",
+        FastSim_var = "Electron_pt[1]",
+        FastSim_cut = "Electron_pt[1] > 0",
+        bins = (50, 0, 400)
+)

@@ -4,20 +4,35 @@ default_attrs = ["PT", "Eta", "Phi"]
 def store(dic, name, obj, attrs = default_attrs):
     if obj is None:
         for attr in attrs:
-            dic["{}_{}".format(name, attr)] = None
+            dic["{}_{}".format(name, attr)] = 0
     else:
         for attr in attrs:
-            dic["{}_{}".format(name, attr)] = getattr(obj, attr, None)
+            dic["{}_{}".format(name, attr)] = getattr(obj, attr, 0)
 
             
 default_gen_ptc_attrs = ["PID", "IsPU", "Charge", "Mass", "E", "PT", "Eta", "Phi", "D0", "DZ"]
 def store_gen_ptc(dic, name, gen_ptc, attrs = default_gen_ptc_attrs):
     store(dic, name, gen_ptc, attrs = attrs)
 
+
+def store_reco_PU(evt, dic):
+    raise(NotImplementedError)
+    # store(evt, dic, "PU", 0, "PV",
+    #       attrs = ["npvsGood", "npvs"])
     
 default_jet_attrs = ["Mass", "PT", "Eta", "Phi", "Flavor", "BTag"]
 def store_jet(dic, name, jet, attrs = default_jet_attrs):
-    store(dic, name, jet, attrs = attrs)
+    if jet is None:
+        for attr in attrs:
+            dic["{}_{}".format(name, attr)] = 0
+    else:
+        store(dic, name, jet, attrs = attrs)
+
+def store_remaining_jets(evt, dic, name, remaining_jets_pt, remaining_jets_eta, remaining_jets_phi, remaining_jets_N):
+    dic["{}_{}".format(name, "pt")] = remaining_jets_pt
+    dic["{}_{}".format(name, "eta")] = remaining_jets_eta
+    dic["{}_{}".format(name, "phi")] = remaining_jets_phi
+    dic["{}_{}".format(name, "N")] = remaining_jets_N
 
 default_real_tau_decays_attrs = list(set(default_attrs+["Charge"]+default_jet_attrs))
 default_real_tau_decays_attrs.remove("Flavor")
@@ -35,9 +50,13 @@ default_tauh_attrs.remove("Flavor")
 default_tauh_attrs.remove("BTag")
 def store_tauh(dic, name, jet,  attrs = default_tauh_attrs):
     store_jet(dic, name, jet, attrs = attrs)
+    if dic["{}_{}".format(name, "Mass")] == None:
+        dic["{}_{}".format(name, "Mass")] = 1776.86*10**(-3)
 
 def store_muon(dic, name, muon, attrs = default_attrs+["Charge"]):
     store(dic, name, muon, attrs = attrs)
+    dic["{}_{}".format(name, "Mass")] = 105.6583745*10**(-3)
 
 def store_electron(dic, name, electron, attrs = default_attrs+["Charge"]):
     store(dic, name, electron, attrs = attrs)
+    dic["{}_{}".format(name, "Mass")] = 0.5109989461*10**(-3)

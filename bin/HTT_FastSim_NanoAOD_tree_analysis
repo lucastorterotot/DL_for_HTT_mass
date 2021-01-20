@@ -20,11 +20,9 @@ else:
     raise RuntimeError("Please give one input file and one output file")
 
 import ROOT
-import libPyROOT as _root
-ROOT.gSystem.Load("libDelphes")
 
 input_file = ROOT.TFile(input_file_str, "READ")
-tree = input_file.Get("Delphes")
+tree = input_file.Get("Events")
 
 if options.Nmax is None:
     Nmax = tree.GetEntries()
@@ -63,10 +61,11 @@ for c1 in channel_stats_gen.keys():
     for c2 in channel_stats_gen.keys():
         channel_identification["{} as {}".format(c1, c2)] = 0
 
-from DL_for_HTT.HTT_analysis_Delphes.analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
-from DL_for_HTT.HTT_analysis_Delphes.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
+from DL_for_HTT.HTT_analysis_FastSim_NanoAOD.analysis.HTT_gen import HTT_analysis as HTT_analysis_gen
+from DL_for_HTT.HTT_analysis_FastSim_NanoAOD.analysis.HTT_reco import HTT_analysis as HTT_analysis_reco
 
 analysis_results = []
+cutflow_stats = {}
 
 N_to_store = 0
 for evt in tree:
@@ -76,8 +75,8 @@ for evt in tree:
 
     if options.verbose > 0 and Nevt_in%10 == 0:
         print("\nEvent {}:".format(Nevt_in))
-    
-    reco_analysis = HTT_analysis_reco(evt, verbose = options.verbose)
+
+    reco_analysis, cutflow_stats = HTT_analysis_reco(evt, verbose = options.verbose, cutflow_stats = cutflow_stats)
     if reco_analysis != {}:
         passed_reco = True
         Nevt_out_reco += 1
@@ -144,9 +143,9 @@ cols = list(data.keys())
 # clean_useless_data(cols)
 cols.sort()
 
-# import pandas as pd
-# df = pd.DataFrame(data, columns = cols)
-# df.to_hdf("hdftest_{}.h5".format(output_file_str), df.keys())
+# # import pandas as pd
+# # df = pd.DataFrame(data, columns = cols)
+# # df.to_hdf("hdftest_{}.h5".format(output_file_str), df.keys())
 
 file = open('{}.txt'.format(output_file_str), 'w')
 #cols = ["Event"] + cols

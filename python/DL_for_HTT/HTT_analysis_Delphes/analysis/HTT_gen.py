@@ -1,5 +1,5 @@
-import Delphes_to_NN.modules.store_vars as store_vars
-from Delphes_to_NN.modules.utils import DR2
+import DL_for_HTT.HTT_analysis_Delphes.modules.store_vars as store_vars
+from DL_for_HTT.HTT_analysis_Delphes.modules.utils import DR2
 from math import sin, cos
 
 def find_HTT(evt):
@@ -25,6 +25,41 @@ def find_HTT(evt):
                         return ptc, evt.Particle.At(ptc.D1), evt.Particle.At(ptc.D2)
     return None, None, None
 
+def determine_gen_channel(evt, tau1, tau2):
+    leg1 = determine_tau_channel(evt, tau1)
+    leg2 = determine_tau_channel(evt, tau1)
+    channel = leg1+leg2
+    # sort legs and channel
+    if leg1 == leg2:
+        if tau2.PT > tau1.PT:
+            tau1, tau2 = tau2, tau1
+    elif channel in ["tm", "te", "me"]:
+        leg1, leg2 = leg2, leg1
+        tau1, tau2 = tau2, tau1
+    return leg1+leg2, tau1, tau2
+
+def determine_tau_channel(evt, tau):
+    decays_PIDs = [(tau, tau.PID)]
+
+    while not any([abs(decays_PID[1]) in [12, 14, 16] for decays_PID in decays_PIDs]): # use neutrinos to check decays
+        decays_idx = [x[0].D1 for x in decays_PIDs]
+        decays_idx+= [x[0].D2 for x in decays_PIDs]
+        decays_idx.append(-1)
+        decays_idx = list(set(decays_idx))
+        decays_idx.remove(-1)
+        decays_PIDs = [(evt.Particle.At(x), evt.Particle.At(x).PID) for x in decays_idx]
+
+    decays_PIDs = list(set(decays_PID[1] for decays_PID in decays_PIDs))
+
+    if 12 in [abs(PID) for PID in decays_PIDs]:
+        return "e"
+    elif 14 in [abs(PID) for PID in decays_PIDs]:
+        return "m"
+    elif 16 in [abs(PID) for PID in decays_PIDs]:
+        return "t"
+    else:
+        import pdb; pdb.set_trace()
+    
 def find_Higgs_production_final_state(evt, Higgs):
     #Higgs_mother = evt.Particle.At(Higgs.M1)
     Higgs_first = Higgs
@@ -116,7 +151,9 @@ def HTT_analysis(evt, verbose = 0, fast=True):
     Higgs, tau1, tau2 = find_HTT(evt)
     if not Higgs :
         return output
-    #print(Higgs.PID)
+
+    output["channel"], tau1, tau2 = determine_gen_channel(evt, tau1, tau2)
+    
     store_vars.store_gen_ptc(output, "Higgs", Higgs)
     store_vars.store_gen_ptc(output, "tau1", tau1)
     store_vars.store_gen_ptc(output, "tau2", tau2)
@@ -127,6 +164,9 @@ def HTT_analysis(evt, verbose = 0, fast=True):
     MET = evt.GenMissingET[0]
     output["MET_PT"] = MET.MET
     output["MET_Phi"] = MET.Phi
+
+
+    #store_vars.store_evt_number(evt, output)
 
     if fast:
         return output
