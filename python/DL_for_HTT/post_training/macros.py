@@ -93,9 +93,13 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwar
         
         fig, ax = plt.subplots()
         #fig.suptitle(model_name)
-        plt.xlabel("Masse générée du Higgs (GeV)")
-        plt.ylabel("{} reco/gen".format(var))
-    
+        if language == 'fr':
+            plt.xlabel("Masse générée du Higgs (GeV)")
+            plt.ylabel("{} reco/gen".format(var))
+        if language=='eng':
+            plt.xlabel("Generated Higgs Mass (GeV)")
+            plt.ylabel("{} reco/gen".format(var))
+
         ax.fill_between(
             xpos, CL95s_model_do, CL68s_model_do,
             color = "yellow", alpha = .5, label = "$\pm2\sigma$",
@@ -124,7 +128,7 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwar
         fig.tight_layout()
         fig.savefig("gen_vs_reco-{}{}.png".format(prefix,var))
 
-def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language,prefix = '', **kwargs):
     channel = "tt"
 
     dR_max_gen = 0.1
@@ -225,9 +229,9 @@ def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, pre
                             
                             
         
-        model_response(df1, channel, model_name, min_mass, max_mass, prefix = prefix+"FilterBy"+filter)
+        model_response(df1, channel, model_name, min_mass, max_mass, language,prefix = prefix+"FilterBy"+filter)
 
-def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix = '', **kwargs):
     df1 = filter_channel(df, channel)
         
     medians_model = []
@@ -315,8 +319,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
         
     fig, ax = plt.subplots()
     #fig.suptitle(model_name)
-    plt.xlabel("Masse générée du Higgs (GeV)")
-    plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
+    if language == 'fr':
+        plt.xlabel("Masse générée du Higgs (GeV)")
+        plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
+    if language == 'eng':
+        plt.xlabel("Generated Higgs Mass (GeV)")
+        plt.ylabel("Prediction Mass / Generated Mass")
     
     ax.fill_between(
         xpos, CL95s_model_do, CL68s_model_do,
@@ -385,8 +393,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
     plt.clf()
     fig, ax = plt.subplots()
     #fig.suptitle(model_name)
-    plt.xlabel("Masse générée du Higgs (GeV)")
-    plt.ylabel("Prédiction du modèle - Masse générée du Higgs (GeV)")
+    if language=='fr':
+    	plt.xlabel("Masse générée du Higgs (GeV)")
+    	plt.ylabel("Prédiction du modèle - Masse générée du Higgs (GeV)")
+    if language=='eng':
+    	plt.xlabel("Generated Higgs Mass (GeV)")
+    	plt.ylabel("Predicted Mass - Generated Mass (GeV)")
     
     ax.fill_between(
         xpos, CL95s_model_diff_do, CL68s_model_diff_do,
@@ -543,7 +555,7 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, min_mass, max_mass, fixed 
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
             
-def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '', cmap="ocean_r", **kwargs):
+def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language, prefix = '', cmap="ocean_r", **kwargs):
 
     df = filter_channel(df, channel=channel)
 
@@ -574,8 +586,12 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
         print("Singular matrix?")
 
     ax.plot(answers, answers, color="C3")
-    plt.xlabel("Masse générée du Higgs (GeV)")
-    plt.ylabel("Prédicition du modèle")
+    if language=='fr':
+	    plt.xlabel("Masse générée du Higgs (GeV)")
+	    plt.ylabel("Prédicition du modèle")
+    if language=='eng':
+	    plt.xlabel("Generated Higgs Mass (GeV)")
+	    plt.ylabel("Prediction of the model")
     
     #plt.show()
     plt.xlim(min_mass, max_mass)
@@ -594,8 +610,12 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
         print("Singular matrix?")
 
     ax.plot([min_mass, max_mass], [1,1], color='C3')
-    plt.xlabel("Masse générée du Higgs (GeV)")
-    plt.ylabel("Prédicition du modèle / Masse générée du Higgs (1/GeV)")
+    if language=='fr':
+    	plt.xlabel("Masse générée du Higgs (GeV)")
+    	plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
+    if language=='eng':
+    	plt.xlabel("Generated Higgs Mass (GeV)")
+    	plt.ylabel("Prediction Mass / Generated Mass")
     
     #plt.show()
     plt.xlim(min_mass, max_mass)
@@ -604,7 +624,7 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, prefix = '
     fig.tight_layout()
     fig.savefig("predicted_on_answers-{}{}.png".format(prefix, model_name))
 
-def predictions_distributions(df_all, channel, model_name, prefix = '', **kwargs):
+def predictions_distributions(df_all, channel, model_name, language,prefix = '', **kwargs):
     mass_points_GeV = [90, 125, 300, 500, 700, 800]
     width_GeV = 1.0
     for data_category in ["is_train", "is_valid", "is_test"]:

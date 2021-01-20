@@ -27,6 +27,8 @@ parser.add_argument("--variables_list",
                     default = 'default')
 parser.add_argument("--model_inputs",
                     default = None)
+parser.add_argument("--language",
+                    default = "fr")
 
 args = parser.parse_args()
 
@@ -112,6 +114,7 @@ plotting_parameters = {
     'prefix' : args.prefix,
     'variables_list' : args.variables_list,
     'subsample' : args.subsample,
+    'language' : args.language,
 }
 
 for plot in args.plots:
