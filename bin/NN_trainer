@@ -130,6 +130,19 @@ loss_fcts_for_name['lm'] = 'lm'
 loss_fcts_str_to_func['low_mass'] = low_mass
 loss_fcts_str_to_func['lm'] = low_mass
 
+def mmape1(y_true, y_pred):
+
+    # apply mape
+    loss = tf.keras.losses.MAPE(y_true, y_pred)
+
+    N = 4
+    mass_cut = 400.0
+
+    return loss * (y_true/mass_cut + N * (mass_cut/y_true) )
+
+loss_fcts_for_name['mmape1'] = 'mmape1'
+loss_fcts_str_to_func['mmape1'] = mmape1
+
 def new_loss(y_true, y_pred):
 
     old_loss = kb.square(y_pred - y_true)
