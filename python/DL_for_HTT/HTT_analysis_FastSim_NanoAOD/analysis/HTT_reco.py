@@ -505,6 +505,12 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     for k in range(int(min([2, len(good_jets_list)]))):
         store_vars.store_jet(evt, output, "jet{}".format(k+1), good_jets_list[k])
 
+    # Up to two leading b-jets
+    store_vars.store_none(output, "bjet1", type="jet")
+    store_vars.store_none(output, "bjet2", type="jet")
+    for k in range(int(min([2, len(bjets_list)]))):
+        store_vars.store_jet(evt, output, "bjet{}".format(k+1), bjets_list[k])
+
     # Remaining_Jets (other jets) computation and storage
     remaining_jets_px = 0
     remaining_jets_py = 0
