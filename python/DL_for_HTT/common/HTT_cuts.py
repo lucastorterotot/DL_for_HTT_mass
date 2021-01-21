@@ -1,5 +1,7 @@
 # HTT analysis cuts
 
+allowed_Tau_decayMode = [0, 1, 2, 10, 11]
+
 cut_tauh_tt_pt = 40
 cut_tauh_tt_eta = 2.1
 cut_tauh_tt_dz = 0.2

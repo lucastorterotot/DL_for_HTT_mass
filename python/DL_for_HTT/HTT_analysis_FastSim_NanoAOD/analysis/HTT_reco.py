@@ -33,7 +33,11 @@ def select_tauh_tt(evt, index):
         abs(eta) < common_cuts.cut_tauh_tt_eta,
         abs(dz) < common_cuts.cut_tauh_tt_dz,
         abs(charge) == 1.,
-        evt.GetLeaf("Tau_idDecayMode").GetValue(index),
+        evt.GetLeaf("Tau_idDecayModeNewDMs").GetValue(index),
+        evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 2,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 1,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
         ])
 
 def select_tauh_mt(evt, index):
@@ -46,11 +50,29 @@ def select_tauh_mt(evt, index):
         abs(eta) <= common_cuts.cut_tauh_mt_eta,
         abs(dz) < common_cuts.cut_tauh_mt_dz,
         abs(charge) == 1.,
-        evt.GetLeaf("Tau_idDecayMode").GetValue(index),
+        evt.GetLeaf("Tau_idDecayModeNewDMs").GetValue(index),
+        evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 2,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 8,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
         ])
 
 def select_tauh_et(evt, index):
-    return select_tauh_mt(evt, index)
+    pT = evt.GetLeaf("Tau_pt").GetValue(index)
+    eta = evt.GetLeaf("Tau_eta").GetValue(index)
+    dz = evt.GetLeaf("Tau_dz").GetValue(index)
+    charge = evt.GetLeaf("Tau_charge").GetValue(index)
+    return all([
+        pT >= common_cuts.cut_tauh_et_pt,
+        abs(eta) <= common_cuts.cut_tauh_et_eta,
+        abs(dz) < common_cuts.cut_tauh_et_dz,
+        abs(charge) == 1.,
+        evt.GetLeaf("Tau_idDecayModeNewDMs").GetValue(index),
+        evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 32,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 1,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
+        ])
 
 def select_muon_mt(evt, index):
     pT = evt.GetLeaf("Muon_pt").GetValue(index)
