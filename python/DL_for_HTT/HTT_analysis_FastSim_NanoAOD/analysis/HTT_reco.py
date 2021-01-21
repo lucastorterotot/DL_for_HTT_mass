@@ -315,6 +315,19 @@ def find_tau_DM(tau):
     return DM
 
 def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0, cutflow_stats = {}):
+
+    if not all([
+            evt.GetLeaf("Flag_goodVertices").GetValue(0),
+            evt.GetLeaf("Flag_globalSuperTightHalo2016Filter").GetValue(0),
+            evt.GetLeaf("Flag_HBHENoiseFilter").GetValue(0),
+            evt.GetLeaf("Flag_HBHENoiseIsoFilter").GetValue(0),
+            evt.GetLeaf("Flag_EcalDeadCellTriggerPrimitiveFilter").GetValue(0),
+            evt.GetLeaf("Flag_BadPFMuonFilter").GetValue(0),
+            evt.GetLeaf("Flag_eeBadScFilter").GetValue(0),
+            evt.GetLeaf("Flag_ecalBadCalibFilter").GetValue(0),
+    ]):
+        return {}, cutflow_stats
+    
     # retreive objects for event
     nElectron = int(evt.GetLeaf("nElectron").GetValue(0))
     nMuon = int(evt.GetLeaf("nMuon").GetValue(0))
