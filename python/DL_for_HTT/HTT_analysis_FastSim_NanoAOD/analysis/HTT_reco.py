@@ -510,6 +510,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     store_vars.store_none(output, "bjet2", type="jet")
     for k in range(int(min([2, len(bjets_list)]))):
         store_vars.store_jet(evt, output, "bjet{}".format(k+1), bjets_list[k])
+    output["Nbjets"] = len(bjets_list)
 
     # Remaining_Jets (other jets) computation and storage
     remaining_jets_px = 0
