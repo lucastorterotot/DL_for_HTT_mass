@@ -18,7 +18,7 @@ def tauh_vs_jet_filter(evt, index, good_jets_list):
 
         Delta_R2 = Delta_eta**2 + Delta_phi**2
 
-        if Delta_R2 < 0.4**2:
+        if Delta_R2 < 0.5**2:
             return False
 
     return True
@@ -265,6 +265,31 @@ def select_electron(evt, ele_idx, channel):
     elif channel == "em":
         return select_electron_em(evt, ele_idx)
 
+def select_jet_20(evt, index):
+    pT = evt.GetLeaf("Jet_pt").GetValue(index)
+    eta = evt.GetLeaf("Jet_eta").GetValue(index)
+    return all([
+        pT > 20,
+        abs(eta) < 4.7,
+    ])
+
+def select_jet_30(evt, index):
+    pT = evt.GetLeaf("Jet_pt").GetValue(index)
+    eta = evt.GetLeaf("Jet_eta").GetValue(index)
+    return all([
+        pT > 30,
+        abs(eta) < 4.7,
+    ])
+
+def select_jet_B(evt, index):
+    pT = evt.GetLeaf("Jet_pt").GetValue(index)
+    eta = evt.GetLeaf("Jet_eta").GetValue(index)
+    deepB = evt.GetLeaf("Jet_btagDeepB").GetValue(index)
+    return all([
+        pT > 20,
+        abs(eta) < 2.5,
+        deepB > 0.3033,
+    ])
 
 names_to_letter = {
     "Electrons" : "e",
@@ -305,6 +330,15 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
 
     # jet ID tight lepton veto
     good_jets_list = [idx for idx in good_jets_list if evt.GetLeaf("Jet_jetId").GetValue(idx) >= 6]
+
+    # jet 20
+    jets20_list = [idx for idx in good_jets_list if select_jet_20(evt, idx)]
+
+    # b jets
+    bjets_list = [idx for idx in good_jets_list if select_jet_B(evt, idx)]
+    jets30_list = [idx for idx in good_jets_list if select_jet_30(evt, idx)]
+
+    good_jets_list = jets30_list+bjets_list
 
     # select leptons for accepted channels
     selections = {}
