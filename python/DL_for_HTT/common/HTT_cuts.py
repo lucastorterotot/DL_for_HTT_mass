@@ -6,7 +6,7 @@ cut_tauh_tt_pt = 40
 cut_tauh_tt_eta = 2.1
 cut_tauh_tt_dz = 0.2
 
-cut_tauh_mt_pt = 23
+cut_tauh_mt_pt = 30
 cut_tauh_mt_eta = 2.3
 cut_tauh_mt_dz = cut_tauh_tt_dz
 
