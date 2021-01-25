@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
+import DL_for_HTT.post_training.utils as utils
+import DL_for_HTT.post_training.macros as macros
+
+from argparse import ArgumentParser
+usage = "usage: prog [options] <NN JSON file> <NN input file>"
+parser = ArgumentParser(usage=usage)
+parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
+parser.add_argument("--events", required = True, type=str, help="h5 file containing events.")
+parser.add_argument("--prefix",
+                    default = '')
+parser.add_argument("--min_mass",
+                  default = NN_default_settings.min_mass)
+parser.add_argument("--max_mass",
+                  default = NN_default_settings.max_mass)
+parser.add_argument("--channel",
+                  default = "inclusive")
+parser.add_argument("--subsample",
+                  default = 'test')
+parser.add_argument("--model_inputs",
+                    default = None)
+
+args = parser.parse_args()
+
+args.min_mass = float(args.min_mass)
+args.max_mass = float(args.max_mass)
+
+if args.model_inputs == None and args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
+    import sys
+    sys.path.append(args.model.rstrip(args.model.split('/')[-1]))
+    import inputs_for_models_in_this_dir as model_inputs_file
+    model_inputs = model_inputs_file.inputs
+elif args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
+    model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
+    model_inputs = model_inputs_file.inputs
+else:
+    model_inputs = []
+
+if args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
+    loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
+else:
+    loaded_model, model_type, model_name = None, None, args.model
+    if model_name == "None":
+        model_name = "mTtot_reco"
+
+df = utils.load_h5_file_and_predict(
+    args.events,
+    loaded_model, model_type, model_name,
+    inputs = model_inputs,
+    target = NN_default_settings.target,
+    only=args.subsample,
+)
+
+if args.subsample == 'all':
+    df_filtered = df.loc[(df['is_train']==1) | (df['is_valid']==1) | (df['is_test']==1)]
+elif args.subsample in ['train', 'valid', 'test']:
+    df_filtered = df.loc[df['is_{}'.format(args.subsample)]==1]
+else:
+    print("Using ALL available data for testing!")
+
+if args.prefix != '':
+    if args.prefix[-1] != '-':
+        args.prefix += '-'
+
+if args.subsample != "test":
+    args.prefix += args.subsample + "-sample-"
+    
+testing_parameters = {
+    'df' : df_filtered,
+    'channel' : args.channel,
+    'model' : loaded_model,
+    'model_name' : model_name,
+    'min_mass' : args.min_mass,
+    'max_mass' : args.max_mass,
+    'inputs' : model_inputs,
+    'target' : NN_default_settings.target,
+    'prefix' : args.prefix,
+    'subsample' : args.subsample,
+}
+
+os.system('echo "Tests results" > {}.perfs'.format(testing_parameters["model_name"]))
+median_diff_full = 0
+CL68_width_full = 0
+CL95_width_full = 0
+for min_max_mass in [[0, 80, "low"], [80, 600, "medium"], [600, 800, "high"]]:
+    testing_parameters['min_mass'] = min_max_mass[0]
+    testing_parameters['max_mass'] = min_max_mass[1]
+    median_diff, CL68_width, CL95_width = utils.tester(**testing_parameters)
+    median_diff_full += median_diff
+    CL68_width_full += CL68_width
+    CL95_width_full += CL95_width
+
+    os.system('echo "'+min_max_mass[2]+'_median_diff '+str(median_diff)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+    os.system('echo "'+min_max_mass[2]+'_CL68_width '+str(CL68_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+    os.system('echo "'+min_max_mass[2]+'_CL95_width '+str(CL95_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+
+os.system('echo "'+'full'+'_median_diff '+str(median_diff)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+os.system('echo "'+'full'+'_CL68_width '+str(CL68_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+os.system('echo "'+'full'+'_CL95_width '+str(CL95_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+
+
+

@@ -5,6 +5,8 @@ import pandas as pd
 
 import DL_for_HTT.common.NN_settings as NN_default_settings
 
+import DL_for_HTT.post_training.macros as macros
+
 def load_model_from_json(input_json):
     model_name = input_json.split('/')[-1].replace('.json', '')
     if  model_name[:3] == 'XGB':
@@ -104,8 +106,11 @@ def load_model_from_json(input_json):
         )
     return loaded_model, model_type, model_name
 
-def load_h5_file_and_predict(input_h5, loaded_model, model_type, model_name, inputs = NN_default_settings.inputs, target = NN_default_settings.target):
+def load_h5_file_and_predict(input_h5, loaded_model, model_type, model_name, only=None, inputs = NN_default_settings.inputs, target = NN_default_settings.target):
     df = pd.read_hdf(input_h5)
+
+    if only != None:
+        df = df.loc[df['is_{}'.format(only)] == 1]
     
     if "N_neutrinos_reco" in inputs:
         df["N_neutrinos_reco"] = 2*np.ones(len(df["channel_reco"]), dtype='int')
@@ -146,3 +151,64 @@ def make_gaussian_fit(ax_hist):
     x, y = (ax_hist[1][1:]+ax_hist[1][:-1])/2, ax_hist[0]
     popt,pcov = curve_fit(gaus, x, y, p0=[1,1,1])
     return x, popt
+
+def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = None, **kwargs):
+
+    df1 = macros.filter_channel(df, channel)
+        
+    medians_model = []
+    CL68s_model_up = []
+    CL68s_model_do = []
+    CL95s_model_up = []
+    CL95s_model_do = []
+    xpos = []
+    
+    mHcuts = np.arange(min_mass, max_mass, 10) # [.200, .350]
+    mHranges = [[min_mass, mHcuts[0]]]
+    for mHcut in mHcuts[1:]:
+        mHranges.append([mHranges[-1][1], mHcut])
+    mHranges.append([mHranges[-1][1], max_mass])
+    for mHrange in mHranges:
+        mHrange[0] = np.round(mHrange[0],3)
+        mHrange[1] = np.round(mHrange[1],3)
+        
+        df2 = df1.loc[(df1[target] >= mHrange[0]) & (df1[target] <= mHrange[1])]
+        
+        predictions = np.r_[df2["predictions"]]
+        if len(predictions) == 0:
+            continue
+
+        xpos.append((mHrange[1]+mHrange[0])/2)
+
+        mHs = np.r_[df2[target]]
+        values_model = predictions/mHs
+        
+        values_model = [v for v in values_model]
+        values_model.sort()
+
+        try:
+            medians_model.append(values_model[int(len(values_model)/2)])
+        except:
+            import pdb; pdb.set_trace()
+
+        above_model = [v for v in values_model if v >= medians_model[-1]]
+        below_model = [v for v in values_model if v <= medians_model[-1]]
+
+        above_model.sort()
+        below_model.sort(reverse = True)
+
+        CL68s_model_up.append(above_model[int(0.68 * len(above_model))])
+        CL68s_model_do.append(below_model[int(0.68 * len(below_model))])
+        CL95s_model_up.append(above_model[int(0.95 * len(above_model))])
+        CL95s_model_do.append(below_model[int(0.95 * len(below_model))])
+
+    median_diff = 0
+    CL68_width = 0
+    CL95_width = 0
+
+    for k in range(len(medians_model)):
+        median_diff += abs(medians_model[k] - 1)
+        CL68_width += CL68s_model_up[k] - CL68s_model_do[k]
+        CL95_width += CL95s_model_up[k] - CL95s_model_do[k]
+
+    return median_diff, CL68_width, CL95_width
