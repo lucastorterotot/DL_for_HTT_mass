@@ -88,21 +88,29 @@ os.system('echo "Tests results" > {}.perfs'.format(testing_parameters["model_nam
 median_diff_full = 0
 CL68_width_full = 0
 CL95_width_full = 0
+CL68_calibr_width_full = 0
+CL95_calibr_width_full = 0
 for min_max_mass in [[0, 80, "low"], [80, 600, "medium"], [600, 800, "high"]]:
     testing_parameters['min_mass'] = min_max_mass[0]
     testing_parameters['max_mass'] = min_max_mass[1]
-    median_diff, CL68_width, CL95_width = utils.tester(**testing_parameters)
+    median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width = utils.tester(**testing_parameters)
     median_diff_full += median_diff
     CL68_width_full += CL68_width
     CL95_width_full += CL95_width
+    CL68_calibr_width_full += CL68_calibr_width
+    CL95_calibr_width_full += CL95_calibr_width
 
     os.system('echo "'+min_max_mass[2]+'_median_diff '+str(median_diff)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
     os.system('echo "'+min_max_mass[2]+'_CL68_width '+str(CL68_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
     os.system('echo "'+min_max_mass[2]+'_CL95_width '+str(CL95_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+    os.system('echo "'+min_max_mass[2]+'_CL68_calibr_width '+str(CL68_calibr_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+    os.system('echo "'+min_max_mass[2]+'_CL95_calibr_width '+str(CL95_calibr_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
 
 os.system('echo "'+'full'+'_median_diff '+str(median_diff)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
 os.system('echo "'+'full'+'_CL68_width '+str(CL68_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
 os.system('echo "'+'full'+'_CL95_width '+str(CL95_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+os.system('echo "'+'full'+'_CL68_calibr_width '+str(CL68_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
+os.system('echo "'+'full'+'_CL95_calibr_width '+str(CL95_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
 
 
 

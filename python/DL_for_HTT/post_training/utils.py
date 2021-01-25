@@ -205,10 +205,14 @@ def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = No
     median_diff = 0
     CL68_width = 0
     CL95_width = 0
+    CL68_calibr_width = 0
+    CL95_calibr_width = 0
 
     for k in range(len(medians_model)):
         median_diff += abs(medians_model[k] - 1)
         CL68_width += CL68s_model_up[k] - CL68s_model_do[k]
         CL95_width += CL95s_model_up[k] - CL95s_model_do[k]
+        CL68_calibr_width += (CL68s_model_up[k] - CL68s_model_do[k])/medians_model[k]
+        CL95_calibr_width += (CL95s_model_up[k] - CL95s_model_do[k])/medians_model[k]
 
-    return median_diff, CL68_width, CL95_width
+    return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width
