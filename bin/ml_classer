@@ -6,6 +6,7 @@ import os
 from optparse import OptionParser
 usage = "usage: %prog [options] <perfs>"
 parser = OptionParser(usage=usage)
+parser.add_option("-t", "--top", dest = "top", type=float, default=10)
 # parser.add_option("-o", "--output", dest = "output",
 #                   default = "NN")
 
@@ -19,7 +20,7 @@ for model_perf in args:
     for region in ["low", "medium", "high", "full"]:
         for perf in ["median_diff", "CL68_width", "CL95_width", "CL68_calibr_width", "CL95_calibr_width"]:
             key="_".join([region, perf])
-            if "low_CL95" in key:
+            if "CL95" in key:
                 continue
             if key not in classements:
                 classements[key] = []
@@ -36,21 +37,68 @@ print("Classements faits. Filtrage en cours ...")
 
 N_models = len(args)
 
-# Keep all models in top 5% for each classes
+# Keep all models in top X% for each classes
 Kept = set()
 for key in classements:
-    for model in classements[key][:int(len(classements[key])*0.05)+1]:
+    for model in classements[key][:int(len(classements[key])*options.top/100)+1]:
         Kept.add(model)
 
-for model in [model for model in Kept]:
-    if any([classements[key].index(model)+1 > N_models*0.75 for key in classements]):
+print("Top {}% filtering:\n\t{}/{} left ({}%)".format(options.top, len(Kept), N_models, int(100*len(Kept)/N_models)))
+
+# Remove large dispersion at low mass
+for model in [models for models in Kept]:
+    if classements["low_CL68_calibr_width"].index(model)+1 > N_models*options.top/100 and classements["low_median_diff"].index(model)+1 > N_models*options.top/100:
         Kept.remove(model)
-        
+
+print("Large tails at low mass filtering:\n\t{}/{} left ({}%)".format(len(Kept), N_models, int(100*len(Kept)/N_models)))
+
+# Remove biaised models
+for model in [models for models in Kept]:
+    if classements["medium_median_diff"].index(model)+1 > N_models*options.top/100:
+        Kept.remove(model)
+
+print("Biaised models filtering:\n\t{}/{} left ({}%)".format(len(Kept), N_models, int(100*len(Kept)/N_models)))
+
+# Remove any model being in revsersed top
+for model in [models for models in Kept]:
+    if any([classements[key].index(model)+1 > N_models*(1-options.top/100) for key in classements]):
+        Kept.remove(model)
+
+print("Bottom filtering:\n\t{}/{} left ({}%)".format(len(Kept), N_models, int(100*len(Kept)/N_models)))
+    
+# restrict to 10 models
+max_cuts = {}
+for key in classements:
+    max_cuts[key] = 0
+for model in Kept:
+    for key in classements:
+        if models_perfs[model][key] > max_cuts[key]:
+            max_cuts[key] = models_perfs[model][key]
+
+while len(Kept) > 10:
+    for key in max_cuts:
+        max_cuts[key] *= 0.99
+    for model in [models for models in Kept]:
+        if any(
+                [
+                    models_perfs[model][key] > max_cuts[key] for key in max_cuts
+                    ]
+                ):
+            Kept.remove(model)
+    print(len(Kept))
+    
 for model in Kept:
     print(model)
     for key in classements:
-        print("    {} : {}/{}".format(key, classements[key].index(model)+1, N_models))
+        print("    {} : {}/{} ({}%)".format(key, classements[key].index(model)+1, N_models, int((classements[key].index(model)+1)/N_models*100)))
 
-print(len(Kept))
-import pdb; pdb.set_trace()
 
+os.system("rm -rf ~/ML/Best_models_from_ml_classer.out")
+Kept = [model for model in Kept]
+Kept.sort()
+for model in Kept:
+    os.system(
+        'echo "{}" >> ~/ML/Best_models_from_ml_classer.out'.format(
+            model.replace("perfs", "json")
+        )
+)
