@@ -377,12 +377,19 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
     NN_model.add(Dense(int(Nneurons_sequence[0]), activation=activation, kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
 
     for _Nneurons in Nneurons_sequence[1:]:
-        NN_model.add(Dense(int(_Nneurons), activation=activation, kernel_constraint=max_norm(my_max_norm)))
+        NN_model.add(
+            Dense(
+                int(_Nneurons),
+                activation = activation,
+                kernel_constraint = max_norm(my_max_norm),
+                kernel_initializer = w_init_mode,
+            )
+        )
             
     NN_model.add(Dense(1, activation="linear"))
     print(NN_model.summary())
     NN_model.compile(loss=loss_fcts_str_to_func[loss],
-                     optimizer=optimizers.Adam(),
+                     optimizer=optimizers_dict[optimizer_name](),
                      metrics=[keras.metrics.mae])
     
     # Train model
