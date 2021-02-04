@@ -31,7 +31,7 @@ parser.add_option("-c", "--channels", dest = "channels",
 parser.add_option("-a", "--activation", dest = "activation",
                   default = NN_default_settings.activation)
 parser.add_option("-i", "--model_inputs", dest = "model_inputs",
-                  default = 'with_METcov_j1j2jr_Npu')
+                  default = NN_default_settings.default_model_inputs_file)
 parser.add_option("-B", "--batch_size", dest = "batch_size",
                   default =  2048)
 

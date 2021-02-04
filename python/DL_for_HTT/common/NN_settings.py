@@ -12,9 +12,10 @@ Nlayers = 3
 Nneurons = 1000
 
 # NN training
-loss = "mse"
-optimizer = "Adadelta"
-w_init_mode = "uniform"
+loss = "mapesqrt_b"
+optimizer = "Adam"
+w_init_mode = "glorot_uniform"
+activation = "softplus"
 
 # Dataset splitting
 train_frac = 0.7
@@ -23,35 +24,10 @@ random_seed = 2020
 
 # Target and inputs
 target = "Higgs_mass_gen"
-inputs = [
-    "tau1_pt_reco",
-    "tau1_eta_reco",
-    "tau1_phi_reco",
-    "tau2_pt_reco",
-    "tau2_eta_reco",
-    "tau2_phi_reco",
-    # "jet1_pt_reco",
-    # "jet1_eta_reco",
-    # "jet1_phi_reco",
-    # "jet2_pt_reco",
-    # "jet2_eta_reco",
-    # "jet2_phi_reco",
-    # "remaining_jets_pt_reco",
-    # "remaining_jets_eta_reco",
-    # "remaining_jets_phi_reco",
-    # "remaining_jets_N_reco",
-    "MET_pt_reco",
-    "MET_phi_reco",
-    # "MET_covXX_reco",
-    # "MET_covXY_reco",
-    # "MET_covYY_reco",
-    # "MET_significance_reco",
-    "mT1_reco",
-    "mT2_reco",
-    "mTtt_reco",
-    "mTtot_reco",
-    # "PU_npvsGood_reco",
-    ]
+
+default_model_inputs_file = "PuppiMET_with_METcov_j1j2jr_Nnu_Npu"
+model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(default_model_inputs_file), fromlist=[''])
+inputs = model_inputs_file.inputs
 
 inputs_from_Heppy = {
     "tau1_pt_reco" : "l1_pt",
