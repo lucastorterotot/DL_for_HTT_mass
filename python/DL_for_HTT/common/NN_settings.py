@@ -2,7 +2,7 @@
 
 # Higgs mass range in GeV
 min_mass = 50
-max_mass = 800
+max_mass = 1000
 
 # channels to process
 channels = "inclusive"
