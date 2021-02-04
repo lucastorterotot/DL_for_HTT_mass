@@ -7,8 +7,8 @@ from optparse import OptionParser
 usage = "usage: %prog [options] <perfs>"
 parser = OptionParser(usage=usage)
 parser.add_option("-t", "--top", dest = "top", type=float, default=10)
-# parser.add_option("-o", "--output", dest = "output",
-#                   default = "NN")
+parser.add_option("-o", "--output", dest = "output",
+                  default = None)
 
 (options,args) = parser.parse_args()
 
@@ -16,15 +16,16 @@ models_perfs = {}
 classements = {}
 
 for model_perf in args:
-    models_perfs[model_perf] = {}
-    for region in ["low", "medium", "high", "full"]:
-        for perf in ["median_diff", "CL68_width", "CL95_width", "CL68_calibr_width", "CL95_calibr_width"]:
-            key="_".join([region, perf])
-            if "CL95" in key:
-                continue
-            if key not in classements:
-                classements[key] = []
-            models_perfs[model_perf][key] = float(os.popen('grep {} {}'.format(key, model_perf)).readlines()[0][:-1].split(" ")[1])
+    if not "-SGD-" in model_perf or "ADAM_glorot_uniform" in model_perf:
+        models_perfs[model_perf] = {}
+        for region in ["low", "medium", "high", "full"]:
+            for perf in ["median_diff", "CL68_width", "CL95_width", "CL68_calibr_width", "CL95_calibr_width"]:
+                key="_".join([region, perf])
+                if "CL95" in key:
+                    continue
+                if key not in classements:
+                    classements[key] = []
+                models_perfs[model_perf][key] = float(os.popen('grep {} {}'.format(key, model_perf)).readlines()[0][:-1].split(" ")[1])
 
 for key in classements:
     classements[key] = sorted(
@@ -92,13 +93,14 @@ for model in Kept:
     for key in classements:
         print("    {} : {}/{} ({}%)".format(key, classements[key].index(model)+1, N_models, int((classements[key].index(model)+1)/N_models*100)))
 
-
-os.system("rm -rf ~/ML/Best_models_from_ml_classer.out")
+output_file = "~/ML/Best_models_from_ml_classer{}.out".format("" if options.output == None else "-"+options.output)
+os.system("rm -rf {}".format(output_file))
 Kept = [model for model in Kept]
 Kept.sort()
 for model in Kept:
     os.system(
-        'echo "{}" >> ~/ML/Best_models_from_ml_classer.out'.format(
-            model.replace("perfs", "json")
+        'echo "{}" >> {}'.format(
+            model.replace("perfs", "json"),
+            output_file
         )
 )
