@@ -431,6 +431,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
     fig.savefig("model_response_diff-{}{}.png".format(prefix,model_name))
 
     plt.xlim(min_mass, 200)
+    plt.ylim(-100, 100)
     plt.xticks(np.arange(min_mass, 201, step=10))
     fig.savefig("model_response_diff_lowmass-{}{}.png".format(prefix,model_name))
 
