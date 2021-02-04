@@ -471,6 +471,43 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
 
     plt.close('all')
 
+def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+    df1 = filter_channel(df, channel)
+
+    min_mass, max_mass = 0, 1000
+
+    bins_x = [k for k in range(min_mass, max_mass, 10)]
+    bins_y = [k for k in range(min_mass, max_mass, 10)]
+    vmax = 0.25
+    
+    fig, ax = plt.subplots()
+    ax.hist2d(
+        df1[target],
+        df1["predictions"],
+        bins = [bins_x, bins_y],
+        weights = df1["sample_weight"],
+        density = True,
+        cmap = "ocean_r",
+        vmax = vmax/(len(bins_x)*len(bins_y)),
+    )
+
+    plt.xlabel("Masse générée du Higgs (GeV)")
+    plt.ylabel("Prédiction du modèle (GeV)")
+        
+    plt.plot([min_mass, max_mass], [min_mass, max_mass], color='C3')    
+
+    plt.ylim(min_mass, max_mass)
+    plt.xlim(min_mass, max_mass)
+
+    fig.tight_layout()
+    fig.savefig("predicted_vs_answer_histo-{}{}.png".format(prefix,model_name))
+
+    plt.ylim(min_mass, 200)
+    plt.xlim(min_mass, 200)
+
+    fig.tight_layout()
+    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}.png".format(prefix,model_name))
+
 def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, min_mass, max_mass):
     for bottleneck in bottleneck_list:
         for Nneurons in Nneurons_list:
@@ -704,4 +741,5 @@ available_plots = {
     'predictions_distributions' : predictions_distributions,
     'gen_vs_reco' : gen_vs_reco,
     'model_response_tau_filtered' : model_response_tau_filtered,
+    'predicted_vs_answer_histo' : predicted_vs_answer_histo,
 }
