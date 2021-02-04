@@ -225,10 +225,10 @@ def mape_tails(y_true, y_pred):
 
     loss = tf.abs(
         (y_true - y_pred)/y_true * where(
-            kb.greater_equal(y_pred - y_true, 800 - y_pred),
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
             0.0,
             where(
-                kb.greater_equal(y_true - y_pred, y_pred - 50),
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
                 0.1,
                 1.0,
             )
@@ -239,6 +239,50 @@ def mape_tails(y_true, y_pred):
 
 loss_fcts_for_name['mapet'] = 'mapet'
 loss_fcts_str_to_func['mapet'] = mape_tails
+
+def mapee_tails(y_true, y_pred):
+
+    # apply mape but
+    # remove punishment for boundaries
+
+    loss = tf.abs(
+        (y_true - y_pred)/(y_true**0.5) * where(
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
+            0.0,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
+                0.1,
+                1.0,
+            )
+        )
+    )
+
+    return tf.reduce_mean(loss, axis=-1)
+
+loss_fcts_for_name['mapeet'] = 'mapeet'
+loss_fcts_str_to_func['mapeet'] = mapee_tails
+
+def mae_tails(y_true, y_pred):
+
+    # apply mae but
+    # remove punishment for boundaries
+
+    loss = tf.abs(
+        (y_true - y_pred) * where(
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
+            0.0,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
+                0.1,
+                1.0,
+            )
+        )
+    )
+
+    return tf.reduce_mean(loss, axis=-1)
+
+loss_fcts_for_name['maet'] = 'maet'
+loss_fcts_str_to_func['maet'] = mae_tails
 
 # optimizers
 
