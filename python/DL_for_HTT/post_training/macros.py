@@ -231,6 +231,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
     df1 = filter_channel(df, channel)
         
     medians_model = []
+    averages = []
+    averages_diff = []
     CL68s_model_up = []
     CL68s_model_do = []
     CL95s_model_up = []
@@ -280,6 +282,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
         # values_mTtot.sort()
 
         try:
+            averages.append(np.mean(values_model))
+            averages_diff.append(np.mean(values_model_diff))
             medians_model.append(values_model[int(len(values_model)/2)])
             medians_model_diff.append(values_model_diff[int(len(values_model_diff)/2)])
             # medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
@@ -334,6 +338,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
         xpos, medians_model, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+    )
+    ax.errorbar(
+        xpos, averages, xerr = xerr,
+        marker='+', markersize=5, linewidth=0, elinewidth=1,
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = "Moyenne",
     )
     # ax.errorbar(
     #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
@@ -404,6 +413,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, prefix = '', **k
         xpos, medians_model_diff, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+    )
+    ax.errorbar(
+        xpos, averages_diff, xerr = xerr,
+        marker='+', markersize=4, linewidth=0, elinewidth=1,
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = "Moyenne",
     )
     
     plt.plot([min_mass, max_mass], [0,0], color='C3')    
