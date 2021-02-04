@@ -218,8 +218,27 @@ def mape_upper_tails(y_true, y_pred):
 
     return loss
 
-loss_fcts_for_name['mapeut'] = 'mapeut'
-loss_fcts_str_to_func['mapeut'] = mape_upper_tails
+def mape_tails(y_true, y_pred):
+
+    # apply mape but
+    # remove punishment for boundaries
+
+    loss = tf.abs(
+        (y_true - y_pred)/y_true * where(
+            kb.greater_equal(y_pred - y_true, 800 - y_pred),
+            0.0,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - 50),
+                0.1,
+                1.0,
+            )
+        )
+    )
+
+    return tf.reduce_mean(loss, axis=-1)
+
+loss_fcts_for_name['mapet'] = 'mapet'
+loss_fcts_str_to_func['mapet'] = mape_tails
 
 # optimizers
 
