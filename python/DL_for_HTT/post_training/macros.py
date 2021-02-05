@@ -14,6 +14,60 @@ from xgboost import plot_importance
 plt.rcParams["figure.figsize"] = [7, 7]
 plt.rcParams['axes.formatter.use_locale'] = True
 
+labels = {
+    'GenHiggsMassGeV' : {
+        'fr' : "Masse générée du Higgs (GeV)",
+        'en' : "Generated Higgs Mass (GeV)",
+    },
+    'ModelPredGeV' : {
+        'fr' : "Prédiction du modèle (GeV)",
+        'en' : "Predicted Mass (GeV)",
+    },
+    'median' : {
+        'fr' : "Médiane",
+        'en' : "Median",
+    },
+    'average' : {
+        'fr' : "Moyenne",
+        'en' : "Average",
+    },
+    'Pred_on_HiggsGenMass' : {
+        'fr' : "Prédiction du modèle / Masse générée du Higgs",
+        'en' : "Predicted Mass / Generated Mass",
+    },
+    'Pred_minus_HiggsGenMassGeV' : {
+        'fr' : "Prédiction du modèle - Masse générée du Higgs (GeV)",
+        'en' : "Predicted Mass - Generated Mass (GeV)",
+    },
+    'Calibr_response' : {
+        'fr' : "Réponse calibrée du modèle",
+        'en' : "Calibrated Model Response",
+    },
+    'Nevents' : {
+        'fr' : "Nombre d'événements",
+        'en' : 'N events',
+    },
+    "Probability" : {
+        'fr' : 'Probabilité',
+        'en' : "Probability",
+    },
+    'Score' : {
+        'fr' : 'Score',
+        'en' : 'Score',
+    },
+    'Variable' : {
+        'fr' : 'Variable',
+        'en' : 'Variable',
+    },
+}
+
+labels["Higgs_mass_gen"] = labels["GenHiggsMassGeV"]
+
+vars_with_y_log_scale = [
+    'tau1_pt_reco',
+    'tau2_pt_reco',
+]
+
 def filter_channel(df, channel = None):
     df1 = df
     if channel in set(df['channel_reco']):
@@ -97,14 +151,7 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_la
             
         fig, ax = plt.subplots()
         #fig.suptitle(model_name)
-        if language == 'fr':
-            plt.xlabel("Masse générée du Higgs (GeV)")
-            median_label = "Médiane"
-        elif language=='en':
-            plt.xlabel("Generated Higgs Mass (GeV)")
-            median_label = "Median"
-        else:
-            raise Exception ("Language not available")
+        plt.xlabel(labels["GenHiggsMassGeV"][language])
         plt.ylabel("{} reco/gen".format(var))
 
         ax.fill_between(
@@ -122,7 +169,7 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_la
         ax.errorbar(
             xpos, medians_model, xerr = xerr, #yerr = sigmas,
             marker='.', markersize=4, linewidth=0, elinewidth=1,
-            fmt=' ', capsize = 3, capthick = 0, color = "black", label = median_label,
+            fmt=' ', capsize = 3, capthick = 0, color = "black", label = labels["median"][language],
         )
     
         plt.plot([min_mass, max_mass], [1,1], color='C3')    
@@ -333,18 +380,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
 
     fig, ax = plt.subplots()
     #fig.suptitle(model_name)
-    if language == 'fr':
-        plt.xlabel("Masse générée du Higgs (GeV)")
-        plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
-        median_label = "Médiane"
-        average_label = "Moyenne"
-    elif language == 'en':
-        plt.xlabel("Generated Higgs Mass (GeV)")
-        plt.ylabel("Prediction Mass / Generated Mass")
-        median_label = "Median"
-        average_label = "Average"
-    else:
-        raise Exception ("Language not available")
+    plt.xlabel(labels["GenHiggsMassGeV"][language])
+    plt.ylabel(labels["Pred_on_HiggsGenMass"][language])
     
     ax.fill_between(
         xpos, CL95s_model_do, CL68s_model_do,
@@ -361,12 +398,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     ax.errorbar(
         xpos, medians_model, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "black", label = median_label,
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = labels["median"][language],
     )
     ax.errorbar(
         xpos, averages, xerr = xerr,
         marker='+', markersize=5, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = average_label,
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = labels["average"][language],
     )
     # ax.errorbar(
     #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
@@ -418,14 +455,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     plt.clf()
     fig, ax = plt.subplots()
     #fig.suptitle(model_name)
-    if language=='fr':
-    	plt.xlabel("Masse générée du Higgs (GeV)")
-    	plt.ylabel("Prédiction du modèle - Masse générée du Higgs (GeV)")
-    elif language=='en':
-    	plt.xlabel("Generated Higgs Mass (GeV)")
-    	plt.ylabel("Predicted Mass - Generated Mass (GeV)")
-    else:
-        raise Exception ("Language not available")
+    plt.xlabel(labels["GenHiggsMassGeV"][language])
+    plt.ylabel(labels["Pred_minus_HiggsGenMassGeV"][language])
     
     ax.fill_between(
         xpos, CL95s_model_diff_do, CL68s_model_diff_do,
@@ -442,12 +473,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     ax.errorbar(
         xpos, medians_model_diff, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "black", label = median_label,
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = labels["median"][language],
     )
     ax.errorbar(
         xpos, averages_diff, xerr = xerr,
         marker='+', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = average_label,
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = labels["average"][language],
     )
     
     plt.plot([min_mass, max_mass], [0,0], color='C3')    
@@ -468,14 +499,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     plt.clf()
     fig, ax = plt.subplots()
 
-    if language=='fr':
-        plt.xlabel("Masse générée du Higgs (GeV)")
-        plt.ylabel("Réponse calibrée du modèle")
-    elif language=='en':
-        plt.xlabel("Generated Higgs Mass (GeV)")
-        plt.ylabel("Calibrated model response")
-    else:
-        raise Exception ("Language not available")
+    plt.xlabel(labels["GenHiggsMassGeV"][language])
+    plt.ylabel(labels["Calibr_response"][language])
 
     CL68s_model_up = [CL68s_model_up[k]/medians_model[k] for k in range(len(medians_model))]
     CL68s_model_do = [CL68s_model_do[k]/medians_model[k] for k in range(len(medians_model))]
@@ -530,14 +555,8 @@ def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, langu
         vmax = vmax/(len(bins_x)*len(bins_y)),
     )
 
-    if language == 'fr':
-        plt.xlabel("Masse générée du Higgs (GeV)")
-        plt.ylabel("Prédiction du modèle (GeV)")
-    elif language=='en':
-        plt.xlabel("Generated Higgs Mass (GeV)")
-        plt.ylabel("Predicted Mass (GeV")
-    else:
-        raise Exception ("Language not available")
+    plt.xlabel(labels["GenHiggsMassGeV"][language])
+    plt.ylabel(labels["ModelPredGeV"][language])
         
     plt.plot([min_mass, max_mass], [min_mass, max_mass], color='C3')    
 
@@ -673,14 +692,8 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language =
         print("Singular matrix?")
 
     ax.plot(answers, answers, color="C3")
-    if language=='fr':
-        plt.xlabel("Masse générée du Higgs (GeV)")
-        plt.ylabel("Prédicition du modèle")
-    elif language=='en':
-        plt.xlabel("Generated Higgs Mass (GeV)")
-        plt.ylabel("Prediction of the model")
-    else:
-        raise Exception ("Language not available")
+    plt.xlabel(labels["GenHiggsMassGeV"][language])
+    plt.ylabel(labels["ModelPredGeV"][language])
     
     #plt.show()
     plt.xlim(min_mass, max_mass)
@@ -699,12 +712,7 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language =
         print("Singular matrix?")
 
     ax.plot([min_mass, max_mass], [1,1], color='C3')
-    if language=='fr':
-    	plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
-    elif language=='en':
-        plt.ylabel("Prediction Mass / Generated Mass")
-    else:
-        raise Exception ("Language not available")
+    plt.ylabel(labels["Pred_on_HiggsGenMass"][language])
         
     #plt.show()
     plt.xlim(min_mass, max_mass)
@@ -731,15 +739,6 @@ def variables_distributions(df_all, channel, model_name, language = default_lang
             df2 = df1.loc[df_all[data_category] == 1]
             _variables_distribution(df2, var, channel, data_category, model_name = model_name, language = language, prefix = '')
 
-var_name_to_label = {
-    'Higgs_mass_gen' : {'fr':"Masse générée du Higgs (GeV)", 'en':"Generated Higgs Mass (GeV)"},
-}
-
-vars_with_y_log_scale = [
-    'tau1_pt_reco',
-    'tau2_pt_reco',
-]
-
 def _variables_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = ''):
     _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = False)
     _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = True)
@@ -760,24 +759,14 @@ def _variable_distribution(df, var, channel, data_category, model_name = None, l
     if len(binning) < 50:
         binning = binning_default
     n, bins, patches = ax.hist(df[var], binning, weights = weights, log = (var in vars_with_y_log_scale), density = density)
-    if var in var_name_to_label:
-        xlabel = var_name_to_label[var][language]
+    if var in labels:
+        xlabel = labels[var][language]
     else:
         xlabel = var
     ax.set_xlabel(xlabel)
-    if language == 'fr':
-        ax.set_ylabel("Nombre d'événements")
-    elif language=='en':
-        ax.set_ylabel('N events')
-    else:
-        raise Exception ("Language not available")
+    ax.set_ylabel(labels["Nevents"][language])
     if density:
-        if language == 'fr':
-            ax.set_ylabel('Probabilité')
-        elif language=='en':
-            ax.set_ylabel('Probability')
-        else:
-            raise Exception ("Language not available")
+        ax.set_ylabel(labels["Probability"][language])
     if var in [target, 'predictions']:
         plt.xlim(0, 1000)
     fig.tight_layout()
@@ -792,8 +781,8 @@ def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
     plot_importance(
         model,
         title = None,
-        xlabel = 'Score',
-        ylabel = 'Variable',
+        xlabel = labels["Score"][language],
+        ylabel = labels["Variable"][language],
         grid = False,
     )
     plt.subplots_adjust(left=0.25)
