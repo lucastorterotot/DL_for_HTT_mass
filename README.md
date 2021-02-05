@@ -1,4 +1,4 @@
-# Machine Learning for Higgs bosons mass reconstruction in di-tau events
+# Reconstruction of di-tau mass using Machine Learning
 
 [![Delphes](https://img.shields.io/badge/Delphes-3.4.2-red.svg)](https://cp3.irmp.ucl.ac.be/projects/delphes)
 [![Pythia](https://img.shields.io/badge/Pythia-8.235-blue.svg)](http://home.thep.lu.se/Pythia/)
@@ -18,7 +18,11 @@ Run the provided installation script to ensure setting variables properly:
 ./install
 ```
 
-### Delphes 3.4.2
+### Event generation using Delphes
+If you want to generate events with Delphes, follow the next steps.
+
+- Delphes 3.4.2
+
 ```
 mkdir -p $DL_for_HTT/Delphes && cd $DL_for_HTT/Delphes
 wget http://cp3.irmp.ucl.ac.be/downloads/Delphes-3.4.2.tar.gz && tar -zxf Delphes-3.4.2.tar.gz
@@ -26,7 +30,8 @@ cd Delphes-3.4.2
 make
 ```
 
-### Pythia 8.235
+- Pythia 8.235
+
 ```
 mkdir -p $DL_for_HTT/Pythia8 && cd $DL_for_HTT/Pythia8
 wget http://home.thep.lu.se/~torbjorn/pythia8/pythia8235.tgz && tar xzvf pythia8235.tgz
@@ -125,8 +130,9 @@ Other options are:
 - `-w` or `--w_init_mode`: the weight initialisation mode;
 - `-m` or `--minmass`: the minimum Higgs mass to consider for training;
 - `-M` or `--maxmass`: the maximum Higgs mass to consider for training;
-- `-a` or `--last_activation`: the activation function to use for the output layer;
-- `-c` or `--channels`: the channels to train the constructed model on (one model obtained for each channel). It can be tt, mt, et, mm, em, ee, lt, ll, inclusive.
+- `-a` or `--activation`: the activation function to use in the hidden layers;
+- `-c` or `--channels`: the channels to train the constructed model on (one model obtained for each channel). It can be tt, mt, et, mm, em, ee, lt, ll, inclusive;
+- `-B` or `--batch_size`: the batch size for training.
 
 ### XGBoost regressor
 You can run as a test
