@@ -1,10 +1,12 @@
 # HTT analysis cuts
 
+allowed_Tau_decayMode = [0, 1, 2, 10, 11]
+
 cut_tauh_tt_pt = 40
 cut_tauh_tt_eta = 2.1
 cut_tauh_tt_dz = 0.2
 
-cut_tauh_mt_pt = 23
+cut_tauh_mt_pt = 30
 cut_tauh_mt_eta = 2.3
 cut_tauh_mt_dz = cut_tauh_tt_dz
 
@@ -17,7 +19,7 @@ cut_muon_mt_eta = 2.1
 cut_muon_mt_d0 = 0.045
 cut_muon_mt_dz = cut_tauh_tt_dz
 
-cut_muon_em_pt = 13
+cut_muon_em_pt = 15
 cut_muon_em_eta = 2.4
 cut_muon_em_d0 = cut_muon_mt_d0
 cut_muon_em_dz = cut_tauh_tt_dz
@@ -47,7 +49,7 @@ cut_ele_et_d0 = cut_muon_mt_d0
 cut_ele_et_dz = cut_tauh_tt_dz
 cut_ele_et_iso = 0.15
 
-cut_ele_em_pt = 13
+cut_ele_em_pt = 15
 cut_ele_em_eta = 2.5
 cut_ele_em_d0 = cut_muon_mt_d0
 cut_ele_em_dz = cut_tauh_tt_dz

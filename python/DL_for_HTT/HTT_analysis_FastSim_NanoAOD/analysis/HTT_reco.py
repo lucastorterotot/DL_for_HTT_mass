@@ -18,7 +18,7 @@ def tauh_vs_jet_filter(evt, index, good_jets_list):
 
         Delta_R2 = Delta_eta**2 + Delta_phi**2
 
-        if Delta_R2 < 0.4**2:
+        if Delta_R2 < 0.5**2:
             return False
 
     return True
@@ -33,7 +33,11 @@ def select_tauh_tt(evt, index):
         abs(eta) < common_cuts.cut_tauh_tt_eta,
         abs(dz) < common_cuts.cut_tauh_tt_dz,
         abs(charge) == 1.,
-        evt.GetLeaf("Tau_idDecayMode").GetValue(index),
+        evt.GetLeaf("Tau_idDecayModeNewDMs").GetValue(index),
+        evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 2,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 1,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
         ])
 
 def select_tauh_mt(evt, index):
@@ -46,11 +50,29 @@ def select_tauh_mt(evt, index):
         abs(eta) <= common_cuts.cut_tauh_mt_eta,
         abs(dz) < common_cuts.cut_tauh_mt_dz,
         abs(charge) == 1.,
-        evt.GetLeaf("Tau_idDecayMode").GetValue(index),
+        evt.GetLeaf("Tau_idDecayModeNewDMs").GetValue(index),
+        evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 2,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 8,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
         ])
 
 def select_tauh_et(evt, index):
-    return select_tauh_mt(evt, index)
+    pT = evt.GetLeaf("Tau_pt").GetValue(index)
+    eta = evt.GetLeaf("Tau_eta").GetValue(index)
+    dz = evt.GetLeaf("Tau_dz").GetValue(index)
+    charge = evt.GetLeaf("Tau_charge").GetValue(index)
+    return all([
+        pT >= common_cuts.cut_tauh_et_pt,
+        abs(eta) <= common_cuts.cut_tauh_et_eta,
+        abs(dz) < common_cuts.cut_tauh_et_dz,
+        abs(charge) == 1.,
+        evt.GetLeaf("Tau_idDecayModeNewDMs").GetValue(index),
+        evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 32,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 1,
+        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
+        ])
 
 def select_muon_mt(evt, index):
     pT = evt.GetLeaf("Muon_pt").GetValue(index)
@@ -243,6 +265,31 @@ def select_electron(evt, ele_idx, channel):
     elif channel == "em":
         return select_electron_em(evt, ele_idx)
 
+def select_jet_20(evt, index):
+    pT = evt.GetLeaf("Jet_pt").GetValue(index)
+    eta = evt.GetLeaf("Jet_eta").GetValue(index)
+    return all([
+        pT > 20,
+        abs(eta) < 4.7,
+    ])
+
+def select_jet_30(evt, index):
+    pT = evt.GetLeaf("Jet_pt").GetValue(index)
+    eta = evt.GetLeaf("Jet_eta").GetValue(index)
+    return all([
+        pT > 30,
+        abs(eta) < 4.7,
+    ])
+
+def select_jet_B(evt, index):
+    pT = evt.GetLeaf("Jet_pt").GetValue(index)
+    eta = evt.GetLeaf("Jet_eta").GetValue(index)
+    deepB = evt.GetLeaf("Jet_btagDeepB").GetValue(index)
+    return all([
+        pT > 20,
+        abs(eta) < 2.5,
+        deepB > 0.3033,
+    ])
 
 names_to_letter = {
     "Electrons" : "e",
@@ -268,6 +315,19 @@ def find_tau_DM(tau):
     return DM
 
 def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0, cutflow_stats = {}):
+
+    if not all([
+            evt.GetLeaf("Flag_goodVertices").GetValue(0),
+            evt.GetLeaf("Flag_globalSuperTightHalo2016Filter").GetValue(0),
+            evt.GetLeaf("Flag_HBHENoiseFilter").GetValue(0),
+            evt.GetLeaf("Flag_HBHENoiseIsoFilter").GetValue(0),
+            evt.GetLeaf("Flag_EcalDeadCellTriggerPrimitiveFilter").GetValue(0),
+            evt.GetLeaf("Flag_BadPFMuonFilter").GetValue(0),
+            evt.GetLeaf("Flag_eeBadScFilter").GetValue(0),
+            evt.GetLeaf("Flag_ecalBadCalibFilter").GetValue(0),
+    ]):
+        return {}, cutflow_stats
+    
     # retreive objects for event
     nElectron = int(evt.GetLeaf("nElectron").GetValue(0))
     nMuon = int(evt.GetLeaf("nMuon").GetValue(0))
@@ -283,6 +343,15 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
 
     # jet ID tight lepton veto
     good_jets_list = [idx for idx in good_jets_list if evt.GetLeaf("Jet_jetId").GetValue(idx) >= 6]
+
+    # jet 20
+    jets20_list = [idx for idx in good_jets_list if select_jet_20(evt, idx)]
+
+    # b jets
+    bjets_list = [idx for idx in good_jets_list if select_jet_B(evt, idx)]
+    jets30_list = [idx for idx in good_jets_list if select_jet_30(evt, idx)]
+
+    good_jets_list = jets30_list+bjets_list
 
     # select leptons for accepted channels
     selections = {}
@@ -435,6 +504,13 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
     store_vars.store_none(output, "jet2", type="jet")
     for k in range(int(min([2, len(good_jets_list)]))):
         store_vars.store_jet(evt, output, "jet{}".format(k+1), good_jets_list[k])
+
+    # Up to two leading b-jets
+    store_vars.store_none(output, "bjet1", type="jet")
+    store_vars.store_none(output, "bjet2", type="jet")
+    for k in range(int(min([2, len(bjets_list)]))):
+        store_vars.store_jet(evt, output, "bjet{}".format(k+1), bjets_list[k])
+    output["Nbjets"] = len(bjets_list)
 
     # Remaining_Jets (other jets) computation and storage
     remaining_jets_px = 0

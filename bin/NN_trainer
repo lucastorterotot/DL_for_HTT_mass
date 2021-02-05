@@ -29,9 +29,9 @@ parser.add_option("-M", "--maxmass", dest = "max_mass",
 parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
 parser.add_option("-a", "--activation", dest = "activation",
-                  default = "relu")
+                  default = NN_default_settings.activation)
 parser.add_option("-i", "--model_inputs", dest = "model_inputs",
-                  default = 'with_METcov_j1j2jr_Npu')
+                  default = NN_default_settings.default_model_inputs_file)
 parser.add_option("-B", "--batch_size", dest = "batch_size",
                   default =  2048)
 
@@ -111,115 +111,72 @@ for loss in ["mse", "mae", "mape", "msle", "cs", "hl", "lc"] :
 # add custom losses
 import keras.backend as kb
 from tensorflow import where
-def low_mass(y_true, y_pred):
 
-    low_mass_cut = 400.0
-    factors = 2*(low_mass_cut/y_true)
+def mape_boundaries(y_true, y_pred):
 
-    loss_squared_error = kb.square(y_pred - y_true)
-    loss_squared_error_factor = kb.square(y_pred - y_true) * 2*(low_mass_cut/y_true)
+    # apply mape but
+    # remove punishment for boundaries
 
-    low = kb.greater_equal(y_true, low_mass_cut*1.0)
-
-    loss = where(low, loss_squared_error, loss_squared_error_factor)
-    
-    return loss
-
-loss_fcts_for_name['low_mass'] = 'lm'
-loss_fcts_for_name['lm'] = 'lm'
-loss_fcts_str_to_func['low_mass'] = low_mass
-loss_fcts_str_to_func['lm'] = low_mass
-
-def mmape1(y_true, y_pred):
-
-    # apply mape
-    loss = tf.keras.losses.MAPE(y_true, y_pred)
-
-    N = 4
-    mass_cut = 400.0
-
-    return loss * (y_true/mass_cut + N * (mass_cut/y_true) )
-
-loss_fcts_for_name['mmape1'] = 'mmape1'
-loss_fcts_str_to_func['mmape1'] = mmape1
-
-def new_loss(y_true, y_pred):
-
-    old_loss = kb.square(y_pred - y_true)
-    N = 4
-    mass_cut = 400.0
-
-    return old_loss * (y_true/mass_cut + N * (mass_cut/y_true) )
-
-loss_fcts_for_name['new'] = 'new'
-loss_fcts_str_to_func['new'] = new_loss
-
-def new_loss2(y_true, y_pred):
-
-    old_loss = kb.square(y_pred - y_true)
-    N = 4
-    mass_cut = 400.0
-
-    return old_loss * (y_true/mass_cut + N * (mass_cut/y_true)**2 )
-
-loss_fcts_for_name['new2'] = 'new2'
-loss_fcts_str_to_func['new2'] = new_loss2
-
-def upper_tails(y_true, y_pred):
-
-    loss = kb.square(y_pred - y_true)
-
-    # apply new loss
-    N = 4
-    mass_cut = 400.0
-    loss *= (y_true/mass_cut + N * (mass_cut/y_true) )
-
-    # apply upper tail punishment for very low mass region
-    factor = 2
-    large_tail_above = 1.1
-    loss_upper_tails = loss * factor
-    low_mass_cut = 100
-
-    loss = where(
-        kb.greater_equal(y_true, low_mass_cut*1.0),
-        loss,
-        where(
-            kb.greater_equal(y_pred, large_tail_above*y_true),
-            loss_upper_tails,
-            loss,
-            ),
+    loss = tf.abs(
+        (y_true - y_pred)/y_true * where(
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
+            0.0,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
+                0.1,
+                1.0,
+            )
         )
+    )
 
-    return loss
+    return tf.reduce_mean(loss, axis=-1)
 
-loss_fcts_for_name['ut'] = 'ut'
-loss_fcts_str_to_func['ut'] = upper_tails
+loss_fcts_for_name['mape_b'] = 'mape_b'
+loss_fcts_str_to_func['mape_b'] = mape_boundaries
 
-def mape_upper_tails(y_true, y_pred):
+def mapesqrt_boundaries(y_true, y_pred):
 
-    # apply mape
-    loss = tf.keras.losses.MAPE(y_true, y_pred)
+    # apply modified mape but
+    # remove punishment for boundaries
 
-    # apply upper tail punishment for very low mass region
-    factor = 2
-    large_tail_above = 1.1
-    loss_upper_tails = loss * factor
-    low_mass_cut = 100
-
-    loss = where(
-        kb.greater_equal(y_true, low_mass_cut*1.0),
-        loss,
-        where(
-            kb.greater_equal(y_pred, large_tail_above*y_true),
-            loss_upper_tails,
-            loss,
-            ),
+    loss = tf.abs(
+        (y_true - y_pred)/(y_true**0.5) * where(
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
+            0.0,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
+                0.1,
+                1.0,
+            )
         )
+    )
 
-    return loss
+    return tf.reduce_mean(loss, axis=-1)
 
-loss_fcts_for_name['mapeut'] = 'mapeut'
-loss_fcts_str_to_func['mapeut'] = mape_upper_tails
+loss_fcts_for_name['mapesqrt_b'] = 'mapesqrt_b'
+loss_fcts_str_to_func['mapesqrt_b'] = mapesqrt_boundaries
+
+def mae_boundaries(y_true, y_pred):
+
+    # apply mae but
+    # remove punishment for boundaries
+
+    loss = tf.abs(
+        (y_true - y_pred) * where(
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
+            0.0,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
+                0.1,
+                1.0,
+            )
+        )
+    )
+
+    return tf.reduce_mean(loss, axis=-1)
+
+loss_fcts_for_name['mae_b'] = 'mae_b'
+loss_fcts_str_to_func['mae_b'] = mae_boundaries
 
 # optimizers
 
@@ -377,12 +334,19 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
     NN_model.add(Dense(int(Nneurons_sequence[0]), activation=activation, kernel_constraint=max_norm(my_max_norm), input_shape=(len(df_x_train.keys()),)))
 
     for _Nneurons in Nneurons_sequence[1:]:
-        NN_model.add(Dense(int(_Nneurons), activation=activation, kernel_constraint=max_norm(my_max_norm)))
+        NN_model.add(
+            Dense(
+                int(_Nneurons),
+                activation = activation,
+                kernel_constraint = max_norm(my_max_norm),
+                kernel_initializer = w_init_mode,
+            )
+        )
             
     NN_model.add(Dense(1, activation="linear"))
     print(NN_model.summary())
     NN_model.compile(loss=loss_fcts_str_to_func[loss],
-                     optimizer=optimizers.Adam(),
+                     optimizer=optimizers_dict[optimizer_name](),
                      metrics=[keras.metrics.mae])
     
     # Train model

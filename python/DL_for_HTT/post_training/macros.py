@@ -235,6 +235,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     df1 = filter_channel(df, channel)
         
     medians_model = []
+    averages = []
+    averages_diff = []
     CL68s_model_up = []
     CL68s_model_do = []
     CL95s_model_up = []
@@ -284,6 +286,8 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
         # values_mTtot.sort()
 
         try:
+            averages.append(np.mean(values_model))
+            averages_diff.append(np.mean(values_model_diff))
             medians_model.append(values_model[int(len(values_model)/2)])
             medians_model_diff.append(values_model_diff[int(len(values_model_diff)/2)])
             # medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
@@ -342,6 +346,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
         xpos, medians_model, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+    )
+    ax.errorbar(
+        xpos, averages, xerr = xerr,
+        marker='+', markersize=5, linewidth=0, elinewidth=1,
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = "Moyenne",
     )
     # ax.errorbar(
     #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
@@ -417,6 +426,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
         marker='.', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
     )
+    ax.errorbar(
+        xpos, averages_diff, xerr = xerr,
+        marker='+', markersize=4, linewidth=0, elinewidth=1,
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = "Moyenne",
+    )
     
     plt.plot([min_mass, max_mass], [0,0], color='C3')    
 
@@ -429,6 +443,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     fig.savefig("model_response_diff-{}{}.png".format(prefix,model_name))
 
     plt.xlim(min_mass, 200)
+    plt.ylim(-100, 100)
     plt.xticks(np.arange(min_mass, 201, step=10))
     fig.savefig("model_response_diff_lowmass-{}{}.png".format(prefix,model_name))
 
@@ -467,6 +482,43 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     fig.savefig("model_response_calibrated-{}{}.png".format(prefix,model_name))
 
     plt.close('all')
+
+def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+    df1 = filter_channel(df, channel)
+
+    min_mass, max_mass = 0, 1000
+
+    bins_x = [k for k in range(min_mass, max_mass, 10)]
+    bins_y = [k for k in range(min_mass, max_mass, 10)]
+    vmax = 0.25
+    
+    fig, ax = plt.subplots()
+    ax.hist2d(
+        df1[target],
+        df1["predictions"],
+        bins = [bins_x, bins_y],
+        weights = df1["sample_weight"],
+        density = True,
+        cmap = "ocean_r",
+        vmax = vmax/(len(bins_x)*len(bins_y)),
+    )
+
+    plt.xlabel("Masse générée du Higgs (GeV)")
+    plt.ylabel("Prédiction du modèle (GeV)")
+        
+    plt.plot([min_mass, max_mass], [min_mass, max_mass], color='C3')    
+
+    plt.ylim(min_mass, max_mass)
+    plt.xlim(min_mass, max_mass)
+
+    fig.tight_layout()
+    fig.savefig("predicted_vs_answer_histo-{}{}.png".format(prefix,model_name))
+
+    plt.ylim(min_mass, 200)
+    plt.xlim(min_mass, 200)
+
+    fig.tight_layout()
+    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}.png".format(prefix,model_name))
 
 def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, min_mass, max_mass):
     for bottleneck in bottleneck_list:
@@ -709,4 +761,5 @@ available_plots = {
     'predictions_distributions' : predictions_distributions,
     'gen_vs_reco' : gen_vs_reco,
     'model_response_tau_filtered' : model_response_tau_filtered,
+    'predicted_vs_answer_histo' : predicted_vs_answer_histo,
 }
