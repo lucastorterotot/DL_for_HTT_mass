@@ -35,6 +35,13 @@ args = parser.parse_args()
 args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
 
+if args.language == "eng":
+    args.language = "en"
+
+available_languages = ["fr", "en"]
+if args.language not in available_languages:
+    raise NotImplementedError ("Language {} not available. Possibles are: {}".format(args.language, ", ".join(available_languages)))
+
 if args.model_inputs == None and args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
     import sys
     sys.path.append(args.model.rstrip(args.model.split('/')[-1]))

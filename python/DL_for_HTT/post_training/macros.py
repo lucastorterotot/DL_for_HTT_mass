@@ -2,7 +2,8 @@ import DL_for_HTT.post_training.utils as utils
 
 from DL_for_HTT.common.NN_settings import target
 
-import locale; locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
+default_language = 'fr'
+import locale
 import matplotlib.pyplot as plt
 plt.rcdefaults()
 
@@ -23,7 +24,7 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
-def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_language, prefix = '', **kwargs):
     gen_vars = [k for k in df.keys() if "_gen" in k]
     reco_vars = [k for k in df.keys() if "_reco" in k]
     for reco_var in reco_vars:
@@ -90,15 +91,21 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwar
             CL68s_model_do.append(below_model[int(0.68 * len(below_model))])
             CL95s_model_up.append(above_model[int(0.95 * len(above_model))])
             CL95s_model_do.append(below_model[int(0.95 * len(below_model))])
-        
+
+        if language == 'fr':
+            locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
+            
         fig, ax = plt.subplots()
         #fig.suptitle(model_name)
         if language == 'fr':
             plt.xlabel("Masse générée du Higgs (GeV)")
-            plt.ylabel("{} reco/gen".format(var))
-        if language=='eng':
+            median_label = "Médiane"
+        elif language=='en':
             plt.xlabel("Generated Higgs Mass (GeV)")
-            plt.ylabel("{} reco/gen".format(var))
+            median_label = "Median"
+        else:
+            raise Exception ("Language not available")
+        plt.ylabel("{} reco/gen".format(var))
 
         ax.fill_between(
             xpos, CL95s_model_do, CL68s_model_do,
@@ -115,7 +122,7 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwar
         ax.errorbar(
             xpos, medians_model, xerr = xerr, #yerr = sigmas,
             marker='.', markersize=4, linewidth=0, elinewidth=1,
-            fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+            fmt=' ', capsize = 3, capthick = 0, color = "black", label = median_label,
         )
     
         plt.plot([min_mass, max_mass], [1,1], color='C3')    
@@ -126,9 +133,9 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, prefix = '', **kwar
         ax.legend(loc='upper right')
         
         fig.tight_layout()
-        fig.savefig("gen_vs_reco-{}{}.png".format(prefix,var))
+        fig.savefig("gen_vs_reco-{}{}{}.png".format(prefix,var, "-en" if language=='en' else ""))
 
-def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language,prefix = '', **kwargs):
+def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language = default_language,prefix = '', **kwargs):
     channel = "tt"
 
     dR_max_gen = 0.1
@@ -229,9 +236,9 @@ def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, lan
                             
                             
         
-        model_response(df1, channel, model_name, min_mass, max_mass, language,prefix = prefix+"FilterBy"+filter)
+        model_response(df1, channel, model_name, min_mass, max_mass, language, prefix = prefix+"FilterBy"+filter)
 
-def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix = '', **kwargs):
+def model_response(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', **kwargs):
     df1 = filter_channel(df, channel)
         
     medians_model = []
@@ -320,15 +327,24 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
         # CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
         # CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
         # CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
-        
+
+    if language == 'fr':
+        locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
+
     fig, ax = plt.subplots()
     #fig.suptitle(model_name)
     if language == 'fr':
         plt.xlabel("Masse générée du Higgs (GeV)")
         plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
-    if language == 'eng':
+        median_label = "Médiane"
+        average_label = "Moyenne"
+    elif language == 'en':
         plt.xlabel("Generated Higgs Mass (GeV)")
         plt.ylabel("Prediction Mass / Generated Mass")
+        median_label = "Median"
+        average_label = "Average"
+    else:
+        raise Exception ("Language not available")
     
     ax.fill_between(
         xpos, CL95s_model_do, CL68s_model_do,
@@ -345,12 +361,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     ax.errorbar(
         xpos, medians_model, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = median_label,
     )
     ax.errorbar(
         xpos, averages, xerr = xerr,
         marker='+', markersize=5, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = "Moyenne",
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = average_label,
     )
     # ax.errorbar(
     #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
@@ -393,11 +409,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response-{}{}.png".format(prefix,model_name))
+    fig.savefig("model_response-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
     plt.xlim(min_mass, 200)
     plt.xticks(np.arange(min_mass, 201, step=10))
-    fig.savefig("model_response_lowmass-{}{}.png".format(prefix,model_name))
+    fig.savefig("model_response_lowmass-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
     plt.clf()
     fig, ax = plt.subplots()
@@ -405,9 +421,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     if language=='fr':
     	plt.xlabel("Masse générée du Higgs (GeV)")
     	plt.ylabel("Prédiction du modèle - Masse générée du Higgs (GeV)")
-    if language=='eng':
+    elif language=='en':
     	plt.xlabel("Generated Higgs Mass (GeV)")
     	plt.ylabel("Predicted Mass - Generated Mass (GeV)")
+    else:
+        raise Exception ("Language not available")
     
     ax.fill_between(
         xpos, CL95s_model_diff_do, CL68s_model_diff_do,
@@ -424,12 +442,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     ax.errorbar(
         xpos, medians_model_diff, xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "black", label = "Médiane",
+        fmt=' ', capsize = 3, capthick = 0, color = "black", label = median_label,
     )
     ax.errorbar(
         xpos, averages_diff, xerr = xerr,
         marker='+', markersize=4, linewidth=0, elinewidth=1,
-        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = "Moyenne",
+        fmt=' ', capsize = 3, capthick = 0, color = "C4", label = average_label,
     )
     
     plt.plot([min_mass, max_mass], [0,0], color='C3')    
@@ -440,18 +458,24 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response_diff-{}{}.png".format(prefix,model_name))
+    fig.savefig("model_response_diff-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
     plt.xlim(min_mass, 200)
     plt.ylim(-100, 100)
     plt.xticks(np.arange(min_mass, 201, step=10))
-    fig.savefig("model_response_diff_lowmass-{}{}.png".format(prefix,model_name))
+    fig.savefig("model_response_diff_lowmass-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
     plt.clf()
     fig, ax = plt.subplots()
 
-    plt.xlabel("Masse générée du Higgs (GeV)")
-    plt.ylabel("Réponse calibrée du modèle")
+    if language=='fr':
+        plt.xlabel("Masse générée du Higgs (GeV)")
+        plt.ylabel("Réponse calibrée du modèle")
+    elif language=='en':
+        plt.xlabel("Generated Higgs Mass (GeV)")
+        plt.ylabel("Calibrated model response")
+    else:
+        raise Exception ("Language not available")
 
     CL68s_model_up = [CL68s_model_up[k]/medians_model[k] for k in range(len(medians_model))]
     CL68s_model_do = [CL68s_model_do[k]/medians_model[k] for k in range(len(medians_model))]
@@ -479,11 +503,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language ,prefix
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response_calibrated-{}{}.png".format(prefix,model_name))
+    fig.savefig("model_response_calibrated-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
     plt.close('all')
 
-def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, prefix = '', **kwargs):
+def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', **kwargs):
     df1 = filter_channel(df, channel)
 
     min_mass, max_mass = 0, 1000
@@ -491,6 +515,9 @@ def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, prefi
     bins_x = [k for k in range(min_mass, max_mass, 10)]
     bins_y = [k for k in range(min_mass, max_mass, 10)]
     vmax = 0.25
+
+    if language == 'fr':
+        locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
     
     fig, ax = plt.subplots()
     ax.hist2d(
@@ -503,8 +530,14 @@ def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, prefi
         vmax = vmax/(len(bins_x)*len(bins_y)),
     )
 
-    plt.xlabel("Masse générée du Higgs (GeV)")
-    plt.ylabel("Prédiction du modèle (GeV)")
+    if language == 'fr':
+        plt.xlabel("Masse générée du Higgs (GeV)")
+        plt.ylabel("Prédiction du modèle (GeV)")
+    elif language=='en':
+        plt.xlabel("Generated Higgs Mass (GeV)")
+        plt.ylabel("Predicted Mass (GeV")
+    else:
+        raise Exception ("Language not available")
         
     plt.plot([min_mass, max_mass], [min_mass, max_mass], color='C3')    
 
@@ -512,13 +545,13 @@ def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, prefi
     plt.xlim(min_mass, max_mass)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answer_histo-{}{}.png".format(prefix,model_name))
+    fig.savefig("predicted_vs_answer_histo-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
     plt.ylim(min_mass, 200)
     plt.xlim(min_mass, 200)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}.png".format(prefix,model_name))
+    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
 
 def mean_sigma_mae(df, channel, Nneurons_list, Nlayers_list, bottleneck_list, min_mass, max_mass):
     for bottleneck in bottleneck_list:
@@ -607,7 +640,7 @@ def mean_sigma_mae_fct(df, channel, list, bottleneck, min_mass, max_mass, fixed 
         fig.savefig("NN_mean_{}_at_fixed_{}_Nlayers{}.png".format(channel, str(at), bottleneck))    
     plt.close('all')
             
-def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language, prefix = '', cmap="ocean_r", **kwargs):
+def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', cmap="ocean_r", **kwargs):
 
     df = filter_channel(df, channel=channel)
 
@@ -628,6 +661,8 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language, 
     answers = df[target]
     
     # Plot predicted vs answer on a test sample
+    if language == 'fr':
+        locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
     plt.clf()
     fig, ax = plt.subplots()
 
@@ -639,18 +674,20 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language, 
 
     ax.plot(answers, answers, color="C3")
     if language=='fr':
-	    plt.xlabel("Masse générée du Higgs (GeV)")
-	    plt.ylabel("Prédicition du modèle")
-    if language=='eng':
-	    plt.xlabel("Generated Higgs Mass (GeV)")
-	    plt.ylabel("Prediction of the model")
+        plt.xlabel("Masse générée du Higgs (GeV)")
+        plt.ylabel("Prédicition du modèle")
+    elif language=='en':
+        plt.xlabel("Generated Higgs Mass (GeV)")
+        plt.ylabel("Prediction of the model")
+    else:
+        raise Exception ("Language not available")
     
     #plt.show()
     plt.xlim(min_mass, max_mass)
     plt.ylim(min_mass, max_mass)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answers-{}{}.png".format(prefix, model_name))
+    fig.savefig("predicted_vs_answers-{}{}{}.png".format(prefix, model_name, "-en" if language=='en' else ""))
 
     # Plot predicted vs answer on a test sample
     plt.clf()
@@ -663,20 +700,20 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language, 
 
     ax.plot([min_mass, max_mass], [1,1], color='C3')
     if language=='fr':
-    	plt.xlabel("Masse générée du Higgs (GeV)")
     	plt.ylabel("Prédiction du modèle / Masse générée du Higgs")
-    if language=='eng':
-    	plt.xlabel("Generated Higgs Mass (GeV)")
-    	plt.ylabel("Prediction Mass / Generated Mass")
-    
+    elif language=='en':
+        plt.ylabel("Prediction Mass / Generated Mass")
+    else:
+        raise Exception ("Language not available")
+        
     #plt.show()
     plt.xlim(min_mass, max_mass)
     plt.ylim(0, 3)
 
     fig.tight_layout()
-    fig.savefig("predicted_on_answers-{}{}.png".format(prefix, model_name))
+    fig.savefig("predicted_on_answers-{}{}{}.png".format(prefix, model_name, "-en" if language=='en' else ""))
 
-def predictions_distributions(df_all, channel, model_name, language,prefix = '', **kwargs):
+def predictions_distributions(df_all, channel, model_name, language = default_language, prefix = '', **kwargs):
     mass_points_GeV = [90, 125, 300, 500, 700, 800]
     width_GeV = 1.0
     for data_category in ["is_train", "is_valid", "is_test"]:
@@ -684,18 +721,18 @@ def predictions_distributions(df_all, channel, model_name, language,prefix = '',
             df = filter_channel(df_all, channel=channel)
             df = df.loc[df[data_category] == 1]
             df = df.loc[abs(df[target]-mass_point_GeV) <= width_GeV]
-            _variable_distribution(df, "predictions", channel, data_category, model_name = model_name, prefix="mH_{}GeV".format(mass_point_GeV)+'-', weighted = False, density = True)
+            _variable_distribution(df, "predictions", channel, data_category, model_name = model_name, language = language, prefix="mH_{}GeV".format(mass_point_GeV)+'-', weighted = False, density = True)
     
-def variables_distributions(df_all, channel, model_name, prefix = '', variables_list = [target], **kwargs):
+def variables_distributions(df_all, channel, model_name, language = default_language, prefix = '', variables_list = [target], **kwargs):
     df1 = filter_channel(df_all, channel=channel)
     for var in variables_list:
-        _variables_distribution(df1, var, channel, "all_events", model_name = model_name)
+        _variables_distribution(df1, var, channel, "all_events", model_name = model_name, language = language)
         for data_category in ["is_train", "is_valid", "is_test"]:
             df2 = df1.loc[df_all[data_category] == 1]
-            _variables_distribution(df2, var, channel, data_category, model_name = model_name, prefix = '')
+            _variables_distribution(df2, var, channel, data_category, model_name = model_name, language = language, prefix = '')
 
 var_name_to_label = {
-    'Higgs_mass_gen' : "Masse générée du Higgs (GeV)",
+    'Higgs_mass_gen' : {'fr':"Masse générée du Higgs (GeV)", 'en':"Generated Higgs Mass (GeV)"},
 }
 
 vars_with_y_log_scale = [
@@ -703,11 +740,11 @@ vars_with_y_log_scale = [
     'tau2_pt_reco',
 ]
 
-def _variables_distribution(df, var, channel, data_category, model_name = None, prefix = ''):
-    _variable_distribution(df, var, channel, data_category, model_name = model_name, prefix = prefix, weighted = False)
-    _variable_distribution(df, var, channel, data_category, model_name = model_name, prefix = prefix, weighted = True)
+def _variables_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = ''):
+    _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = False)
+    _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = True)
 
-def _variable_distribution(df, var, channel, data_category, model_name = None, prefix = '', weighted = False, density = False):
+def _variable_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = '', weighted = False, density = False):
     plt.clf()
     fig, ax = plt.subplots()
     weights = None
@@ -724,20 +761,30 @@ def _variable_distribution(df, var, channel, data_category, model_name = None, p
         binning = binning_default
     n, bins, patches = ax.hist(df[var], binning, weights = weights, log = (var in vars_with_y_log_scale), density = density)
     if var in var_name_to_label:
-        xlabel = var_name_to_label[var]
+        xlabel = var_name_to_label[var][language]
     else:
         xlabel = var
     ax.set_xlabel(xlabel)
-    ax.set_ylabel('N events')
+    if language == 'fr':
+        ax.set_ylabel("Nombre d'événements")
+    elif language=='en':
+        ax.set_ylabel('N events')
+    else:
+        raise Exception ("Language not available")
     if density:
-        ax.set_ylabel('Probability')
+        if language == 'fr':
+            ax.set_ylabel('Probabilité')
+        elif language=='en':
+            ax.set_ylabel('Probability')
+        else:
+            raise Exception ("Language not available")
     if var in [target, 'predictions']:
         plt.xlim(0, 1000)
     fig.tight_layout()
     if var == "predictions":
-        plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, "-".join([var, "{}{}".format(prefix,model_name)]), weights_in_output_name, data_category))
+        plt.savefig('distribution-{}-{}-{}-{}{}.png'.format(channel, "-".join([var, "{}{}".format(prefix,model_name)]), weights_in_output_name, data_category, "-en" if language=='en' else ""))
     else:
-        plt.savefig('distribution-{}-{}-{}-{}.png'.format(channel, var, weights_in_output_name, data_category))
+        plt.savefig('distribution-{}-{}-{}-{}{}.png'.format(channel, var, weights_in_output_name, data_category, "-en" if language=='en' else ""))
 
 def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
     plt.clf()
