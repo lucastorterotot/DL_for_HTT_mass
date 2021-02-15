@@ -135,18 +135,24 @@ def compare2d(
     fig, ax = plt.subplots()
 
     xs, ys = np.meshgrid(x[1], y[1])
-    zs = 0* (xs+ys)
+    zs = 0.0* (xs+ys)
     for i1 in range(len(zs)):
         local_df2 = local_df.loc[(local_df[y[0]] == y[1][i1])]
         for i2 in range(len(zs[i1])):
             local_df3 = local_df2.loc[(local_df2[x[0]] == x[1][i2])]
-            try:
-                zs[i1][i2] = local_df3[variable].array.mean()
-            except:
-                zs[i1][i2] = 0
-            import pdb; pdb.set_trace()
+            zs[i1][i2] = local_df3[variable].array[local_df3[variable].notna()].mean()
+    zs[np.isnan(zs)] = zs.max()
 
-    fig.graphs[graph].graph.imshow(zs, origin='lower', cmap='ocean')
+    img = ax.imshow(
+        zs,
+        extent = (min(x[1]), max(x[1]), min(y[1]), max(y[1])),
+        aspect='auto',
+        origin='lower',
+        cmap='RdYlGn',
+    )
+
+    clb = plt.colorbar(img, ax = ax)
+    clb.ax.set_title(variable)
     
     ax.set_xlabel(x[0])
     ax.set_ylabel(y[0])
