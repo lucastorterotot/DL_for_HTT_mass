@@ -172,7 +172,7 @@ def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = No
         mHrange[0] = np.round(mHrange[0],3)
         mHrange[1] = np.round(mHrange[1],3)
         
-        df2 = df1.loc[(df1[target] >= mHrange[0]) & (df1[target] <= mHrange[1])]
+        df2 = df1.loc[(df1[target] >= mHrange[0]) & (df1[target] < mHrange[1])]
         
         predictions = np.r_[df2["predictions"]]
         if len(predictions) == 0:
