@@ -30,7 +30,7 @@ for filter_to_apply in args.filters_to_not_match.split(','):
 perf_files = os.popen(command).readlines()
 perf_files = [f[:-1] for f in perf_files]
 
-perf_files = [f for f in perf_files if "xgboost" in f][:10] + [f for f in perf_files if not "xgboost" in f]
+#perf_files = [f for f in perf_files if "xgboost" in f][:100] + [f for f in perf_files if not "xgboost" in f][:100]
 
 all_data = []
 print("Processing on {} perf files...".format(len(perf_files)))
