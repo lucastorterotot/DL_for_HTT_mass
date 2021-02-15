@@ -8,9 +8,9 @@ usage = "usage: %prog [options] <input>"
 parser = OptionParser(usage=usage)
 parser.add_option("-o", "--output", dest = "output",
                   default = "")
-parser.add_option("-m", "--minmass", dest = "min_mass",
+parser.add_option("-m", "--min_mass", dest = "min_mass",
                   default = NN_default_settings.min_mass)
-parser.add_option("-M", "--maxmass", dest = "max_mass",
+parser.add_option("-M", "--max_mass", dest = "max_mass",
                   default = NN_default_settings.max_mass)
 parser.add_option("-c", "--channels", dest = "channels",
                   default = NN_default_settings.channels)
