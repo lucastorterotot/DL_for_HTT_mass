@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import pandas as pd
+
+from argparse import ArgumentParser
+usage = "usage: prog [options]"
+parser = ArgumentParser(usage=usage)
+parser.add_argument("--basedir", default="/data2/ltorterotot/ML/", type=str, help="Directory in which looking for perf files")
+parser.add_argument("--filters_to_match", default="DeepTau", type=str, help="Positive filterings, comma separated")
+parser.add_argument("--filters_to_not_match", default="1TeV", type=str, help="Negative filterings, comma separated")
+parser.add_argument("--language",
+                    default = "fr")
+
+
+args = parser.parse_args()
+
+available_languages = ["fr", "en"]
+if args.language not in available_languages:
+    raise NotImplementedError ("Language {} not available. Possibles are: {}".format(args.language, ", ".join(available_languages)))
+
+
+command = "find {} -type f -name \*.perfs".format(args.basedir)
+for filter_to_apply in args.filters_to_match.split(','):
+    command = "{} | grep {}".format(command, filter_to_apply)
+for filter_to_apply in args.filters_to_not_match.split(','):
+    command = "{} | grep -ve {}".format(command, filter_to_apply)
+
+perf_files = os.popen(command).readlines()
+perf_files = [f[:-1] for f in perf_files]
+
+perf_files = [f for f in perf_files if "xgboost" in f][:10] + [f for f in perf_files if not "xgboost" in f]
+
+all_data = []
+print("Processing on {} perf files...".format(len(perf_files)))
+for model_perf in perf_files:
+    data = {}
+
+    data["type"] = "XGB" if "xgboosts" in model_perf else "DNN"
+    data["model_inputs"] = model_perf.split("/")[-2]
+    data["training_dataset"] = model_perf.split("/")[-3]
+    model_name = model_perf.split("/")[-1].replace(".perfs", "")
+    if data["type"] == "XGB":
+        data["max_depth"] = int(model_name.split("-")[-15])
+        data["eta"] = float(model_name.split("-")[-13])
+        data["n_estimators"] = int(model_name.split("-")[-11])
+        data["early_stopping_rounds"] = int(model_name.split("-")[-9])
+        data["gamma"] = float(model_name.split("-")[-7])
+        data["min_child_weight"] = float(model_name.split("-")[-5])
+        data["eval"] = model_name.split("-")[-3]
+        data["loss"] = model_name.split("-")[-1]
+    elif data["type"] == "DNN":
+        is_bottleneck = ("-bottleneck" == model_name.split("-")[-1])
+        data["bottleneck"] = is_bottleneck
+        if is_bottleneck:
+            model_name.replace('-bottleneck', '')
+        data["Nneurons"] = int(model_name.split("-")[-2])
+        data["Nlayers"] = int(model_name.split("-")[-4])
+        data["loss"] = model_name.split("-")[-8]
+        data["optimizer"] = model_name.split("-")[-7]
+        data["w_init_mode"] = model_name.split("-")[-6]
+        data["activation"] = model_name.split("-")[-11]
+                        
+    for region in ["low", "medium", "high", "full"]:
+        for perf in ["median_diff", "CL68_width", "CL95_width", "CL68_calibr_width", "CL95_calibr_width", "mse", "mae", "mape"]:
+            key="_".join([region, perf])
+            try:
+                data[key] = float(os.popen('grep {} {}'.format(key, model_perf)).readlines()[0][:-1].split(" ")[1])
+            except:
+                print("{} not found for {}".format(key, model_perf))
+
+    all_data.append(data)
+
+df = pd.DataFrame(all_data)
+
+import locale
+import matplotlib.pyplot as plt
+plt.rcdefaults()
+import numpy as np
+
+plt.rcParams["figure.figsize"] = [7, 7]
+plt.rcParams['axes.formatter.use_locale'] = True
+
+def compare(
+        df = df,
+        variable = "full_mape",
+        variable_factor = 1.0,
+        global_filters = [],
+        groups = [["type", "DNN", "DNN"], ["type", "XGB", "XGB"]],
+        binning = 100,
+        name = None,
+        density = True,
+):
+
+    local_df = df.loc[df["type"] != "unknown"]
+    for global_filter in global_filters:
+        local_df = local_df.loc[local_df[global_filter[0]] == global_filter[1]]
+
+    if name == None:
+        name = variable
+    fig, ax = plt.subplots()
+
+    for group in groups:
+        n, bins, patches = ax.hist(
+            local_df.loc[local_df[group[0]] == group[1]][variable] * variable_factor,
+            binning,
+            label = group[2],
+            density = density,
+            histtype = "step", linewidth=2,
+        )
+
+    ax.legend()
+    ax.set_xlabel("{}{}".format(variable, r' $\times$ {}'.format(variable_factor) if variable_factor != 1.0 else ""))
+    ax.set_ylabel("Densité")
+    plt.xlim(binning[0], binning[-1])
+    plt.savefig("{}.png".format(name))
+
+def compare2d(
+        df = df,
+        variable = "full_mape",
+        x = ["Nlayers", range(2,7)],
+        y = ["Nneurons", [k*100 for k in range(2, 20)]],
+        global_filters = [],
+        name = "2d",
+        density = True,
+):
+
+    local_df = df.loc[df["type"] != "unknown"]
+    for global_filter in global_filters:
+        local_df = local_df.loc[local_df[global_filter[0]] == global_filter[1]]
+
+    if name == None:
+        name = variable
+    fig, ax = plt.subplots()
+
+    xs, ys = np.meshgrid(x[1], y[1])
+    zs = 0* (xs+ys)
+    for i1 in range(len(zs)):
+        local_df2 = local_df.loc[(local_df[y[0]] == y[1][i1])]
+        for i2 in range(len(zs[i1])):
+            local_df3 = local_df2.loc[(local_df2[x[0]] == x[1][i2])]
+            try:
+                zs[i1][i2] = local_df3[variable].array.mean()
+            except:
+                zs[i1][i2] = 0
+            import pdb; pdb.set_trace()
+
+    fig.graphs[graph].graph.imshow(zs, origin='lower', cmap='ocean')
+    
+    ax.set_xlabel(x[0])
+    ax.set_ylabel(y[0])
+    plt.savefig("{}.png".format(name))
+
+compare(
+    variable = "full_mse",
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(0,0.3,100),
+    name = "full_mse_DNN_vs_XGB",
+)
+compare(
+    variable = "full_mae",
+    variable_factor = 1e3,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(0,2,100),
+    name = "full_mae_DNN_vs_XGB",
+)
+compare(
+    variable = "full_mape",
+    variable_factor = 1e3,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(0,1,100),
+    name = "full_mape_DNN_vs_XGB",
+)
+compare(
+    variable = "full_mape",
+    variable_factor = 1e3,
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["type", "DNN", "All subsets"],
+    ],
+    binning = np.linspace(0,1,100),
+    name = "DNN_inputs",
+)
+compare(
+    variable = "full_mape",
+    variable_factor = 1e3,
+    global_filters = [["type", "XGB", "XGB"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["type", "XGB", "All subsets"],
+    ],
+    binning = np.linspace(0,1,100),
+    name = "XGB_inputs",
+)
+compare(
+    variable = "full_mape",
+    variable_factor = 1e4,
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["Nlayers", k, "{} hidden layers".format(k)] for k in range (2, 6)
+    ],
+    binning = np.linspace(1,2.5,100),
+    name = "DNN_N_layers",
+)
+compare(
+    variable = "full_mape",
+    variable_factor = 1e4,
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["Nneurons", k*100, "{} neurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
+    ],
+    binning = np.linspace(1,2.5,100),
+    name = "DNN_N_neurons",
+)
+compare(
+    variable = "full_mape",
+    variable_factor = 1e4,
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["loss", loss, loss] for loss in df.loc[df.type == "DNN"]["loss"]
+    ],
+    binning = np.linspace(1,2.5,100),
+    name = "DNN_loss",
+)
+compare2d(
+        variable = "full_mape",
+        x = ["Nlayers", range(2,7)],
+        y = ["Nneurons", [k*100 for k in range(2, 20)]],
+        global_filters = [["type", "DNN", "DNN"]],
+        name = "tmp2",
+)
+import pdb; pdb.set_trace()
