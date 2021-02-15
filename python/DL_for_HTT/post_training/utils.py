@@ -215,4 +215,12 @@ def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = No
         CL68_calibr_width += (CL68s_model_up[k] - CL68s_model_do[k])/medians_model[k]
         CL95_calibr_width += (CL95s_model_up[k] - CL95s_model_do[k])/medians_model[k]
 
-    return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width
+    df2= df1.loc[(df1[target] >= min_mass) & (df1[target] < max_mass)]
+    N = len(df2)
+    y_true = df2[target].array
+    y_pred = df2["predictions"].array
+    mse = ((y_pred-y_true)**2 /N).mean()
+    mae = (np.abs(y_pred-y_true)/N).mean()
+    mape = (np.abs(y_pred-y_true)/y_true).mean() * 100/N
+        
+    return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N
