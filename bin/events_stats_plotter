@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import DL_for_HTT.common.NN_settings as NN_default_settings
+
+import DL_for_HTT.post_training.utils as utils
+import DL_for_HTT.plotting_samples.macros as macros
+
+from argparse import ArgumentParser
+usage = "usage: prog [options] <NN JSON file> <NN input file>"
+parser = ArgumentParser(usage=usage)
+#parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
+parser.add_argument("--events", required = True, type=str, help="h5 file containing events.")
+parser.add_argument("--prefix",
+                    default = '')
+parser.add_argument("--min_mass",
+                  default = NN_default_settings.min_mass)
+parser.add_argument("--max_mass",
+                  default = NN_default_settings.max_mass)
+parser.add_argument("--channel",
+                  default = "inclusive")
+parser.add_argument("--plots",
+                    default = ["analysis_cuts_efficiency"])
+parser.add_argument("--subsample",
+                    default = "all")
+parser.add_argument("--variables_list",
+                    default = 'default')
+# parser.add_argument("--model_inputs",
+#                     default = None)
+parser.add_argument("--language",
+                    default = "fr")
+
+args = parser.parse_args()
+
+args.min_mass = float(args.min_mass)
+args.max_mass = float(args.max_mass)
+
+if args.language == "eng":
+    args.language = "en"
+
+available_languages = ["fr", "en"]
+if args.language not in available_languages:
+    raise NotImplementedError ("Language {} not available. Possibles are: {}".format(args.language, ", ".join(available_languages)))
+
+# if args.model_inputs == None and args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
+#     import sys
+#     sys.path.append(args.model.rstrip(args.model.split('/')[-1]))
+#     import inputs_for_models_in_this_dir as model_inputs_file
+#     model_inputs = model_inputs_file.inputs
+# elif args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
+#     model_inputs_file = __import__('DL_for_HTT.common.model_inputs.{}'.format(args.model_inputs), fromlist=[''])
+#     model_inputs = model_inputs_file.inputs
+# else:
+#     model_inputs = []
+
+# if args.plots == 'all':
+#     args.plots = [k for k in macros.available_plots.keys()]
+# else:
+#     args.plots = list(set(args.plots.split(',')))
+#     #args.plots = [p for p in args.plots if p in macros.available_plots.keys()]
+
+# if args.variables_list == 'default':
+#     args.variables_list = 'target,predictions'
+# args.variables_list = set(args.variables_list.split(','))
+# if 'all' in args.variables_list :
+#     args.variables_list.remove('all')
+#     args.variables_list = args.variables_list.union(['target', 'predictions', 'model_inputs'])
+# if 'target' in args.variables_list :
+#     args.variables_list.remove('target')
+#     args.variables_list = args.variables_list.union([NN_default_settings.target])
+# if 'model_inputs' in args.variables_list :
+#     args.variables_list.remove('model_inputs')
+#     args.variables_list = args.variables_list.union(model_inputs)
+
+# if args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
+#     loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
+# else:
+#     loaded_model, model_type, model_name = None, None, args.model
+#     if model_name == "None":
+#         model_name = "mTtot_reco"
+# if model_type != 'XGB' and 'feature_importance' in args.plots:
+#     args.plots.remove('feature_importance')
+# elif model_type == None:
+#     #args.plots = ["variables_distributions", "predicted_vs_answers", "model_response"]
+#     if 'predictions' in args.variables_list:
+#         args.variables_list.remove('predictions')
+#         args.variables_list.add('mTtot_reco')
+#         args.variables_list.add('PuppimTtot_reco')
+
+loaded_model, model_type, model_name = None, None, "PuppimTtot_reco"
+
+df = utils.load_h5_file_and_predict(
+    args.events,
+    loaded_model, model_type, model_name,
+    inputs = [],
+    target = NN_default_settings.target,
+)
+
+if args.subsample == 'all':
+    df_filtered = df.loc[(df['is_train']==1) | (df['is_valid']==1) | (df['is_test']==1)]
+elif args.subsample in ['train', 'valid', 'test']:
+    df_filtered = df.loc[df['is_{}'.format(args.subsample)]==1]
+else:
+    print("Using ALL available data for plotting!")
+
+if args.prefix != '':
+    if args.prefix[-1] != '-':
+        args.prefix += '-'
+
+if args.subsample != "test":
+    args.prefix += args.subsample + "-sample-"
+    
+plotting_parameters = {
+    'df' : df_filtered,
+    'df_all' : df,
+    'channel' : args.channel,
+    'model' : loaded_model,
+    'model_name' : model_name,
+    'min_mass' : args.min_mass,
+    'max_mass' : args.max_mass,
+    'target' : NN_default_settings.target,
+    'prefix' : args.prefix,
+    'variables_list' : args.variables_list,
+    'subsample' : args.subsample,
+    'language' : args.language,
+}
+
+for plot in args.plots:
+    print("Drawing {}".format(plot))
+    macros.available_plots[plot](**plotting_parameters)
