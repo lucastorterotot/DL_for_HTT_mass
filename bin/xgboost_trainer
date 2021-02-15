@@ -186,6 +186,114 @@ objectives['custom_low_mass_Higgs4'] = get_custom([125,125*2,125*3,125*4])
 objectives['custom_low_mass_HiggsD3'] = get_custom([125*2,125*2,125*2])
 objectives['custom_low_mass_HiggsD4'] = get_custom([125*2,125*2,125*2,125*2])
 
+def mape_boundaries(y_true, y_pred):
+
+    # apply mape but
+    # remove punishment for boundaries
+    grad = np.ones(len(y_pred))
+    grad[y_pred == y_true] = 0.0
+    grad[y_pred < y_true] = -1.0
+    hess = 0.1 * np.ones(len(y_pred))
+
+    grad[y_pred - y_true >= max_mass - y_pred] *= 0.0
+    hess[y_pred - y_true >= max_mass - y_pred] *= 0.0
+    grad[y_true - y_pred >= y_pred - min_mass] *= 0.1
+    hess[y_true - y_pred >= y_pred - min_mass] *= 0.1
+
+    return grad, hess
+
+objectives['mape_b'] = mape_boundaries
+
+def mapesqrt_boundaries(y_true, y_pred):
+
+    # apply modified mape but
+    # remove punishment for boundaries
+    grad = np.ones(len(y_pred))
+    grad[y_pred == y_true] = 0.0
+    grad[y_pred < y_true] = -1.0
+    grad *= y_true**0.5
+    hess = 0.1 * np.ones(len(y_pred))
+
+    grad[y_pred - y_true >= max_mass - y_pred] *= 0.0
+    hess[y_pred - y_true >= max_mass - y_pred] *= 0.0
+    grad[y_true - y_pred >= y_pred - min_mass] *= 0.1
+    hess[y_true - y_pred >= y_pred - min_mass] *= 0.1
+
+    return grad, hess
+
+objectives['mapesqrt_b'] = mapesqrt_boundaries
+
+def mapesqrt_boundaries01(y_true, y_pred):
+
+    # apply modified mape but
+    # remove punishment for boundaries
+    grad = np.ones(len(y_pred))
+    grad[y_pred == y_true] = 0.0
+    grad[y_pred < y_true] = -1.0
+    grad *= y_true**0.5
+    hess = 0.1 * np.ones(len(y_pred))
+
+    grad[y_pred - y_true >= max_mass - y_pred] *= 0.1
+    hess[y_pred - y_true >= max_mass - y_pred] *= 0.1
+    grad[y_true - y_pred >= y_pred - min_mass] *= 0.1
+    hess[y_true - y_pred >= y_pred - min_mass] *= 0.1
+
+    return grad, hess
+
+objectives['mapesqrt_b01'] = mapesqrt_boundaries01
+
+def mae_boundaries(y_true, y_pred):
+
+    # apply mae but
+    # remove punishment for boundaries
+    grad = np.ones(len(y_pred))
+    grad[y_pred == y_true] = 0.0
+    grad[y_pred < y_true] = -1.0
+    grad *= y_true
+    hess = 0.1 * np.ones(len(y_pred))
+
+    grad[y_pred - y_true >= max_mass - y_pred] *= 0.1
+    hess[y_pred - y_true >= max_mass - y_pred] *= 0.1
+    grad[y_true - y_pred >= y_pred - min_mass] *= 0.1
+    hess[y_true - y_pred >= y_pred - min_mass] *= 0.1
+
+    return grad, hess
+
+objectives['mae_b'] = mae_boundaries
+
+def mse_boundaries(y_true, y_pred):
+
+    # apply mse but
+    # remove punishment for boundaries
+    grad = y_pred - y_true
+    hess = np.ones(len(grad))
+
+    grad[y_pred - y_true >= max_mass - y_pred] *= 0.0
+    hess[y_pred - y_true >= max_mass - y_pred] *= 0.0
+    grad[y_true - y_pred >= y_pred - min_mass] *= 0.1
+    hess[y_true - y_pred >= y_pred - min_mass] *= 0.1
+
+    return grad, hess
+
+objectives['mse_b'] = mse_boundaries
+
+def mse_boundaries01(y_true, y_pred):
+
+    # apply modified mse but
+    # remove punishment for boundaries
+    grad = y_pred - y_true
+    hess = np.ones(len(grad))
+
+    grad[y_pred - y_true >= max_mass - y_pred] *= 0.1
+    hess[y_pred - y_true >= max_mass - y_pred] *= 0.1
+    grad[y_true - y_pred >= y_pred - min_mass] *= 0.1
+    hess[y_true - y_pred >= y_pred - min_mass] *= 0.1
+
+    return grad, hess
+
+objectives['mse_b01'] = mse_boundaries01
+
+
 def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
 
     params = {

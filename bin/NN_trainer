@@ -156,6 +156,46 @@ def mapesqrt_boundaries(y_true, y_pred):
 loss_fcts_for_name['mapesqrt_b'] = 'mapesqrt_b'
 loss_fcts_str_to_func['mapesqrt_b'] = mapesqrt_boundaries
 
+def mapesqrt_boundaries01(y_true, y_pred):
+
+    # apply modified mape but
+    # remove punishment for boundaries
+
+    loss = tf.abs(
+        (y_true - y_pred)/(y_true**0.5) * where(
+            kb.greater_equal(y_pred - y_true, max_mass - y_pred),
+            0.1,
+            where(
+                kb.greater_equal(y_true - y_pred, y_pred - min_mass),
+                0.1,
+                1.0,
+            )
+        )
+    )
+
+    return tf.reduce_mean(loss, axis=-1)
+
+loss_fcts_for_name['mapesqrt_b01'] = 'mapesqrt_b01'
+loss_fcts_str_to_func['mapesqrt_b01'] = mapesqrt_boundaries01
+
+def mape_sym003(y_true, y_pred):
+
+    # apply modified mape and
+    # add term like formula 3.19 from Tanjas thesis
+
+    a = 0.03
+    
+    loss = tf.abs(
+        (y_true - y_pred)/(y_true)
+        ) + a * tf.abs(
+            tf.maximum(0.0, y_pred/y_true-1) - tf.maximum(0.0, 1-y_pred/y_true)
+        )
+
+    return tf.reduce_mean(loss, axis=-1)
+
+loss_fcts_for_name['mape_sym003'] = 'mape_sym003'
+loss_fcts_str_to_func['mape_sym003'] = mape_sym003
+
 def mae_boundaries(y_true, y_pred):
 
     # apply mae but
