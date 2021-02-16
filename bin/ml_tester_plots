@@ -8,8 +8,8 @@ from argparse import ArgumentParser
 usage = "usage: prog [options]"
 parser = ArgumentParser(usage=usage)
 parser.add_argument("--basedir", default="/data2/ltorterotot/ML/", type=str, help="Directory in which looking for perf files")
-parser.add_argument("--filters_to_match", default="DeepTau", type=str, help="Positive filterings, comma separated")
-parser.add_argument("--filters_to_not_match", default="1TeV", type=str, help="Negative filterings, comma separated")
+parser.add_argument("--filters_to_match", default="trained,DeepTau,inclusive", type=str, help="Positive filterings, comma separated")
+parser.add_argument("--filters_to_not_match", default="selected,1TeV,xyz,SGD", type=str, help="Negative filterings, comma separated")
 parser.add_argument("--language",
                     default = "fr")
 
