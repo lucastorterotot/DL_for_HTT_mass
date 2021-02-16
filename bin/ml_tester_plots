@@ -101,15 +101,22 @@ def compare(
 
     local_df = df.loc[df["type"] != "unknown"]
     for global_filter in global_filters:
-        local_df = local_df.loc[local_df[global_filter[0]] == global_filter[1]]
+        if global_filter[-1] == "r":
+            local_df = local_df.loc[local_df[global_filter[0]] != global_filter[1]]
+        else:
+            local_df = local_df.loc[local_df[global_filter[0]] == global_filter[1]]
 
     if name == None:
         name = variable
     fig, ax = plt.subplots()
 
     for group in groups:
+        if group[-1] == "r":
+            values = local_df.loc[local_df[group[0]] != group[1]][variable] * variable_factor
+        else:
+            values = local_df.loc[local_df[group[0]] == group[1]][variable] * variable_factor
         n, bins, patches = ax.hist(
-            local_df.loc[local_df[group[0]] == group[1]][variable] * variable_factor,
+            values,
             binning,
             label = group[2],
             density = density,
@@ -119,8 +126,12 @@ def compare(
     ax.legend()
     ax.set_xlabel("{}{}".format(variable, r' $\times$ {}'.format(variable_factor) if variable_factor != 1.0 else ""))
     ax.set_ylabel("Densité")
-    plt.xlim(binning[0], binning[-1])
-    plt.savefig("{}.png".format(name))
+    try:
+        plt.xlim(binning[0], binning[-1])
+    except:
+        print("Not fixing xlims.")
+    plt.savefig("{}-{}.png".format(name,variable))
+    plt.close()
 
 def compare2d(
         df = df,
@@ -130,11 +141,16 @@ def compare2d(
         global_filters = [],
         name = "2d",
         density = True,
+        extent = None,
 ):
 
     local_df = df.loc[df["type"] != "unknown"]
     for global_filter in global_filters:
-        local_df = local_df.loc[local_df[global_filter[0]] == global_filter[1]]
+        if global_filter[-1] == "r":
+            local_df = local_df.loc[local_df[global_filter[0]] != global_filter[1]]
+        else:
+            local_df = local_df.loc[local_df[global_filter[0]] == global_filter[1]]
+            
 
     if name == None:
         name = variable
@@ -146,15 +162,18 @@ def compare2d(
         local_df2 = local_df.loc[(local_df[y[0]] == y[1][i1])]
         for i2 in range(len(zs[i1])):
             local_df3 = local_df2.loc[(local_df2[x[0]] == x[1][i2])]
-            zs[i1][i2] = local_df3[variable].array[local_df3[variable].notna()].mean()
+            values = list(local_df3[variable].array[local_df3[variable].notna()])
+            values.sort()
+            values = values[:int(len(values)/2+1)]
+            zs[i1][i2] = np.mean(values)
     zs[np.isnan(zs)] = zs.max()
 
     img = ax.imshow(
         zs,
-        extent = (min(x[1]), max(x[1]), min(y[1]), max(y[1])),
+        extent = extent,
         aspect='auto',
         origin='lower',
-        cmap='RdYlGn',
+        cmap='RdYlGn_r',
     )
 
     clb = plt.colorbar(img, ax = ax)
@@ -162,7 +181,15 @@ def compare2d(
     
     ax.set_xlabel(x[0])
     ax.set_ylabel(y[0])
-    plt.savefig("{}.png".format(name))
+    plt.savefig("{}-{}.png".format(name,variable))
+    plt.close()
+
+variables_base = ["mse", "mae", "mape", "median_diff", "1sig_width", "2sig_width", "1sig_calibr_width", "2sig_calibr_width"]
+variables = []
+for mass_region in ["low", "medium", "high", "full"]:
+    variables += ["{}_{}".format(mass_region, variable) for variable in variables_base]
+
+CURRENT_MODEL_FILTERS = []
 
 compare(
     variable = "full_mse",
@@ -171,17 +198,17 @@ compare(
         ["type", "XGB", "XGB"],
     ],
     binning = np.linspace(0,0.3,100),
-    name = "full_mse_DNN_vs_XGB",
+    name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_mae",
     variable_factor = 1e3,
-    groups = [
+        groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
-    ],
+        ],
     binning = np.linspace(0,2,100),
-    name = "full_mae_DNN_vs_XGB",
+    name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_mape",
@@ -191,17 +218,27 @@ compare(
         ["type", "XGB", "XGB"],
     ],
     binning = np.linspace(0,1,100),
-    name = "full_mape_DNN_vs_XGB",
+    name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_mape",
-    variable_factor = 1e3,
+    variable_factor = 1e4,
     global_filters = [["type", "DNN", "DNN"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
-        ["type", "DNN", "All subsets"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(0,1,100),
+    binning = np.linspace(1,4,100),
+    name = "DNN_inputs",
+)
+compare(
+    variable = "full_1sig_width",
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
+    ],
+    binning = np.linspace(0,10,100),
     name = "DNN_inputs",
 )
 compare(
@@ -210,15 +247,99 @@ compare(
     global_filters = [["type", "XGB", "XGB"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
-        ["type", "XGB", "All subsets"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
     binning = np.linspace(0,1,100),
     name = "XGB_inputs",
 )
 compare(
+    variable = "full_1sig_width",
+    global_filters = [["type", "XGB", "XGB"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
+    ],
+    binning = np.linspace(0,8,100),
+    name = "XGB_inputs",
+)
+
+CURRENT_MODEL_FILTERS.append(["type", "DNN", "DNN"])
+CURRENT_MODEL_FILTERS.append(["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"])
+
+losses = list(set(df.loc[df.type == "DNN"]["loss"]))
+losses.sort()
+losses = ["mape", "mse"]
+compare(
     variable = "full_mape",
     variable_factor = 1e4,
-    global_filters = [["type", "DNN", "DNN"]],
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["loss", loss, loss] for loss in losses
+    ],
+    binning = np.linspace(1,5,100),
+    name = "DNN_loss",
+)
+compare(
+    variable = "full_mse",
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["loss", loss, loss] for loss in losses
+    ],
+    binning = np.linspace(0,0.3,100),
+    name = "DNN_loss",
+)
+compare(
+    variable = "full_mae",
+    variable_factor = 1e3,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["loss", loss, loss] for loss in losses
+    ],
+    binning = np.linspace(0.5,1,100),
+    name = "DNN_loss",
+)
+compare(
+        variable = "full_median_diff",
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["loss", loss, loss] for loss in losses
+    ],
+    binning = np.linspace(0,4,100),
+    name = "DNN_loss",
+)
+
+CURRENT_MODEL_FILTERS.append(["loss", "mape"])
+
+compare(
+    variable = "full_mape",
+    variable_factor = 1e4,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["optimizer", opt, opt] for opt in ["Adam", "Adadelta"]
+    ],
+    binning = np.linspace(1,3,100),
+    name = "DNN_optimizer",
+)
+
+CURRENT_MODEL_FILTERS.append(["optimizer", "Adam"])
+
+compare(
+    variable = "full_mape",
+    variable_factor = 1e4,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]
+    ],
+    binning = np.linspace(1,2.5,100),
+    name = "DNN_w_init_mode",
+)
+
+CURRENT_MODEL_FILTERS.append(["w_init_mode", "gu"])
+
+compare(
+    variable = "full_mape",
+    variable_factor = 1e4,
+    global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["Nlayers", k, "{} hidden layers".format(k)] for k in range (2, 6)
     ],
@@ -228,28 +349,36 @@ compare(
 compare(
     variable = "full_mape",
     variable_factor = 1e4,
-    global_filters = [["type", "DNN", "DNN"]],
+    global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["Nneurons", k*100, "{} neurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
     ],
-    binning = np.linspace(1,2.5,100),
+    binning = np.linspace(1.5,2,100),
     name = "DNN_N_neurons",
 )
-compare(
-    variable = "full_mape",
-    variable_factor = 1e4,
-    global_filters = [["type", "DNN", "DNN"]],
-    groups = [
-        ["loss", loss, loss] for loss in df.loc[df.type == "DNN"]["loss"]
-    ],
-    binning = np.linspace(1,2.5,100),
-    name = "DNN_loss",
-)
-compare2d(
-        variable = "full_mape",
+for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_calibr_width", "low_mape", "low_median_diff", "low_1sig_width", "low_1sig_calibr_width"]:
+    compare2d(
+        variable = variable,
         x = ["Nlayers", range(2,7)],
-        y = ["Nneurons", [k*100 for k in range(2, 20)]],
-        global_filters = [["type", "DNN", "DNN"]],
-        name = "tmp2",
-)
-import pdb; pdb.set_trace()
+        y = ["Nneurons", [k*100 for k in range(2, 21)]],
+        extent = (1.5, 6.5, 150, 2050),
+        global_filters = CURRENT_MODEL_FILTERS,
+        name = "DNN_structures_all",
+    )
+    compare2d(
+        variable = variable,
+        x = ["Nlayers", range(2,7)],
+        y = ["Nneurons", [k*100 for k in range(2, 15, 4)]],
+        extent = (1.5, 6.5, 0, 1600),
+        global_filters = CURRENT_MODEL_FILTERS,
+        name = "DNN_structures_reduced",
+    )
+    compare2d(
+        variable = variable,
+        x = ["max_depth", range(1,11)],
+        y = ["eta", [k/100 for k in range(5, 51, 5)]],
+        extent = (0.5, 10.5, 0.025, 0.525),
+        global_filters = [["type", "XGB", "XGB"], ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"]],
+        name = "XGB_structures",
+    )
+#import pdb; pdb.set_trace()
