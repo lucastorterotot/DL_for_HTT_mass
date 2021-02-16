@@ -61,12 +61,18 @@ for model_perf in perf_files:
         data["optimizer"] = model_name.split("-")[-7]
         data["w_init_mode"] = model_name.split("-")[-6]
         data["activation"] = model_name.split("-")[-11]
+        if "ADAM_glorot_uniform" in model_perf:
+            data["optimizer"] = "Adam"
+            data["w_init_mode"] = "gu"
                         
     for region in ["low", "medium", "high", "full"]:
         for perf in ["median_diff", "CL68_width", "CL95_width", "CL68_calibr_width", "CL95_calibr_width", "mse", "mae", "mape"]:
-            key="_".join([region, perf])
+            key = "_".join([region, perf])
+            key_for_data = "_".join([region, perf])
+            key_for_data = key_for_data.replace("CL68", "1sig")
+            key_for_data = key_for_data.replace("CL95", "2sig")
             try:
-                data[key] = float(os.popen('grep {} {}'.format(key, model_perf)).readlines()[0][:-1].split(" ")[1])
+                data[key_for_data] = float(os.popen('grep {} {}'.format(key, model_perf)).readlines()[0][:-1].split(" ")[1])
             except:
                 print("{} not found for {}".format(key, model_perf))
 
