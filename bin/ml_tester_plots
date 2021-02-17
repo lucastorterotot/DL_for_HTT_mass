@@ -106,6 +106,7 @@ def compare2d(
         name = "2d",
         density = True,
         extent = None,
+        cmap_range = [None, None],
 ):
 
     local_df = df.loc[df["type"] != "unknown"]
@@ -138,6 +139,7 @@ def compare2d(
         aspect='auto',
         origin='lower',
         cmap='RdYlGn_r',
+        vmin = cmap_range[0], vmax = cmap_range[1],
     )
 
     clb = plt.colorbar(img, ax = ax)
@@ -320,6 +322,20 @@ compare(
     binning = np.linspace(1.5,2,100),
     name = "DNN_N_neurons",
 )
+cmap_range = {
+    "DNN_structures_all" : {
+        "full_mape" : [0.000160, 0.000175],
+        "full_median_diff" : [1.5, 2.0],
+        "full_1sig_width" : [5.5, 6.5],
+        "full_1sig_calibr_width" : [5.5, 6.5],
+        "low_mape" : [0.009, 0.011],
+        "low_median_diff" : [0.06, 0.25],
+        "low_1sig_width" : [0.875, 0.975],
+        "low_1sig_calibr_width" : [0.875, 0.975],
+    },
+}
+cmap_range["DNN_structures_reduced"] = cmap_range["DNN_structures_all"]
+cmap_range["XGB_structures"] = cmap_range["DNN_structures_all"]
 for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_calibr_width", "low_mape", "low_median_diff", "low_1sig_width", "low_1sig_calibr_width"]:
     compare2d(
         variable = variable,
@@ -328,6 +344,7 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
         extent = (1.5, 6.5, 150, 2050),
         global_filters = CURRENT_MODEL_FILTERS,
         name = "DNN_structures_all",
+        cmap_range = cmap_range["DNN_structures_all"][variable],
     )
     compare2d(
         variable = variable,
@@ -336,6 +353,7 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
         extent = (1.5, 6.5, 0, 1600),
         global_filters = CURRENT_MODEL_FILTERS,
         name = "DNN_structures_reduced",
+        cmap_range = cmap_range["DNN_structures_reduced"][variable],
     )
     compare2d(
         variable = variable,
@@ -344,5 +362,6 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
         extent = (0.5, 10.5, 0.025, 0.525),
         global_filters = [["type", "XGB", "XGB"], ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"]],
         name = "XGB_structures",
+        cmap_range = cmap_range["XGB_structures"][variable],
     )
 #import pdb; pdb.set_trace()
