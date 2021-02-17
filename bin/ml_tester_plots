@@ -364,4 +364,21 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
         name = "XGB_structures",
         cmap_range = cmap_range["XGB_structures"][variable],
     )
+
+CURRENT_MODEL_FILTERS.append(["Nlayers", 3])
+CURRENT_MODEL_FILTERS.append(["Nneurons", 1000])
+
+activations = list(set(df.loc[df.type == "DNN"]["activation"]))
+
+compare(
+    variable = "full_mape",
+    variable_exponent_factor = 4,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["activation", activation, activation] for activation in activations
+    ],
+    binning = np.linspace(1.5,2,100),
+    name = "DNN_activation",
+)
+
 #import pdb; pdb.set_trace()
