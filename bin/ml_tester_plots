@@ -50,7 +50,7 @@ import matplotlib.pyplot as plt
 plt.rcdefaults()
 import numpy as np
 
-plt.rcParams["figure.figsize"] = [7, 7]
+plt.rcParams["figure.figsize"] = [4, 4]
 plt.rcParams['axes.formatter.use_locale'] = True
 
 def compare(
@@ -120,6 +120,7 @@ def compare(
         plt.xlim(binning[0], binning[-1])
     except:
         print("Not fixing xlims.")
+    fig.tight_layout()
     for ext in ["png", "pdf"]:
         plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
     plt.close()
@@ -203,6 +204,7 @@ def compare2d(
     
     ax.set_xlabel(labels[x[0]][args.language])
     ax.set_ylabel(labels[y[0]][args.language])
+    fig.tight_layout()
     for ext in ["png", "pdf"]:
         plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
     plt.close()

@@ -12,7 +12,7 @@ import numpy as np
 
 from xgboost import plot_importance
 
-plt.rcParams["figure.figsize"] = [7, 7]
+plt.rcParams["figure.figsize"] = [4, 4]
 plt.rcParams['axes.formatter.use_locale'] = True
 
 vars_with_y_log_scale = [

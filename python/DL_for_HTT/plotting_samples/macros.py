@@ -7,7 +7,7 @@ plt.rcdefaults()
 
 import numpy as np
 
-plt.rcParams["figure.figsize"] = [7, 7]
+plt.rcParams["figure.figsize"] = [4, 4]
 plt.rcParams['axes.formatter.use_locale'] = True
 
 vars_with_y_log_scale = [
@@ -90,6 +90,7 @@ def analysis_cuts_efficiency(df, min_mass, max_mass, language, file_format = 'pn
     #ax.set_xscale('log')
     ax.legend(loc='lower right')
 
+    fig.tight_layout()
     fig.savefig("analysis_cuts_efficiency{}.{}".format("-en" if language=='en' else "", file_format))
     
 available_plots = {
