@@ -1,4 +1,5 @@
 import DL_for_HTT.post_training.utils as utils
+from DL_for_HTT.common.labels import labels, channel_str
 
 import locale
 import matplotlib.pyplot as plt
@@ -8,71 +9,6 @@ import numpy as np
 
 plt.rcParams["figure.figsize"] = [7, 7]
 plt.rcParams['axes.formatter.use_locale'] = True
-
-labels = {
-    'GenHiggsMassGeV' : {
-        'fr' : "Masse générée du Higgs (GeV)",
-        'en' : "Generated Higgs Mass (GeV)",
-    },
-    'ModelPredGeV' : {
-        'fr' : "Prédiction du modèle (GeV)",
-        'en' : "Predicted Mass (GeV)",
-    },
-    'median' : {
-        'fr' : "Médiane",
-        'en' : "Median",
-    },
-    'average' : {
-        'fr' : "Moyenne",
-        'en' : "Average",
-    },
-    'Pred_on_HiggsGenMass' : {
-        'fr' : "Prédiction du modèle / Masse générée du Higgs",
-        'en' : "Predicted Mass / Generated Mass",
-    },
-    'Pred_minus_HiggsGenMassGeV' : {
-        'fr' : "Prédiction du modèle - Masse générée du Higgs (GeV)",
-        'en' : "Predicted Mass - Generated Mass (GeV)",
-    },
-    'Calibr_response' : {
-        'fr' : "Réponse calibrée du modèle",
-        'en' : "Calibrated Model Response",
-    },
-    'Nevents' : {
-        'fr' : "Nombre d'événements",
-        'en' : 'N events',
-    },
-    "Probability" : {
-        'fr' : 'Probabilité',
-        'en' : "Probability",
-    },
-    'Score' : {
-        'fr' : 'Score',
-        'en' : 'Score',
-    },
-    'Variable' : {
-        'fr' : 'Variable',
-        'en' : 'Variable',
-    },
-    'CutEfficiency' : {
-        'fr' : 'Efficacité de sélection',
-        'en' : 'Cut efficiency',
-    },
-}
-
-channel_str = {
-    "tt" : r"$\tau_{\rm{h}}\tau_{\rm{h}}$",
-    "mt" : r"$\mu\tau_{\rm{h}}$",
-    "et" : r"$e\tau_{\rm{h}}$",
-    "mm" : r"$\mu\mu$",
-    "em" : r"$e\mu$",
-    "ee" : r"$ee$",
-    "lt" : r"$\ell\tau_{\rm{h}}$",
-    "ll" : r"$\ell\ell$",
-    "any": "tous",
-}
-
-labels["Higgs_mass_gen"] = labels["GenHiggsMassGeV"]
 
 vars_with_y_log_scale = [
     'tau1_pt_reco',

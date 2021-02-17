@@ -5,6 +5,7 @@ import os
 import pandas as pd
 
 import DL_for_HTT.post_training.utils as utils
+from DL_for_HTT.common.labels import labels
 
 from argparse import ArgumentParser
 usage = "usage: prog [options]"
@@ -82,14 +83,14 @@ def compare(
         n, bins, patches = ax.hist(
             values,
             binning,
-            label = group[2],
+            label = labels[group[2]][args.language],
             density = density,
             histtype = "step", linewidth=2,
         )
 
     ax.legend()
-    ax.set_xlabel("{}{}".format(variable, r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else ""))
-    ax.set_ylabel("Densité")
+    ax.set_xlabel("{}{}".format(labels[variable][args.language], r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else ""))
+    ax.set_ylabel(labels["Density"][args.language])
     try:
         plt.xlim(binning[0], binning[-1])
     except:
@@ -155,8 +156,8 @@ def compare2d(
     clb = plt.colorbar(img, ax = ax)
     clb.ax.set_title(variable)
     
-    ax.set_xlabel(x[0])
-    ax.set_ylabel(y[0])
+    ax.set_xlabel(labels[x[0]][args.language])
+    ax.set_ylabel(labels[y[0]][args.language])
     for ext in ["png", "pdf"]:
         plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
     plt.close()
