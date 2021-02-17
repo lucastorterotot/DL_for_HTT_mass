@@ -129,7 +129,16 @@ def compare2d(
             local_df3 = local_df2.loc[(local_df2[x[0]] == x[1][i2])]
             values = list(local_df3[variable].array[local_df3[variable].notna()])
             values.sort()
-            values = values[:int(len(values)/2+1)]
+            try:
+                values = values[:int(0.5*len(values)+1)]
+            except:
+                pass
+            try:
+                values = [v for v in values if v < 2*values[0]]
+            except:
+                pass
+            #values = [v for v in values if v < 2*values[0]]
+            #values = values[:int(len(values)/2+1)]
             zs[i1][i2] = np.mean(values)
     zs[np.isnan(zs)] = zs.max()
 
