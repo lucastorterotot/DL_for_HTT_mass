@@ -179,6 +179,11 @@ def compare2d(
         vmin = cmap_range[0], vmax = cmap_range[1],
     )
 
+    ax.set_xticks(x[1])
+    ax.set_xticklabels(x[1])
+    ax.set_yticks(y[1])
+    ax.set_yticklabels(y[1])
+
     variable_for_label = variable
     mass_region = None
 
