@@ -122,7 +122,7 @@ def compare(
         print("Not fixing xlims.")
     fig.tight_layout()
     for ext in ["png", "pdf"]:
-        plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
+        plt.savefig("{}/{}-{}{}.{}".format(args.database_path, name, variable, "-en" if args.language=='en' else "", ext))
     plt.close()
 
 def compare2d(
@@ -206,7 +206,7 @@ def compare2d(
     ax.set_ylabel(labels[y[0]][args.language])
     fig.tight_layout()
     for ext in ["png", "pdf"]:
-        plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
+        plt.savefig("{}/{}-{}{}.{}".format(args.database_path, name, variable, "-en" if args.language=='en' else "", ext))
     plt.close()
 
 variables_base = ["mse", "mae", "mape", "median_diff", "1sig_width", "2sig_width", "1sig_calibr_width", "2sig_calibr_width"]
