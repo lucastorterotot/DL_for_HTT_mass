@@ -94,7 +94,8 @@ def compare(
         plt.xlim(binning[0], binning[-1])
     except:
         print("Not fixing xlims.")
-    plt.savefig("{}/{}-{}.png".format(args.database_path, name, variable))
+    for ext in ["png", "pdf"]:
+        plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
     plt.close()
 
 def compare2d(
@@ -156,7 +157,8 @@ def compare2d(
     
     ax.set_xlabel(x[0])
     ax.set_ylabel(y[0])
-    plt.savefig("{}/{}-{}.png".format(args.database_path, name, variable))
+    for ext in ["png", "pdf"]:
+        plt.savefig("{}/{}-{}.{}".format(args.database_path, name, variable, ext))
     plt.close()
 
 variables_base = ["mse", "mae", "mape", "median_diff", "1sig_width", "2sig_width", "1sig_calibr_width", "2sig_calibr_width"]
