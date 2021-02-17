@@ -55,7 +55,7 @@ plt.rcParams['axes.formatter.use_locale'] = True
 def compare(
         df = df,
         variable = "full_mape",
-        variable_factor = 1.0,
+        variable_exponent_factor = 0,
         global_filters = [],
         groups = [["type", "DNN", "DNN"], ["type", "XGB", "XGB"]],
         binning = 100,
@@ -76,9 +76,9 @@ def compare(
 
     for group in groups:
         if group[-1] == "r":
-            values = local_df.loc[local_df[group[0]] != group[1]][variable] * variable_factor
+            values = local_df.loc[local_df[group[0]] != group[1]][variable] * 10**variable_exponent_factor
         else:
-            values = local_df.loc[local_df[group[0]] == group[1]][variable] * variable_factor
+            values = local_df.loc[local_df[group[0]] == group[1]][variable] * 10**variable_exponent_factor
         n, bins, patches = ax.hist(
             values,
             binning,
@@ -88,7 +88,7 @@ def compare(
         )
 
     ax.legend()
-    ax.set_xlabel("{}{}".format(variable, r' $\times$ {}'.format(variable_factor) if variable_factor != 1.0 else ""))
+    ax.set_xlabel("{}{}".format(variable, r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else ""))
     ax.set_ylabel("Densité")
     try:
         plt.xlim(binning[0], binning[-1])
@@ -166,7 +166,7 @@ compare(
 )
 compare(
     variable = "full_mae",
-    variable_factor = 1e3,
+    variable_exponent_factor = 3,
         groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
@@ -176,7 +176,7 @@ compare(
 )
 compare(
     variable = "full_mape",
-    variable_factor = 1e3,
+    variable_exponent_factor = 3,
     groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
@@ -186,7 +186,7 @@ compare(
 )
 compare(
     variable = "full_mape",
-    variable_factor = 1e4,
+    variable_exponent_factor = 4,
     global_filters = [["type", "DNN", "DNN"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
@@ -202,12 +202,12 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(0,10,100),
+    binning = np.linspace(3,10,100),
     name = "DNN_inputs",
 )
 compare(
     variable = "full_mape",
-    variable_factor = 1e3,
+    variable_exponent_factor = 3,
     global_filters = [["type", "XGB", "XGB"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
@@ -235,7 +235,7 @@ losses.sort()
 losses = ["mape", "mse"]
 compare(
     variable = "full_mape",
-    variable_factor = 1e4,
+    variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["loss", loss, loss] for loss in losses
@@ -254,7 +254,7 @@ compare(
 )
 compare(
     variable = "full_mae",
-    variable_factor = 1e3,
+    variable_exponent_factor = 3,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["loss", loss, loss] for loss in losses
@@ -276,7 +276,7 @@ CURRENT_MODEL_FILTERS.append(["loss", "mape"])
 
 compare(
     variable = "full_mape",
-    variable_factor = 1e4,
+    variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["optimizer", opt, opt] for opt in ["Adam", "Adadelta"]
@@ -289,12 +289,12 @@ CURRENT_MODEL_FILTERS.append(["optimizer", "Adam"])
 
 compare(
     variable = "full_mape",
-    variable_factor = 1e4,
+    variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]
     ],
-    binning = np.linspace(1,2.5,100),
+    binning = np.linspace(1.5,2,100),
     name = "DNN_w_init_mode",
 )
 
@@ -302,17 +302,17 @@ CURRENT_MODEL_FILTERS.append(["w_init_mode", "gu"])
 
 compare(
     variable = "full_mape",
-    variable_factor = 1e4,
+    variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["Nlayers", k, "{} hidden layers".format(k)] for k in range (2, 6)
     ],
-    binning = np.linspace(1,2.5,100),
+    binning = np.linspace(1.5,2,100),
     name = "DNN_N_layers",
 )
 compare(
     variable = "full_mape",
-    variable_factor = 1e4,
+    variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["Nneurons", k*100, "{} neurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
