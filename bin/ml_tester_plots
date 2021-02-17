@@ -80,16 +80,41 @@ def compare(
             values = local_df.loc[local_df[group[0]] != group[1]][variable] * 10**variable_exponent_factor
         else:
             values = local_df.loc[local_df[group[0]] == group[1]][variable] * 10**variable_exponent_factor
+        
+        if group[2] not in labels:
+            label = group[2]
+            if len(group[2].split(" ")) > 1:
+                if group[2].split(" ")[1] in labels:
+                    label = "{} {}".format(group[2].split(" ")[0], labels[group[2].split(" ")[1]][args.language])
+            if label == group[2]:
+                print("Raw label: {}".format(group[2]))
+        else:
+            label = labels[group[2]][args.language]
         n, bins, patches = ax.hist(
             values,
             binning,
-            label = labels[group[2]][args.language],
+            label = label,
             density = density,
             histtype = "step", linewidth=2,
         )
 
     ax.legend()
-    ax.set_xlabel("{}{}".format(labels[variable][args.language], r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else ""))
+
+    variable_for_label = variable
+    mass_region = None
+
+    for mr in ["low", "medium", "high", "full"]:
+        if mr == variable.split("_")[0]:
+            mass_region = mr
+            variable_for_label = variable_for_label.replace("{}_".format(mass_region), "")
+
+    ax.set_xlabel(
+        "{}{}{}".format(
+            labels[variable_for_label][args.language],
+            " ({})".format(labels[mass_region][args.language]) if mass_region not in [None, "full"] else "",
+            r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else "",
+        )
+    )
     ax.set_ylabel(labels["Density"][args.language])
     try:
         plt.xlim(binning[0], binning[-1])
@@ -102,6 +127,7 @@ def compare(
 def compare2d(
         df = df,
         variable = "full_mape",
+        variable_exponent_factor = 0,
         x = ["Nlayers", range(2,7)],
         y = ["Nneurons", [k*100 for k in range(2, 20)]],
         global_filters = [],
@@ -141,7 +167,7 @@ def compare2d(
                 pass
             #values = [v for v in values if v < 2*values[0]]
             #values = values[:int(len(values)/2+1)]
-            zs[i1][i2] = np.mean(values)
+            zs[i1][i2] = np.mean(values) * 10**variable_exponent_factor
     zs[np.isnan(zs)] = zs.max()
 
     img = ax.imshow(
@@ -153,8 +179,22 @@ def compare2d(
         vmin = cmap_range[0], vmax = cmap_range[1],
     )
 
+    variable_for_label = variable
+    mass_region = None
+
+    for mr in ["low", "medium", "high", "full"]:
+        if mr == variable.split("_")[0]:
+            mass_region = mr
+            variable_for_label = variable_for_label.replace("{}_".format(mass_region), "")
+
     clb = plt.colorbar(img, ax = ax)
-    clb.ax.set_title(variable)
+    plt.title(
+        "{}{}{}".format(
+            labels[variable_for_label][args.language],
+            " ({})".format(labels[mass_region][args.language]) if mass_region not in [None, "full"] else "",
+            r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else "",
+        )
+    )
     
     ax.set_xlabel(labels[x[0]][args.language])
     ax.set_ylabel(labels[y[0]][args.language])
@@ -319,7 +359,7 @@ compare(
     variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
-        ["Nlayers", k, "{} hidden layers".format(k)] for k in range (2, 6)
+        ["Nlayers", k, "{} Nlayers".format(k)] for k in range (2, 6)
     ],
     binning = np.linspace(1.5,2,100),
     name = "DNN_N_layers",
@@ -329,47 +369,81 @@ compare(
     variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
-        ["Nneurons", k*100, "{} neurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
+        ["Nneurons", k*100, "{} Nneurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
     ],
     binning = np.linspace(1.5,2,50),
     name = "DNN_N_neurons",
 )
 cmap_range = {
     "DNN_structures_all" : {
-        "full_mape" : [0.000160, 0.000181],
+        "full_mape" : [1.60, 1.81],
         "full_median_diff" : [1.55, 2.25],
         "full_1sig_width" : [5.5, 6.5],
         "full_1sig_calibr_width" : [5.5, 6.5],
-        "low_mape" : [0.0089, 0.0121],
-        "low_median_diff" : [0.05, 0.305],
+        "low_mape" : [0.89, 1.21],
+        "low_median_diff" : [0.5, 3.05],
         "low_1sig_width" : [0.925, 1.25],
         "low_1sig_calibr_width" : [0.875, 1.05],
     },
     "DNN_structures_reduced" : {
-        "full_mape" : [0.000160, 0.000171],
+        "full_mape" : [1.60, 1.71],
         "full_median_diff" : [1.55, 1.95],
         "full_1sig_width" : [5.5, 6.5],
         "full_1sig_calibr_width" : [5.5, 6.5],
-        "low_mape" : [0.009, 0.011],
-        "low_median_diff" : [0.05, 0.205],
+        "low_mape" : [0.9, 1.1],
+        "low_median_diff" : [0.5, 2.05],
         "low_1sig_width" : [0.925, 1.05],
         "low_1sig_calibr_width" : [0.875, 0.975],
     },
     "XGB_structures" : {
-        "full_mape" : [0.000235, 0.000355],
+        "full_mape" : [2.35, 3.55],
         "full_median_diff" : [2.09, 3.31],
         "full_1sig_width" : [0, 1],
         "full_1sig_calibr_width" : [0, 1],
-        "low_mape" : [0.024, 0.046],
+        "low_mape" : [2.4, 4.6],
         "low_median_diff" : [0.39, 2.01],
         "low_1sig_width" : [0.0, 2.51],
         "low_1sig_calibr_width" : [0, 2],
     },
 }
 
+variable_exponent_factors = {
+    "DNN_structures_all" : {
+        "full_mape" : 4,
+        "full_median_diff" : 0,
+        "full_1sig_width" : 0,
+        "full_1sig_calibr_width" : 0,
+        "low_mape" : 2,
+        "low_median_diff" : 1,
+        "low_1sig_width" : 0,
+        "low_1sig_calibr_width" : 0,
+    },
+    "DNN_structures_reduced" : {
+        "full_mape" : 4,
+        "full_median_diff" : 0,
+        "full_1sig_width" : 0,
+        "full_1sig_calibr_width" : 0,
+        "low_mape" : 2,
+        "low_median_diff" : 1,
+        "low_1sig_width" : 0,
+        "low_1sig_calibr_width" : 0,
+    },
+    "XGB_structures" : {
+        "full_mape" : 4,
+        "full_median_diff" : 0,
+        "full_1sig_width" : 0,
+        "full_1sig_calibr_width" : 0,
+        "low_mape" : 2,
+        "low_median_diff" : 0,
+        "low_1sig_width" : 0,
+        "low_1sig_calibr_width" : 0,
+    },
+}
+
 for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_calibr_width", "low_mape", "low_median_diff", "low_1sig_width", "low_1sig_calibr_width"]:
     compare2d(
         variable = variable,
+        variable_exponent_factor = variable_exponent_factors["DNN_structures_all"][variable],
         x = ["Nlayers", range(2,7)],
         y = ["Nneurons", [k*100 for k in range(2, 21)]],
         extent = (1.5, 6.5, 150, 2050),
@@ -379,6 +453,7 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
     )
     compare2d(
         variable = variable,
+        variable_exponent_factor = variable_exponent_factors["DNN_structures_reduced"][variable],
         x = ["Nlayers", range(2,7)],
         y = ["Nneurons", [k*100 for k in range(2, 15, 4)]],
         extent = (1.5, 6.5, 0, 1600),
@@ -388,6 +463,7 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
     )
     compare2d(
         variable = variable,
+        variable_exponent_factor = variable_exponent_factors["XGB_structures"][variable],
         x = ["max_depth", range(1,11)],
         y = ["eta", [k/100 for k in range(5, 51, 5)]],
         extent = (0.5, 10.5, 0.025, 0.525),
