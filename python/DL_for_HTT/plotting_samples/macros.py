@@ -25,7 +25,7 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
-def analysis_cuts_efficiency(df, min_mass, max_mass, language, **kwargs):
+def analysis_cuts_efficiency(df, min_mass, max_mass, language, file_format = 'png', **kwargs):
     files = set(df.file.array)
 
     N_raw = {}
@@ -90,7 +90,7 @@ def analysis_cuts_efficiency(df, min_mass, max_mass, language, **kwargs):
     #ax.set_xscale('log')
     ax.legend(loc='lower right')
 
-    fig.savefig("analysis_cuts_efficiency{}.png".format("-en" if language=='en' else ""))
+    fig.savefig("analysis_cuts_efficiency{}.{}".format("-en" if language=='en' else "", file_format))
     
 available_plots = {
     "analysis_cuts_efficiency" : analysis_cuts_efficiency,

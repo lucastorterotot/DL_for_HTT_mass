@@ -30,7 +30,7 @@ def filter_channel(df, channel = None):
         df1 = df.loc[(df['channel_reco'] == "mm") | (df['channel_reco'] == "em") | (df['channel_reco'] == "ee")]
     return df1    
 
-def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_language, prefix = '', **kwargs):
+def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_language, prefix = '', file_format = 'png', **kwargs):
     gen_vars = [k for k in df.keys() if "_gen" in k]
     reco_vars = [k for k in df.keys() if "_reco" in k]
     for reco_var in reco_vars:
@@ -132,9 +132,9 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_la
         ax.legend(loc='upper right')
         
         fig.tight_layout()
-        fig.savefig("gen_vs_reco-{}{}{}.png".format(prefix,var, "-en" if language=='en' else ""))
+        fig.savefig("gen_vs_reco-{}{}{}.{}".format(prefix,var, "-en" if language=='en' else "", file_format))
 
-def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language = default_language,prefix = '', **kwargs):
+def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language = default_language,prefix = '', file_format = 'png', **kwargs):
     channel = "tt"
 
     dR_max_gen = 0.1
@@ -237,7 +237,7 @@ def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, lan
         
         model_response(df1, channel, model_name, min_mass, max_mass, language, prefix = prefix+"FilterBy"+filter)
 
-def model_response(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', **kwargs):
+def model_response(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', file_format = 'png', **kwargs):
     df1 = filter_channel(df, channel)
         
     medians_model = []
@@ -398,11 +398,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("model_response-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.xlim(min_mass, 200)
     plt.xticks(np.arange(min_mass, 201, step=10))
-    fig.savefig("model_response_lowmass-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("model_response_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.clf()
     fig, ax = plt.subplots()
@@ -441,12 +441,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response_diff-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("model_response_diff-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.xlim(min_mass, 200)
     plt.ylim(-100, 100)
     plt.xticks(np.arange(min_mass, 201, step=10))
-    fig.savefig("model_response_diff_lowmass-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("model_response_diff_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.clf()
     fig, ax = plt.subplots()
@@ -480,11 +480,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     ax.legend(loc='upper right')
     
     fig.tight_layout()
-    fig.savefig("model_response_calibrated-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("model_response_calibrated-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.close('all')
 
-def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', **kwargs):
+def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', file_format = 'png', **kwargs):
     df1 = filter_channel(df, channel)
 
     min_mass, max_mass = 0, 1000
@@ -516,15 +516,15 @@ def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, langu
     plt.xlim(min_mass, max_mass)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answer_histo-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("predicted_vs_answer_histo-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.ylim(min_mass, 200)
     plt.xlim(min_mass, 200)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}{}.png".format(prefix,model_name, "-en" if language=='en' else ""))
+    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
             
-def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', cmap="ocean_r", **kwargs):
+def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', cmap="ocean_r", file_format = 'png', **kwargs):
 
     df = filter_channel(df, channel=channel)
 
@@ -565,7 +565,7 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language =
     plt.ylim(min_mass, max_mass)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answers-{}{}{}.png".format(prefix, model_name, "-en" if language=='en' else ""))
+    fig.savefig("predicted_vs_answers-{}{}{}.{}".format(prefix, model_name, "-en" if language=='en' else "", file_format))
 
     # Plot predicted vs answer on a test sample
     plt.clf()
@@ -584,9 +584,9 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language =
     plt.ylim(0, 3)
 
     fig.tight_layout()
-    fig.savefig("predicted_on_answers-{}{}{}.png".format(prefix, model_name, "-en" if language=='en' else ""))
+    fig.savefig("predicted_on_answers-{}{}{}.{}".format(prefix, model_name, "-en" if language=='en' else "", file_format))
 
-def predictions_distributions(df_all, channel, model_name, language = default_language, prefix = '', **kwargs):
+def predictions_distributions(df_all, channel, model_name, language = default_language, prefix = '', file_format = 'png', **kwargs):
     mass_points_GeV = [90, 125, 300, 500, 700, 800]
     width_GeV = 1.0
     for data_category in ["is_train", "is_valid", "is_test"]:
@@ -596,7 +596,7 @@ def predictions_distributions(df_all, channel, model_name, language = default_la
             df = df.loc[abs(df[target]-mass_point_GeV) <= width_GeV]
             _variable_distribution(df, "predictions", channel, data_category, model_name = model_name, language = language, prefix="mH_{}GeV".format(mass_point_GeV)+'-', weighted = False, density = True)
     
-def variables_distributions(df_all, channel, model_name, language = default_language, prefix = '', variables_list = [target], **kwargs):
+def variables_distributions(df_all, channel, model_name, language = default_language, prefix = '', variables_list = [target], file_format = 'png', **kwargs):
     df1 = filter_channel(df_all, channel=channel)
     for var in variables_list:
         _variables_distribution(df1, var, channel, "all_events", model_name = model_name, language = language)
@@ -636,11 +636,11 @@ def _variable_distribution(df, var, channel, data_category, model_name = None, l
         plt.xlim(0, 1000)
     fig.tight_layout()
     if var == "predictions":
-        plt.savefig('distribution-{}-{}-{}-{}{}.png'.format(channel, "-".join([var, "{}{}".format(prefix,model_name)]), weights_in_output_name, data_category, "-en" if language=='en' else ""))
+        plt.savefig('distribution-{}-{}-{}-{}{}.{}'.format(channel, "-".join([var, "{}{}".format(prefix,model_name)]), weights_in_output_name, data_category, "-en" if language=='en' else "", file_format))
     else:
-        plt.savefig('distribution-{}-{}-{}-{}{}.png'.format(channel, var, weights_in_output_name, data_category, "-en" if language=='en' else ""))
+        plt.savefig('distribution-{}-{}-{}-{}{}.{}'.format(channel, var, weights_in_output_name, data_category, "-en" if language=='en' else "", file_format))
 
-def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
+def feature_importance(model, inputs, model_name, prefix = '', file_format = 'png', **kwargs):
     plt.clf()
     fig, ax = plt.subplots()
     plot_importance(
@@ -652,7 +652,7 @@ def feature_importance(model, inputs, model_name, prefix = '', **kwargs):
     )
     plt.subplots_adjust(left=0.25)
     fig.tight_layout()
-    plt.savefig('feature_importance-{}{}.png'.format(prefix, model_name))
+    plt.savefig('feature_importance-{}{}.{}'.format(prefix, model_name, file_format))
 
 available_plots = {
     'model_response' : model_response,

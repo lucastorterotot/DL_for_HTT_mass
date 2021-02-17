@@ -11,6 +11,7 @@ usage = "usage: prog [options] <NN JSON file> <NN input file>"
 parser = ArgumentParser(usage=usage)
 #parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
 parser.add_argument("--events", required = True, type=str, help="h5 file containing events.")
+parser.add_argument("--pdf", action="store_true", help="Produce pdf plots instead of png.")
 parser.add_argument("--prefix",
                     default = '')
 parser.add_argument("--min_mass",
@@ -123,6 +124,7 @@ plotting_parameters = {
     'variables_list' : args.variables_list,
     'subsample' : args.subsample,
     'language' : args.language,
+    'file_format' : "pdf" if args.pdf else "png",
 }
 
 for plot in args.plots:
