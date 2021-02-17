@@ -85,9 +85,8 @@ def analysis_cuts_efficiency(df, min_mass, max_mass, language, file_format = 'pn
         )
 
     plt.ylim(1e-4,1)
-    plt.xlim(50, 800)
+    plt.xlim(0, 800)
     ax.set_yscale('log')
-    #ax.set_xscale('log')
     ax.legend(loc='lower right')
 
     fig.tight_layout()
