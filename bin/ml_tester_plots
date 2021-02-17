@@ -234,7 +234,7 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(0,8,100),
+    binning = np.linspace(0,10,50),
     name = "XGB_inputs",
 )
 
@@ -251,7 +251,7 @@ compare(
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(1,5,100),
+    binning = np.linspace(1,4,50),
     name = "DNN_loss",
 )
 compare(
@@ -260,7 +260,7 @@ compare(
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(0,0.3,100),
+    binning = np.linspace(0,0.3,50),
     name = "DNN_loss",
 )
 compare(
@@ -270,7 +270,7 @@ compare(
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(0.5,1,100),
+    binning = np.linspace(0.5,1,50),
     name = "DNN_loss",
 )
 compare(
@@ -279,7 +279,7 @@ compare(
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(0,4,100),
+    binning = np.linspace(0,4,50),
     name = "DNN_loss",
 )
 
@@ -305,7 +305,7 @@ compare(
     groups = [
         ["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]
     ],
-    binning = np.linspace(1.5,2,100),
+    binning = np.linspace(1.5,2,25),
     name = "DNN_w_init_mode",
 )
 
@@ -328,23 +328,42 @@ compare(
     groups = [
         ["Nneurons", k*100, "{} neurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
     ],
-    binning = np.linspace(1.5,2,100),
+    binning = np.linspace(1.5,2,50),
     name = "DNN_N_neurons",
 )
 cmap_range = {
     "DNN_structures_all" : {
-        "full_mape" : [0.000160, 0.000175],
-        "full_median_diff" : [1.5, 2.0],
+        "full_mape" : [0.000160, 0.000181],
+        "full_median_diff" : [1.55, 2.25],
+        "full_1sig_width" : [5.5, 6.5],
+        "full_1sig_calibr_width" : [5.5, 6.5],
+        "low_mape" : [0.0089, 0.0121],
+        "low_median_diff" : [0.05, 0.305],
+        "low_1sig_width" : [0.925, 1.25],
+        "low_1sig_calibr_width" : [0.875, 1.05],
+    },
+    "DNN_structures_reduced" : {
+        "full_mape" : [0.000160, 0.000171],
+        "full_median_diff" : [1.55, 1.95],
         "full_1sig_width" : [5.5, 6.5],
         "full_1sig_calibr_width" : [5.5, 6.5],
         "low_mape" : [0.009, 0.011],
-        "low_median_diff" : [0.06, 0.25],
-        "low_1sig_width" : [0.875, 0.975],
+        "low_median_diff" : [0.05, 0.205],
+        "low_1sig_width" : [0.925, 1.05],
         "low_1sig_calibr_width" : [0.875, 0.975],
     },
+    "XGB_structures" : {
+        "full_mape" : [0.000235, 0.000355],
+        "full_median_diff" : [2.09, 3.31],
+        "full_1sig_width" : [0, 1],
+        "full_1sig_calibr_width" : [0, 1],
+        "low_mape" : [0.024, 0.046],
+        "low_median_diff" : [0.39, 2.01],
+        "low_1sig_width" : [0.0, 2.51],
+        "low_1sig_calibr_width" : [0, 2],
+    },
 }
-cmap_range["DNN_structures_reduced"] = cmap_range["DNN_structures_all"]
-cmap_range["XGB_structures"] = cmap_range["DNN_structures_all"]
+
 for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_calibr_width", "low_mape", "low_median_diff", "low_1sig_width", "low_1sig_calibr_width"]:
     compare2d(
         variable = variable,
