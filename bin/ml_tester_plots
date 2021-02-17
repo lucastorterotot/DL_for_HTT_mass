@@ -128,7 +128,7 @@ def compare2d(
         df = df,
         variable = "full_mape",
         variable_exponent_factor = 0,
-        x = ["Nlayers", range(2,7)],
+        x = ["Nlayers", range(2,6)],
         y = ["Nneurons", [k*100 for k in range(2, 20)]],
         global_filters = [],
         name = "2d",
@@ -369,7 +369,7 @@ compare(
     variable_exponent_factor = 4,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
-        ["Nneurons", k*100, "{} Nneurons".format(int(k*100))] for k in [2, 4, 6, 10, 14, 16]
+        ["Nneurons", k*100, "{} Nneurons".format(int(k*100))] for k in [2, 6, 10, 14]
     ],
     binning = np.linspace(1.5,2,50),
     name = "DNN_N_neurons",
@@ -444,9 +444,9 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
     compare2d(
         variable = variable,
         variable_exponent_factor = variable_exponent_factors["DNN_structures_all"][variable],
-        x = ["Nlayers", range(2,7)],
+        x = ["Nlayers", range(2,6)],
         y = ["Nneurons", [k*100 for k in range(2, 21)]],
-        extent = (1.5, 6.5, 150, 2050),
+        extent = (1.5, 5.5, 150, 2050),
         global_filters = CURRENT_MODEL_FILTERS,
         name = "DNN_structures_all",
         cmap_range = cmap_range["DNN_structures_all"][variable],
@@ -454,9 +454,9 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
     compare2d(
         variable = variable,
         variable_exponent_factor = variable_exponent_factors["DNN_structures_reduced"][variable],
-        x = ["Nlayers", range(2,7)],
+        x = ["Nlayers", range(2,6)],
         y = ["Nneurons", [k*100 for k in range(2, 15, 4)]],
-        extent = (1.5, 6.5, 0, 1600),
+        extent = (1.5, 5.5, 0, 1600),
         global_filters = CURRENT_MODEL_FILTERS,
         name = "DNN_structures_reduced",
         cmap_range = cmap_range["DNN_structures_reduced"][variable],
@@ -464,9 +464,9 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
     compare2d(
         variable = variable,
         variable_exponent_factor = variable_exponent_factors["XGB_structures"][variable],
-        x = ["max_depth", range(1,11)],
+        x = ["max_depth", range(2,11)],
         y = ["eta", [k/100 for k in range(5, 51, 5)]],
-        extent = (0.5, 10.5, 0.025, 0.525),
+        extent = (1.5, 10.5, 0.025, 0.525),
         global_filters = [["type", "XGB", "XGB"], ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"]],
         name = "XGB_structures",
         cmap_range = cmap_range["XGB_structures"][variable],
