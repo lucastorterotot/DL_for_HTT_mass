@@ -425,27 +425,30 @@ compare(
 )
 cmap_range = {
     "DNN_structures_all" : {
-        "full_mape" : [1.60, 1.81],
+        "full_mape" : [1.60, 1.8],
+        "medium_mape" : [0.65, 0.73],
         "full_median_diff" : [1.55, 2.25],
         "full_1sig_width" : [5.5, 6.5],
         "full_1sig_calibr_width" : [5.5, 6.5],
-        "low_mape" : [0.89, 1.21],
-        "low_median_diff" : [0.5, 3.05],
-        "low_1sig_width" : [0.925, 1.25],
-        "low_1sig_calibr_width" : [0.875, 1.05],
+        "low_mape" : [0.9, 1.2],
+        "low_median_diff" : [0.5, 3.0],
+        "low_1sig_width" : [0.85, 1.25],
+        "low_1sig_calibr_width" : [0.85, 1.1],
     },
-    "DNN_structures_reduced" : {
-        "full_mape" : [1.60, 1.71],
-        "full_median_diff" : [1.55, 1.95],
-        "full_1sig_width" : [5.5, 6.5],
-        "full_1sig_calibr_width" : [5.5, 6.5],
-        "low_mape" : [0.9, 1.1],
-        "low_median_diff" : [0.5, 2.05],
-        "low_1sig_width" : [0.925, 1.05],
-        "low_1sig_calibr_width" : [0.875, 0.975],
-    },
+    # "DNN_structures_reduced" : {
+    #     "full_mape" : [1.60, 1.71],
+    #     "medium_mape" : [0.65, 0.75],
+    #     "full_median_diff" : [1.55, 1.95],
+    #     "full_1sig_width" : [5.5, 6.5],
+    #     "full_1sig_calibr_width" : [5.5, 6.5],
+    #     "low_mape" : [0.9, 1.1],
+    #     "low_median_diff" : [0.5, 2.05],
+    #     "low_1sig_width" : [0.875, 1.05],
+    #     "low_1sig_calibr_width" : [0.875, 0.975],
+    # },
     "XGB_structures" : {
         "full_mape" : [2.35, 3.55],
+        "medium_mape" : [0.65, 0.85],
         "full_median_diff" : [2.09, 3.31],
         "full_1sig_width" : [0, 1],
         "full_1sig_calibr_width" : [0, 1],
@@ -456,19 +459,12 @@ cmap_range = {
     },
 }
 
+cmap_range["DNN_structures_reduced"] = cmap_range["DNN_structures_all"]
+
 variable_exponent_factors = {
     "DNN_structures_all" : {
         "full_mape" : 4,
-        "full_median_diff" : 0,
-        "full_1sig_width" : 0,
-        "full_1sig_calibr_width" : 0,
-        "low_mape" : 2,
-        "low_median_diff" : 1,
-        "low_1sig_width" : 0,
-        "low_1sig_calibr_width" : 0,
-    },
-    "DNN_structures_reduced" : {
-        "full_mape" : 4,
+        "medium_mape" : 4,
         "full_median_diff" : 0,
         "full_1sig_width" : 0,
         "full_1sig_calibr_width" : 0,
@@ -479,6 +475,7 @@ variable_exponent_factors = {
     },
     "XGB_structures" : {
         "full_mape" : 4,
+        "medium_mape" : 4,
         "full_median_diff" : 0,
         "full_1sig_width" : 0,
         "full_1sig_calibr_width" : 0,
@@ -489,7 +486,9 @@ variable_exponent_factors = {
     },
 }
 
-for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_calibr_width", "low_mape", "low_median_diff", "low_1sig_width", "low_1sig_calibr_width"]:
+variable_exponent_factors["DNN_structures_reduced"] = variable_exponent_factors["DNN_structures_all"]
+
+for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_calibr_width", "low_mape", "low_median_diff", "low_1sig_width", "low_1sig_calibr_width", "medium_mape"]:
     compare2d(
         variable = variable,
         variable_exponent_factor = variable_exponent_factors["DNN_structures_all"][variable],
