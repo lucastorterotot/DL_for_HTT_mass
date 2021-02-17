@@ -36,7 +36,7 @@ labels = {
         'en' : "All inputs",
     },
     'Other inputs sets' : {
-        'fr' : "Sous-ensembles de variables",
+        'fr' : "Sous-ensembles",
         'en' : "Other inputs sets",
     },
     'GenHiggsMassGeV' : {
