@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+import os
 import pandas as pd
 
 import DL_for_HTT.common.NN_settings as NN_default_settings
@@ -224,3 +225,64 @@ def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = No
     mape = (np.abs(y_pred-y_true)/y_true).mean() * 100/N
         
     return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N
+
+def create_scores_database(args):
+    command = "find {} -type f -name \*.perfs".format(args.basedir)
+    for filter_to_apply in args.filters_to_match.split(','):
+        command = "{} | grep {}".format(command, filter_to_apply)
+    for filter_to_apply in args.filters_to_not_match.split(','):
+        command = "{} | grep -ve {}".format(command, filter_to_apply)
+
+    perf_files = os.popen(command).readlines()
+    perf_files = [f[:-1] for f in perf_files]
+
+    all_data = []
+    print("Processing on {} perf files...".format(len(perf_files)))
+    for model_perf in perf_files:
+        data = {}
+
+        data["type"] = "XGB" if "xgboosts" in model_perf else "DNN"
+        data["model_inputs"] = model_perf.split("/")[-2]
+        data["training_dataset"] = model_perf.split("/")[-3]
+        model_name = model_perf.split("/")[-1].replace(".perfs", "")
+        if data["type"] == "XGB":
+            data["max_depth"] = int(model_name.split("-")[-15])
+            data["eta"] = float(model_name.split("-")[-13])
+            data["n_estimators"] = int(model_name.split("-")[-11])
+            data["early_stopping_rounds"] = int(model_name.split("-")[-9])
+            data["gamma"] = float(model_name.split("-")[-7])
+            data["min_child_weight"] = float(model_name.split("-")[-5])
+            data["eval"] = model_name.split("-")[-3]
+            data["loss"] = model_name.split("-")[-1]
+        elif data["type"] == "DNN":
+            is_bottleneck = ("-bottleneck" == model_name.split("-")[-1])
+            data["bottleneck"] = is_bottleneck
+            if is_bottleneck:
+                model_name.replace('-bottleneck', '')
+            data["Nneurons"] = int(model_name.split("-")[-2])
+            data["Nlayers"] = int(model_name.split("-")[-4])
+            data["loss"] = model_name.split("-")[-8]
+            data["optimizer"] = model_name.split("-")[-7]
+            data["w_init_mode"] = model_name.split("-")[-6]
+            data["activation"] = model_name.split("-")[-11]
+            if "ADAM_glorot_uniform" in model_perf:
+                data["optimizer"] = "Adam"
+                data["w_init_mode"] = "gu"
+                        
+        for region in ["low", "medium", "high", "full"]:
+            for perf in ["median_diff", "CL68_width", "CL95_width", "CL68_calibr_width", "CL95_calibr_width", "mse", "mae", "mape"]:
+                key = "_".join([region, perf])
+                key_for_data = "_".join([region, perf])
+                key_for_data = key_for_data.replace("CL68", "1sig")
+                key_for_data = key_for_data.replace("CL95", "2sig")
+                try:
+                    data[key_for_data] = float(os.popen('grep {} {}'.format(key, model_perf)).readlines()[0][:-1].split(" ")[1])
+                except:
+                    print("{} not found for {}".format(key, model_perf))
+
+        all_data.append(data)
+
+    print("Building DataFrame...")
+    df = pd.DataFrame(all_data)
+    print("DataFrame created, saving...")
+    df.to_hdf("{}/{}.h5".format(args.database_path, args.database_name), key='df')
