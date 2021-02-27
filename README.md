@@ -1,5 +1,13 @@
 # Reconstruction of di-tau mass using Machine Learning
 
+[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-0.22.1-blue.svg)](https://scikit-learn.org/)
+[![Keras](https://img.shields.io/badge/Keras-2.3.1-red.svg)](https://keras.io/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.1.0-orange.svg)](https://www.tensorflow.org/)
+
+[![XGBoost](https://img.shields.io/badge/XGBoost-1.0.2-blue.svg)](https://xgboost.readthedocs.io/en/release_1.0.0/python/index.html)
+
+[![ROOT](https://img.shields.io/badge/ROOT-9.0.02-blue.svg)](https://root.cern/)
+
 [![Delphes](https://img.shields.io/badge/Delphes-3.4.2-red.svg)](https://cp3.irmp.ucl.ac.be/projects/delphes)
 [![Pythia](https://img.shields.io/badge/Pythia-8.235-blue.svg)](http://home.thep.lu.se/Pythia/)
 
