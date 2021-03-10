@@ -1,4 +1,8 @@
 labels = {
+    'selected' : {
+        'fr' : "Sélectionné",
+        'en' : "Selected",
+    },
     'DNN' : {
         'fr' : "Réseau de neurones",
         'en' : "Neural Network",
