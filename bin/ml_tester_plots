@@ -177,16 +177,25 @@ def compare2d(
             local_df3 = local_df2.loc[(local_df2[x[0]] == x[1][i2])]
             values = list(local_df3[variable].array[local_df3[variable].notna()])
             values.sort()
+            if "_calibr_width" in variable:
+                values = [v for v in values if v>0]
+            # initial_value = values[0]
             try:
-                values = values[:int(0.5*len(values)+1)]
+                values_low = values[:int(len(values)/2+1)]
+                if len(values_low) != 0:
+                    values = values_low
             except:
                 pass
-            try:
-                values = [v for v in values if v < 2*values[0]]
-            except:
-                pass
-            #values = [v for v in values if v < 2*values[0]]
-            #values = values[:int(len(values)/2+1)]
+            # try:
+            #     values_low = [v for v in values if v < 2*values[0]]
+            #     if len(values_low) != 0:
+            #         values = values_low
+            # except:
+            #     pass
+            # #values = [v for v in values if v < 2*values[0]]
+            # #values = values[:int(len(values)/2+1)]
+            # if len(values) == 0:
+            #     values = [initial_value]
             zs[i1][i2] = np.mean(values) * 10**variable_exponent_factor
     zs[np.isnan(zs)] = zs.max()
 
@@ -444,14 +453,14 @@ compare(
 )
 cmap_range = {
     "DNN_structures_all" : {
-        "full_mape" : [1.60, 1.8],
-        "medium_mape" : [0.65, 0.73],
-        "full_median_diff" : [1.55, 2.25],
-        "full_1sig_width" : [5.5, 6.5],
-        "full_1sig_calibr_width" : [5.5, 6.5],
-        "low_mape" : [0.9, 1.2],
+        "full_mape" : [1.60, 1.75],
+        "medium_mape" : [0.66, 0.72],
+        "full_median_diff" : [1.4, 2.4],
+        "full_1sig_width" : [5.4, 6.8],
+        "full_1sig_calibr_width" : [5.4, 6.7],
+        "low_mape" : [0.9, 1.25],
         "low_median_diff" : [0.5, 3.0],
-        "low_1sig_width" : [0.85, 1.25],
+        "low_1sig_width" : [0.9, 1.2],
         "low_1sig_calibr_width" : [0.85, 1.1],
     },
     # "DNN_structures_reduced" : {
@@ -466,15 +475,15 @@ cmap_range = {
     #     "low_1sig_calibr_width" : [0.875, 0.975],
     # },
     "XGB_structures" : {
-        "full_mape" : [2.35, 3.55],
-        "medium_mape" : [0.65, 0.85],
-        "full_median_diff" : [2.09, 3.31],
-        "full_1sig_width" : [0, 1],
-        "full_1sig_calibr_width" : [0, 1],
-        "low_mape" : [2.4, 4.6],
-        "low_median_diff" : [0.39, 2.01],
-        "low_1sig_width" : [0.0, 2.51],
-        "low_1sig_calibr_width" : [0, 2],
+        "full_mape" : [2.5, 4.0],
+        "medium_mape" : [0.675, 0.8],
+        "full_median_diff" : [2.3, 3.3],
+        "full_1sig_width" : [4.4, 5.6],
+        "full_1sig_calibr_width" : [4.4, 5.7],
+        "low_mape" : [2.4, 4.0],
+        "low_median_diff" : [.5, 2.5],
+        "low_1sig_width" : [1.8, 2.6],
+        "low_1sig_calibr_width" : [1, 2.1],
     },
 }
 
