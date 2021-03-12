@@ -599,16 +599,16 @@ def predictions_distributions(df_all, channel, model_name, language = default_la
 def variables_distributions(df_all, channel, model_name, language = default_language, prefix = '', variables_list = [target], file_format = 'png', **kwargs):
     df1 = filter_channel(df_all, channel=channel)
     for var in variables_list:
-        _variables_distribution(df1, var, channel, "all_events", model_name = model_name, language = language)
+        _variables_distribution(df1, var, channel, "all_events", model_name = model_name, language = language, file_format = file_format)
         for data_category in ["is_train", "is_valid", "is_test"]:
             df2 = df1.loc[df_all[data_category] == 1]
-            _variables_distribution(df2, var, channel, data_category, model_name = model_name, language = language, prefix = '')
+            _variables_distribution(df2, var, channel, data_category, model_name = model_name, language = language, prefix = '', file_format = file_format)
 
-def _variables_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = ''):
-    _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = False)
-    _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = True)
+def _variables_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = '', file_format = 'png'):
+    _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = False, file_format = file_format)
+    _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = True, file_format = file_format)
 
-def _variable_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = '', weighted = False, density = False):
+def _variable_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = '', weighted = False, density = False, file_format = 'png'):
     plt.clf()
     fig, ax = plt.subplots()
     weights = None
@@ -622,7 +622,9 @@ def _variable_distribution(df, var, channel, data_category, model_name = None, l
     max_value = df[var].max()
     binning = np.arange(min_value, max_value, 10)
     if len(binning) < 50:
-        binning = binning_default
+        binning = binning_defaul
+    if var == target:
+        binning = np.arange(0, 1001, 2) + 0.5
     n, bins, patches = ax.hist(df[var], binning, weights = weights, log = (var in vars_with_y_log_scale), density = density)
     if var in labels:
         xlabel = labels[var][language]
