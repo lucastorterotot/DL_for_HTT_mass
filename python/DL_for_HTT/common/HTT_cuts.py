@@ -50,13 +50,13 @@ cut_ele_et_dz = cut_tauh_tt_dz
 cut_ele_et_iso = 0.15
 
 cut_ele_em_pt = 15
-cut_ele_em_eta = 2.5
+cut_ele_em_eta = 2.4
 cut_ele_em_d0 = cut_muon_mt_d0
 cut_ele_em_dz = cut_tauh_tt_dz
 cut_ele_em_iso = cut_ele_et_iso
 
 cut_ele_ee_pt = 20
-cut_ele_ee_eta = 2.5
+cut_ele_ee_eta = 2.4
 cut_ele_ee_d0 = cut_muon_mt_d0
 cut_ele_ee_dz = cut_tauh_tt_dz
 cut_ele_ee_iso = 0.1
