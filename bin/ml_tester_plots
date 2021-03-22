@@ -46,13 +46,15 @@ if update_database or database_exists == 0:
 print("Read database...")
 df = pd.read_hdf("{}/{}.h5".format(args.database_path, args.database_name))
 
-# /data2/ltorterotot/ML/trained_NNs_FastSim/DeepTau-inclusive/PuppiMET_with_METcov_j1j2jr_Nnu_Npu/NN-activation-softplus-batch_size-2048-mape-Adam-gu-inclusive-3-layers-1000-neurons.perfs
-
-reference = df.loc[
-    ( df["type"] == "DNN" ) & ( df["model_inputs"] == "PuppiMET_with_METcov_j1j2jr_Nnu_Npu" ) & ( df["activation"] == "softplus") \
-    & ( df["loss"] == "mape" ) & ( df["w_init_mode"] == "gu" ) & ( df["Nlayers"] == 3 ) & ( df["Nneurons"] == 1000 ) & ( df["optimizer"] == "Adam" ) \
-    & ( df["full_mape"] == 0.0001647066211224146 )
-]
+ref_file = "/data2/ltorterotot/ML/trained_NNs_FastSim/DeepTau-inclusive/PuppiMET_with_METcov_j1j2jr_Nnu_Npu/NN-activation-softplus-batch_size-2048-mape-Adam-gu-inclusive-3-layers-1000-neurons.perfs"
+try:
+    reference = df.loc[df["file"] == ref_file]
+except:
+    reference = df.loc[
+        ( df["type"] == "DNN" ) & ( df["model_inputs"] == "PuppiMET_with_METcov_j1j2jr_Nnu_Npu" ) & ( df["activation"] == "softplus") \
+        & ( df["loss"] == "mape" ) & ( df["w_init_mode"] == "gu" ) & ( df["Nlayers"] == 3 ) & ( df["Nneurons"] == 1000 ) & ( df["optimizer"] == "Adam" ) \
+        & ( df["full_mape"] == 0.0001647066211224146 )
+    ]
 
 import locale
 import matplotlib.pyplot as plt
