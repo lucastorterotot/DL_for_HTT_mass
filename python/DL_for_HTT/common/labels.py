@@ -36,12 +36,12 @@ labels = {
         'en' : "MAPE",
     },
     'All inputs' : {
-        'fr' : "Toutes les variables",
-        'en' : "All inputs",
+        'fr' : "Toutes",
+        'en' : "All",
     },
     'Other inputs sets' : {
         'fr' : "Sous-ensembles",
-        'en' : "Other inputs sets",
+        'en' : "Subsets",
     },
     'No Npu' : {
         'fr' : r"Sans $N_{{\rm PU}}$",
