@@ -33,7 +33,9 @@ parser.add_option("-j", "--n_jobs", dest = "n_jobs",
 parser.add_option("-O", "--objective", dest = "objective",
                   default = 'squarederror')
 parser.add_option("-i", "--model_inputs", dest = "model_inputs",
-                  default = 'with_METcov_j1j2jr_Npu')
+                  default = 'PuppiMET_with_METcov_j1j2jr_Nnu_Npu')
+parser.add_option("-H", "--hist_ext", dest = "hist_ext", help="History plot output format, default is png",
+                  default = 'png')
 
 (options,args) = parser.parse_args()
 
@@ -371,27 +373,27 @@ def XGB_make_train_predict(df, model_inputs, channel = "inclusive"):
     bst.save_model("XGBRegressor-{}.json".format(XGBname))
     os.system("cp {} inputs_for_models_in_this_dir.py".format(model_inputs_file.__file__))
 
-    fig = plt.figure(figsize=(6, 6))
+    fig = plt.figure(figsize=(4, 4))
     plt.subplot(1, 1, 1)
     # plt.title("Values of eval ({})".format(options.eval))
     plt.plot(np.arange(len(evals_result['train'][options.eval])) + 1, evals_result['train'][options.eval], 'b-',
-             label='Training Set Eval')
-    plt.plot(np.arange(len(evals_result['valid'][options.eval])) + 1, evals_result['valid'][options.eval], 'g-',
-             label='Validation Set Eval')
-    plt.plot(np.arange(len(evals_result['test'][options.eval])) + 1, evals_result['test'][options.eval], 'r-',
-             label='Test Set Eval')
+             label=r"Jeu d'entraînement")
+    plt.plot(np.arange(len(evals_result['valid'][options.eval])) + 1, evals_result['valid'][options.eval], 'r-',
+             label=r"Jeu de validation")
+    #plt.plot(np.arange(len(evals_result['test'][options.eval])) + 1, evals_result['test'][options.eval], 'g-',
+    #         label='Test Set Eval')
     plt.legend(loc='upper right')
-    plt.xlabel('Boosting Iterations')
-    plt.ylabel("Values of eval ({})".format(options.eval))
+    plt.xlabel(r'Itérations')
+    plt.ylabel(r"Évaluation ({})".format(options.eval))
     fig.tight_layout()
-    plt.ylim(60, 200)
+    plt.ylim(0, 150)
     if options.eval == 'rmse':
-        plt.ylim(90, 150)
+        plt.ylim(80, 120)
     elif options.eval == 'mae':
-        plt.ylim(70, 110)
-    plt.yscale('log')
+        plt.ylim(0, 110)
+    #plt.yscale('log')
     plt.subplots_adjust(left=0.15)
-    plt.savefig("History-XGBRegressor-{}.png".format(XGBname))
+    plt.savefig("History-XGBRegressor-{}.{}".format(XGBname, options.hist_ext))
 
 allowed_channels = ["inclusive", "tt", "mt", "et", "mm", "em", "ee", "lt", "ll"]
 
