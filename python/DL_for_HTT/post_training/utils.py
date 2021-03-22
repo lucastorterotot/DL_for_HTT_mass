@@ -218,13 +218,21 @@ def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = No
 
     df2= df1.loc[(df1[target] >= min_mass) & (df1[target] < max_mass)]
     N = len(df2)
+    
+    median_diff *= 1./len(medians_model)
+    CL68_width *= 1./len(medians_model)
+    CL95_width *= 1./len(medians_model)
+    CL68_calibr_width *= 1./len(medians_model)
+    CL95_calibr_width *= 1./len(medians_model)
+    
     y_true = df2[target].array
     y_pred = df2["predictions"].array
+    
     mse = ((y_pred-y_true)**2).mean()
     mae = (np.abs(y_pred-y_true)).mean()
     mape = (np.abs(y_pred-y_true)/y_true).mean() * 100
         
-    return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N
+    return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N, len(medians_model)
 
 def create_scores_database(args):
     command = "find {} -type f -name \*.perfs".format(args.basedir)
@@ -241,6 +249,7 @@ def create_scores_database(args):
     for model_perf in perf_files:
         data = {}
 
+        data["file"] = model_perf
         data["type"] = "XGB" if "xgboosts" in model_perf else "DNN"
         data["model_inputs"] = model_perf.split("/")[-2]
         data["training_dataset"] = model_perf.split("/")[-3]

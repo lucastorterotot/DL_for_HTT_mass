@@ -94,19 +94,21 @@ mse_full = 0
 mae_full = 0
 mape_full = 0
 N_events = 0
-for min_max_mass in [[0, 80, "low"], [80, 600, "medium"], [600, 800, "high"]]:
+n_bins = 0
+for min_max_mass in [[0, 150, "low"], [150, 500, "medium"], [500, 800, "high"]]:
     testing_parameters['min_mass'] = min_max_mass[0]
     testing_parameters['max_mass'] = min_max_mass[1]
-    median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N = utils.tester(**testing_parameters)
-    median_diff_full += median_diff
-    CL68_width_full += CL68_width
-    CL95_width_full += CL95_width
-    CL68_calibr_width_full += CL68_calibr_width
-    CL95_calibr_width_full += CL95_calibr_width
+    median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N, n = utils.tester(**testing_parameters)
+    median_diff_full = (median_diff_full*n_bins + median_diff*n)/(n_bins+n)
+    CL68_width_full = (CL68_width_full*n_bins + CL68_width*n)/(n_bins+n)
+    CL95_width_full = (CL95_width_full*n_bins + CL95_width*n)/(n_bins+n)
+    CL68_calibr_width_full = (CL68_calibr_width_full*n_bins + CL68_calibr_width*n)/(n_bins+n)
+    CL95_calibr_width_full = (CL95_calibr_width_full*n_bins + CL95_calibr_width*n)/(n_bins+n)
     mse_full = (mse_full*N_events + mse*N)/(N_events+N)
     mae_full = (mae_full*N_events + mae*N)/(N_events+N)
     mape_full = (mape_full*N_events + mape*N)/(N_events+N)
     N_events += N
+    n_bins += n
 
     os.system('echo "'+min_max_mass[2]+'_median_diff '+str(median_diff)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
     os.system('echo "'+min_max_mass[2]+'_CL68_width '+str(CL68_width)+'" >> {}.perfs'.format(testing_parameters["model_name"]))
