@@ -220,9 +220,9 @@ def tester(df, channel, model_name, min_mass, max_mass, prefix = '', target = No
     N = len(df2)
     y_true = df2[target].array
     y_pred = df2["predictions"].array
-    mse = ((y_pred-y_true)**2 /N).mean()
-    mae = (np.abs(y_pred-y_true)/N).mean()
-    mape = (np.abs(y_pred-y_true)/y_true).mean() * 100/N
+    mse = ((y_pred-y_true)**2).mean()
+    mae = (np.abs(y_pred-y_true)).mean()
+    mape = (np.abs(y_pred-y_true)/y_true).mean() * 100
         
     return median_diff, CL68_width, CL95_width, CL68_calibr_width, CL95_calibr_width, mse, mae, mape, N
 
