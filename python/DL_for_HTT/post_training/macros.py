@@ -484,7 +484,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
 
     plt.close('all')
 
-def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', file_format = 'png', **kwargs):
+def predicted_vs_answers_histo(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', file_format = 'png', **kwargs):
     df1 = filter_channel(df, channel)
 
     min_mass, max_mass = 0, 1000
@@ -516,13 +516,13 @@ def predicted_vs_answer_histo(df, channel, model_name, min_mass, max_mass, langu
     plt.xlim(min_mass, max_mass)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answer_histo-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
+    fig.savefig("predicted_vs_answers_histo-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.ylim(min_mass, 200)
     plt.xlim(min_mass, 200)
 
     fig.tight_layout()
-    fig.savefig("predicted_vs_answer_histo_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
+    fig.savefig("predicted_vs_answers_histo_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
             
 def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', cmap="ocean_r", file_format = 'png', **kwargs):
 
@@ -664,5 +664,5 @@ available_plots = {
     'predictions_distributions' : predictions_distributions,
     'gen_vs_reco' : gen_vs_reco,
     'model_response_tau_filtered' : model_response_tau_filtered,
-    'predicted_vs_answer_histo' : predicted_vs_answer_histo,
+    'predicted_vs_answers_histo' : predicted_vs_answers_histo,
 }
