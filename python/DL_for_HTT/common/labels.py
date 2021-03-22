@@ -43,6 +43,30 @@ labels = {
         'fr' : "Sous-ensembles",
         'en' : "Other inputs sets",
     },
+    'No Npu' : {
+        'fr' : r"Sans $N_{{\rm PU}}$",
+        'en' : r"No $N_{{\rm PU}}$",
+    },
+    'No Nnu' : {
+        'fr' : r"Sans $N_{{\nu}}^{{\rm reco}}$",
+        'en' : r"No $N_{{\nu}}^{{\rm reco}}$",
+    },
+    'No jr' : {
+        'fr' : "Sans AHA",
+        'en' : "No RHA",
+    },
+    'No jets' : {
+        'fr' : "Sans jets",
+        'en' : "No jets",
+    },
+    'No mT' : {
+        'fr' : r"Sans $m_{{\rm T}}$",
+        'en' : r"No $m_{{\rm T}}$",
+    },
+    'No METcov' : {
+        'fr' : "Sans METcov",
+        'en' : "No METcov",
+    },
     'GenHiggsMassGeV' : {
         'fr' : "Masse générée du Higgs (GeV)",
         'en' : "Generated Higgs Mass (GeV)",
