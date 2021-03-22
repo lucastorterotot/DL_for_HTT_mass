@@ -302,12 +302,12 @@ compare(
 )
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 3,
+    variable_exponent_factor = 4,
     groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
     ],
-    binning = np.linspace(0,1,100),
+    binning = np.linspace(0,10,100),
     name = "DNN_vs_XGB",
 )
 compare(
@@ -318,8 +318,9 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(1,4,100),
+    binning = np.linspace(1.5,3,50),
     name = "DNN_inputs",
+    stack = True,
 )
 compare(
     variable = "full_1sig_width",
@@ -374,7 +375,7 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     binning = np.linspace(0,200,100),
+#     binning = np.linspace(0,200,50),
 #     name = "DNN_inputs",
 # )
 # compare(
@@ -384,19 +385,20 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     binning = np.linspace(0,4,100),
+#     binning = np.linspace(0,4,50),
 #     name = "DNN_inputs",
 # )
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 3,
+    variable_exponent_factor = 4,
     global_filters = [["type", "XGB", "XGB"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(0,1,100),
+    binning = np.linspace(2,10,50),
     name = "XGB_inputs",
+    stack = True,
 )
 compare(
     variable = "full_1sig_width",
@@ -434,7 +436,7 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     #binning = np.linspace(0,1,100),
+#     #binning = np.linspace(0,1,50),
 #     name = "XGB_inputs",
 # )
 # compare(
