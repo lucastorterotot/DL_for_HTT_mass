@@ -76,6 +76,7 @@ def compare(
         show_reference = args.show_reference,
         stack = False,
         log = False,
+        weights_key = "",
 ):
 
     local_df = df.loc[df["type"] != "unknown"]
@@ -123,8 +124,11 @@ def compare(
                 values = local_df.loc[local_df[group[0]] != group[1]][variable] * 10**variable_exponent_factor
             else:
                 values = local_df.loc[local_df[group[0]] == group[1]][variable] * 10**variable_exponent_factor
-            weights = np.ones(len(values))/len(values)
-        
+            if len(weights_key) == 0:
+                weights = np.ones(len(values))/len(values)
+            else:
+                weights = local_df.loc[local_df[group[0]] == group[1]][weights_key] /len(values)
+                
             if group[2] not in labels:
                 label = group[2]
                 if len(group[2].split(" ")) > 1:
@@ -344,39 +348,53 @@ compare(
     name = "DNN_inputs",
     stack = True,
 )
-df["model_inputs_group"] = np.zeros(len(df))
-df.loc[df["model_inputs"] == "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", ["model_inputs_group"]] = 1
-df.loc[~ df["model_inputs"].str.contains("Npu"), ["model_inputs_group"]] = 2
-df.loc[~ df["model_inputs"].str.contains("Nnu"), ["model_inputs_group"]] = 3
-df.loc[~ df["model_inputs"].str.contains("jr"), ["model_inputs_group"]] = 4
-df.loc[~ df["model_inputs"].str.contains("j1j2"), ["model_inputs_group"]] = 5
-df.loc[df["model_inputs"].str.contains("no_mT"), ["model_inputs_group"]] = 6
-df.loc[~ df["model_inputs"].str.contains("with_METcov"), ["model_inputs_group"]] = 7
+model_inputs_groups_names = [
+    "All inputs",
+    "No Npu",
+    "No Nnu",
+    "No jr",
+    "No jets",
+    "No mT",
+    "No METcov"
+]
+for k in model_inputs_groups_names:
+    df["model_inputs_group {}".format(k)] = np.zeros(len(df))
+df.loc[df["model_inputs"] == "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", ["model_inputs_group {}".format(model_inputs_groups_names[0])]] = 1
+df.loc[~ df["model_inputs"].str.contains("Npu"), ["model_inputs_group {}".format(model_inputs_groups_names[1])]] = 1
+df.loc[~ df["model_inputs"].str.contains("Nnu"), ["model_inputs_group {}".format(model_inputs_groups_names[2])]] = 1
+df.loc[~ df["model_inputs"].str.contains("jr"), ["model_inputs_group {}".format(model_inputs_groups_names[3])]] = 1
+df.loc[~ df["model_inputs"].str.contains("j1j2"), ["model_inputs_group {}".format(model_inputs_groups_names[4])]] = 1
+df.loc[df["model_inputs"].str.contains("no_mT"), ["model_inputs_group {}".format(model_inputs_groups_names[5])]] = 1
+df.loc[~ df["model_inputs"].str.contains("with_METcov"), ["model_inputs_group {}".format(model_inputs_groups_names[6])]] = 1
+df["model_inputs_iter"] = np.zeros(len(df))
+df["model_inputs_weight"] = np.ones(len(df))
+for k in model_inputs_groups_names:
+    df["model_inputs_iter"] += df["model_inputs_group {}".format(k)]
+df.loc[df["model_inputs_iter"] == 0, ["model_inputs_iter"]] = 1
+df["model_inputs_weight"] *= 1./ df["model_inputs_iter"]
 model_inputs_groups = [
-    ["model_inputs_group", 1, "All inputs"],
-    ["model_inputs_group", 2, "No Npu"],
-    ["model_inputs_group", 3, "No Nnu"],
-    ["model_inputs_group", 4, "No jr"],
-    ["model_inputs_group", 5, "No jets"],
-    ["model_inputs_group", 6, "No mT"],
-    ["model_inputs_group", 7, "No METcov"]
+    ["model_inputs_group {}".format(k), 1, k] for k in model_inputs_groups_names
 ]
 compare(
+    df = df,
     variable = "full_mape",
     variable_exponent_factor = 4,
     global_filters = [["type", "DNN", "DNN"]],
     groups = model_inputs_groups,
-    binning = np.linspace(1.5,3,25),
+    binning = np.linspace(1.5,3,50),
     name = "DNN_inputs_all",
     stack = True,
+    weights_key = "model_inputs_weight",
 )
 compare(
+    df = df,
     variable = "full_1sig_width",
     global_filters = [["type", "DNN", "DNN"]],
     groups = model_inputs_groups,
-    binning = np.linspace(4,10,25),
+    binning = np.linspace(4,10,50),
     name = "DNN_inputs_all",
     stack = True,
+    weights_key = "model_inputs_weight",
 )
 # compare(
 #     variable = "low_mape",
@@ -386,7 +404,7 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     binning = np.linspace(0,200,25),
+#     binning = np.linspace(0,200,50),
 #     name = "DNN_inputs",
 # )
 # compare(
@@ -396,7 +414,7 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     binning = np.linspace(0,4,25),
+#     binning = np.linspace(0,4,50),
 #     name = "DNN_inputs",
 # )
 compare(
@@ -407,7 +425,7 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(2,10,25),
+    binning = np.linspace(2,10,50),
     name = "XGB_inputs",
     stack = True,
 )
@@ -418,26 +436,30 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(4,10,25),
+    binning = np.linspace(4,10,50),
     name = "XGB_inputs",
     stack = True,
 )
 compare(
+    df = df,
     variable = "full_mape",
     variable_exponent_factor = 4,
     global_filters = [["type", "XGB", "XGB"]],
     groups = model_inputs_groups,
-    binning = np.linspace(2,10,25),
+    binning = np.linspace(2,10,50),
     name = "XGB_inputs_all",
     stack = True,
+    weights_key = "model_inputs_weight",
 )
 compare(
+    df = df,
     variable = "full_1sig_width",
     global_filters = [["type", "XGB", "XGB"]],
     groups = model_inputs_groups,
-    binning = np.linspace(4,10,25),
+    binning = np.linspace(4,10,50),
     name = "XGB_inputs_all",
     stack = True,
+    weights_key = "model_inputs_weight",
 )
 # compare(
 #     variable = "low_mape",
@@ -447,7 +469,7 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     #binning = np.linspace(0,1,25),
+#     #binning = np.linspace(0,1,50),
 #     name = "XGB_inputs",
 # )
 # compare(
@@ -457,7 +479,7 @@ compare(
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
 #         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
 #     ],
-#     #binning = np.linspace(0,10,25),
+#     #binning = np.linspace(0,10,50),
 #     name = "XGB_inputs",
 # )
 
