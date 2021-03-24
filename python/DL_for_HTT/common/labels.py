@@ -168,7 +168,7 @@ labels = {
         'en' : "Hidden Layers",
     },
     'Nneurons' : {
-        'fr' : "neurones par couche",
+        'fr' : "neurones",
         'en' : "Neurons per layer",
     },
     'relu' : {
