@@ -487,12 +487,157 @@ compare(
     name = "XGB_inputs",
 )
 
-CURRENT_MODEL_FILTERS.append(["type", "DNN", "DNN"])
 CURRENT_MODEL_FILTERS.append(["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"])
+
+compare(
+    variable = "full_mse",
+    variable_exponent_factor = -3,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(7,20,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "full_mae",
+    variable_exponent_factor = -1,
+    global_filters = CURRENT_MODEL_FILTERS,
+        groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(6,11,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "full_mape",
+    variable_exponent_factor = 0,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(15,40,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "full_1sig_width",
+    variable_exponent_factor = 2,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(10,60,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "low_mse",
+    variable_exponent_factor = -3,
+    global_filters = CURRENT_MODEL_FILTERS,
+        groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(0,10,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "low_mape",
+    variable_exponent_factor = 0,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(15,55,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "low_1sig_width",
+    variable_exponent_factor = 2,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(30,100,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "medium_mse",
+    variable_exponent_factor = -3,
+    global_filters = CURRENT_MODEL_FILTERS,
+        groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(4,15,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "medium_mape",
+    variable_exponent_factor = 0,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(15,30,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "medium_1sig_width",
+    variable_exponent_factor = 2,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(35,65,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "high_mse",
+    variable_exponent_factor = -4,
+    global_filters = CURRENT_MODEL_FILTERS,
+        groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(0,5,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "high_mape",
+    variable_exponent_factor = 0,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(10,35,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+compare(
+    variable = "high_1sig_width",
+    variable_exponent_factor = 2,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["type", "DNN", "DNN"],
+        ["type", "XGB", "XGB"],
+    ],
+    binning = np.linspace(20,60,100),
+    name = "DNN_vs_XGB_all_inputs",
+)
+
+CURRENT_MODEL_FILTERS.append(["type", "DNN", "DNN"])
 
 losses = list(set(df.loc[df.type == "DNN"]["loss"]))
 losses.sort()
-losses = ["mape", "mse"]
+losses = ["mape", "mae", "mse"]
 compare(
     variable = "full_mape",
     variable_exponent_factor = 0,
