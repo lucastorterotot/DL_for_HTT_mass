@@ -289,64 +289,65 @@ CURRENT_MODEL_FILTERS = []
 
 compare(
     variable = "full_mse",
+    variable_exponent_factor = -3,
     groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
     ],
-    binning = np.linspace(0,0.3,100),
+    binning = np.linspace(7,20,100),
     name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_mae",
-    variable_exponent_factor = 3,
+    variable_exponent_factor = -1,
         groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
         ],
-    binning = np.linspace(0,2,100),
+    binning = np.linspace(6,11,100),
     name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
     ],
-    binning = np.linspace(0,10,100),
+    binning = np.linspace(15,40,100),
     name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_1sig_width",
+    variable_exponent_factor = 2,
     groups = [
         ["type", "DNN", "DNN"],
         ["type", "XGB", "XGB"],
     ],
-    binning = np.linspace(4,10,100),
+    binning = np.linspace(10,60,100),
     name = "DNN_vs_XGB",
 )
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = [["type", "DNN", "DNN"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(1.5,3,25),
+    binning = np.linspace(17,25,100),
     name = "DNN_inputs",
-    stack = True,
 )
 compare(
     variable = "full_1sig_width",
+    variable_exponent_factor = 2,
     global_filters = [["type", "DNN", "DNN"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(4,10,25),
+    binning = np.linspace(22,52,100),
     name = "DNN_inputs",
-    stack = True,
 )
 model_inputs_groups_names = [
     "All inputs",
@@ -378,10 +379,10 @@ model_inputs_groups = [
 compare(
     df = df,
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = [["type", "DNN", "DNN"]],
     groups = model_inputs_groups,
-    binning = np.linspace(1.5,3,50),
+    binning = np.linspace(17,25,50),
     name = "DNN_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
@@ -389,64 +390,64 @@ compare(
 compare(
     df = df,
     variable = "full_1sig_width",
+    variable_exponent_factor = 2,
     global_filters = [["type", "DNN", "DNN"]],
     groups = model_inputs_groups,
-    binning = np.linspace(4,10,50),
+    binning = np.linspace(22,52,50),
     name = "DNN_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
 )
-# compare(
-#     variable = "low_mape",
-#     variable_exponent_factor = 4,
-#     global_filters = [["type", "DNN", "DNN"]],
-#     groups = [
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
-#     ],
-#     binning = np.linspace(0,200,50),
-#     name = "DNN_inputs",
-# )
-# compare(
-#     variable = "low_1sig_width",
-#     global_filters = [["type", "DNN", "DNN"]],
-#     groups = [
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
-#     ],
-#     binning = np.linspace(0,4,50),
-#     name = "DNN_inputs",
-# )
+compare(
+    variable = "low_mape",
+    variable_exponent_factor = 0,
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
+    ],
+    binning = np.linspace(10,60,100),
+    name = "DNN_inputs",
+)
+compare(
+    variable = "low_1sig_width",
+    global_filters = [["type", "DNN", "DNN"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
+    ],
+    binning = np.linspace(0,2,100),
+    name = "DNN_inputs",
+)
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = [["type", "XGB", "XGB"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(2,10,50),
+    binning = np.linspace(17,35,100),
     name = "XGB_inputs",
-    stack = True,
 )
 compare(
     variable = "full_1sig_width",
+    variable_exponent_factor = 2,
     global_filters = [["type", "XGB", "XGB"]],
     groups = [
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(4,10,50),
+    binning = np.linspace(15,45,100),
     name = "XGB_inputs",
-    stack = True,
 )
 compare(
     df = df,
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = [["type", "XGB", "XGB"]],
     groups = model_inputs_groups,
-    binning = np.linspace(2,10,50),
+    binning = np.linspace(17,35,50),
     name = "XGB_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
@@ -454,34 +455,35 @@ compare(
 compare(
     df = df,
     variable = "full_1sig_width",
+    variable_exponent_factor = 2,
     global_filters = [["type", "XGB", "XGB"]],
     groups = model_inputs_groups,
-    binning = np.linspace(4,10,50),
+    binning = np.linspace(15,45,50),
     name = "XGB_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
 )
-# compare(
-#     variable = "low_mape",
-#     variable_exponent_factor = 3,
-#     global_filters = [["type", "XGB", "XGB"]],
-#     groups = [
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
-#     ],
-#     #binning = np.linspace(0,1,50),
-#     name = "XGB_inputs",
-# )
-# compare(
-#     variable = "low_1sig_width",
-#     global_filters = [["type", "XGB", "XGB"]],
-#     groups = [
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
-#         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
-#     ],
-#     #binning = np.linspace(0,10,50),
-#     name = "XGB_inputs",
-# )
+compare(
+    variable = "low_mape",
+    variable_exponent_factor = 0,
+    global_filters = [["type", "XGB", "XGB"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
+    ],
+    binning = np.linspace(20,100,100),
+    name = "XGB_inputs",
+)
+compare(
+    variable = "low_1sig_width",
+    global_filters = [["type", "XGB", "XGB"]],
+    groups = [
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
+        ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
+    ],
+    binning = np.linspace(0,2,100),
+    name = "XGB_inputs",
+)
 
 CURRENT_MODEL_FILTERS.append(["type", "DNN", "DNN"])
 CURRENT_MODEL_FILTERS.append(["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"])
@@ -491,49 +493,52 @@ losses.sort()
 losses = ["mape", "mse"]
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(1,4,100),
+    binning = np.linspace(17.5,30,100),
     name = "DNN_loss",
 )
 compare(
     variable = "full_mse",
+    variable_exponent_factor = -3,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(0,0.3,100),
+    binning = np.linspace(7,17.5,100),
     name = "DNN_loss",
 )
 compare(
     variable = "full_mae",
+    variable_exponent_factor = -1,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["loss", loss, loss] for loss in losses
+    ],
+    binning = np.linspace(6,10,100),
+    name = "DNN_loss",
+)
+compare(
+    variable = "full_median_diff",
     variable_exponent_factor = 3,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(0.5,1,100),
-    name = "DNN_loss",
-)
-compare(
-    variable = "full_median_diff",
-    global_filters = CURRENT_MODEL_FILTERS,
-    groups = [
-        ["loss", loss, loss] for loss in losses
-    ],
-    binning = np.linspace(0,4,100),
+    binning = np.linspace(25,200,100),
     name = "DNN_loss",
 )
 compare(
     variable = "full_1sig_width",
+    variable_exponent_factor = 2,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(4,10,100),
+    binning = np.linspace(20,55,100),
     name = "DNN_loss",
 )
 compare(
@@ -542,7 +547,7 @@ compare(
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(0,4,100),
+    binning = np.linspace(.3,1,100),
     name = "DNN_loss",
 )
 compare(
@@ -551,7 +556,7 @@ compare(
     groups = [
         ["loss", loss, loss] for loss in losses
     ],
-    binning = np.linspace(20,32,100),
+    binning = np.linspace(.4,.625,100),
     name = "DNN_loss",
 )
 
@@ -559,12 +564,12 @@ CURRENT_MODEL_FILTERS.append(["loss", "mape"])
 
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["optimizer", opt, opt] for opt in ["Adam", "Adadelta"]
     ],
-    binning = np.linspace(1,3,100),
+    binning = np.linspace(17.5,25,100),
     name = "DNN_optimizer",
 )
 
@@ -574,7 +579,7 @@ compare(
     groups = [
         ["optimizer", opt, opt] for opt in ["Adam", "Adadelta"]
     ],
-    binning = np.linspace(0,4,100),
+    binning = np.linspace(0.35,0.65,100),
     name = "DNN_optimizer",
 )
 
@@ -582,12 +587,12 @@ CURRENT_MODEL_FILTERS.append(["optimizer", "Adam"])
 
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]
     ],
-    binning = np.linspace(1.5,2,25),
+    binning = np.linspace(17,22,100),
     name = "DNN_w_init_mode",
 )
 
@@ -595,57 +600,46 @@ compare(
 
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["Nlayers", k, "{} Nlayers".format(k)] for k in range (2, 6)
     ],
-    binning = np.linspace(1.5,2,100),
+    binning = np.linspace(17.5,20.5,100),
     name = "DNN_N_layers",
 )
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["Nneurons", k*100, "{} Nneurons".format(int(k*100))] for k in [2, 6, 10, 14]
     ],
-    binning = np.linspace(1.5,2,50),
+    binning = np.linspace(17.5,20.5,100),
     name = "DNN_N_neurons",
 )
 cmap_range = {
     "DNN_structures_all" : {
-        "full_mape" : [1.60, 1.75],
-        "medium_mape" : [0.66, 0.72],
-        "full_median_diff" : [1.4, 2.4],
-        "full_1sig_width" : [5.4, 6.8],
-        "full_1sig_calibr_width" : [5.4, 6.7],
-        "low_mape" : [0.9, 1.25],
-        "low_median_diff" : [0.5, 3.0],
-        "low_1sig_width" : [0.9, 1.2],
-        "low_1sig_calibr_width" : [0.85, 1.1],
+        "full_mape" : [17.75,18.25],
+        "medium_mape" : [18.25,19.25],
+        "full_median_diff" : [55,95],
+        "full_1sig_width" : [31,34],
+        "full_1sig_calibr_width" : [.305,.34],
+        "low_mape" : [17.5,19],
+        "low_median_diff" : [1.75,4],
+        "low_1sig_width" : [.38,.41],
+        "low_1sig_calibr_width" : [.375,.41],
     },
-    # "DNN_structures_reduced" : {
-    #     "full_mape" : [1.60, 1.71],
-    #     "medium_mape" : [0.65, 0.75],
-    #     "full_median_diff" : [1.55, 1.95],
-    #     "full_1sig_width" : [5.5, 6.5],
-    #     "full_1sig_calibr_width" : [5.5, 6.5],
-    #     "low_mape" : [0.9, 1.1],
-    #     "low_median_diff" : [0.5, 2.05],
-    #     "low_1sig_width" : [0.875, 1.05],
-    #     "low_1sig_calibr_width" : [0.875, 0.975],
-    # },
     "XGB_structures" : {
-        "full_mape" : [2.5, 4.0],
-        "medium_mape" : [0.675, 0.8],
-        "full_median_diff" : [2.3, 3.3],
-        "full_1sig_width" : [4.4, 5.6],
-        "full_1sig_calibr_width" : [4.4, 5.7],
-        "low_mape" : [2.4, 4.0],
-        "low_median_diff" : [.5, 2.5],
-        "low_1sig_width" : [1.8, 2.6],
-        "low_1sig_calibr_width" : [1, 2.1],
+        "full_mape" : [18.5, 22],
+        "medium_mape" : [18, 21.5],
+        "full_median_diff" : [90, 140],
+        "full_1sig_width" : [23.5, 31],
+        "full_1sig_calibr_width" : [0.23, 0.31],
+        "low_mape" : [33, 42],
+        "low_median_diff" : [.2, .5],
+        "low_1sig_width" : [.5, .72],
+        "low_1sig_calibr_width" : [.3, .57],
     },
 }
 
@@ -653,23 +647,23 @@ cmap_range["DNN_structures_reduced"] = cmap_range["DNN_structures_all"]
 
 variable_exponent_factors = {
     "DNN_structures_all" : {
-        "full_mape" : 4,
-        "medium_mape" : 4,
-        "full_median_diff" : 0,
-        "full_1sig_width" : 0,
+        "full_mape" : 0,
+        "medium_mape" : 0,
+        "full_median_diff" : 3,
+        "full_1sig_width" : 2,
         "full_1sig_calibr_width" : 0,
-        "low_mape" : 2,
-        "low_median_diff" : 1,
+        "low_mape" : 0,
+        "low_median_diff" : 2,
         "low_1sig_width" : 0,
         "low_1sig_calibr_width" : 0,
     },
     "XGB_structures" : {
-        "full_mape" : 4,
-        "medium_mape" : 4,
-        "full_median_diff" : 0,
-        "full_1sig_width" : 0,
+        "full_mape" : 0,
+        "medium_mape" : 0,
+        "full_median_diff" : 3,
+        "full_1sig_width" : 2,
         "full_1sig_calibr_width" : 0,
-        "low_mape" : 2,
+        "low_mape" : 0,
         "low_median_diff" : 0,
         "low_1sig_width" : 0,
         "low_1sig_calibr_width" : 0,
@@ -717,12 +711,12 @@ activations = list(set(df.loc[df.type == "DNN"]["activation"]))
 
 compare(
     variable = "full_mape",
-    variable_exponent_factor = 4,
+    variable_exponent_factor = 0,
     global_filters = CURRENT_MODEL_FILTERS,
     groups = [
         ["activation", activation, activation] for activation in activations
     ],
-    binning = np.linspace(1.5,2,100),
+    binning = np.linspace(17.5,20,100),
     name = "DNN_activation",
 )
 
