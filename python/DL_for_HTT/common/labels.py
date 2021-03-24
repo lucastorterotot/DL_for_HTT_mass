@@ -24,12 +24,12 @@ labels = {
         'en' : "high masses",
     },
     'mse' : {
-        'fr' : "MSE",
-        'en' : "MSE",
+        'fr' : r"MSE (GeV$^2$)",
+        'en' : r"MSE (GeV$^2$)",
     },
     'mae' : {
-        'fr' : "MAE",
-        'en' : "MAE",
+        'fr' : "MAE (GeV)",
+        'en' : "MAE (GeV)",
     },
     'mape' : {
         'fr' : "MAPE",
