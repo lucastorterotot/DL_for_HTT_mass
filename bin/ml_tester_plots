@@ -174,7 +174,7 @@ def compare(
         "{}{}{}".format(
             labels[variable_for_label][args.language],
             " ({})".format(labels[mass_region][args.language]) if mass_region not in [None, "full"] else "",
-            r' $\times 10^{}$'.format(variable_exponent_factor) if variable_exponent_factor != 0 else "",
+            r' $\times 10^{'+str(variable_exponent_factor)+'}$' if variable_exponent_factor != 0 else "",
         )
     )
     ax.set_ylabel(labels["Density"][args.language])
