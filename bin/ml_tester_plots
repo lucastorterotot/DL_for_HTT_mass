@@ -107,6 +107,8 @@ def compare(
                     print("Raw label: {}".format(group[2]))
             else:
                 label = labels[group[2]][args.language]
+                label = label.replace(" (GeV)", "")
+                label = label.replace(" (GeV$^2$)", "")
             n, bins, patches = ax.hist(
                 values,
                 binning,
