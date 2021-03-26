@@ -11,6 +11,8 @@
 [![Delphes](https://img.shields.io/badge/Delphes-3.4.2-red.svg)](https://cp3.irmp.ucl.ac.be/projects/delphes)
 [![Pythia](https://img.shields.io/badge/Pythia-8.235-brightgreen.svg)](http://home.thep.lu.se/Pythia/)
 
+Want to use models obtained from this repository in your analysis? Please go to [`DiTau_ML_mass`](https://github.com/lucastorterotot/DiTau_ML_mass). There you will have all the relevant information to use the models, without all the training stuff present here.
+
 ## Installation
 
 ### This repository
