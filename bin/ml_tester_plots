@@ -26,6 +26,19 @@ available_languages = ["fr", "en"]
 if args.language not in available_languages:
     raise NotImplementedError ("Language {} not available. Possibles are: {}".format(args.language, ", ".join(available_languages)))
 
+
+import locale
+import matplotlib.pyplot as plt
+plt.rcdefaults()
+import numpy as np
+
+plt.rcParams["figure.figsize"] = [4, 4]
+
+if args.language == 'fr':
+    import locale
+    plt.rcParams['axes.formatter.use_locale'] = True
+    locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
+
 os.system("mkdir -p {}".format(args.database_path))
 update_database = args.update_database
 database_exists = int(
@@ -55,14 +68,6 @@ except:
         & ( df["loss"] == "mape" ) & ( df["w_init_mode"] == "gu" ) & ( df["Nlayers"] == 3 ) & ( df["Nneurons"] == 1000 ) & ( df["optimizer"] == "Adam" ) \
         & ( df["full_mape"] == 0.0001647066211224146 )
     ]
-
-import locale
-import matplotlib.pyplot as plt
-plt.rcdefaults()
-import numpy as np
-
-plt.rcParams["figure.figsize"] = [4, 4]
-plt.rcParams['axes.formatter.use_locale'] = True
 
 def compare(
         df = df,
