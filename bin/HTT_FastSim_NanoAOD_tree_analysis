@@ -8,6 +8,7 @@ parser.add_option("-v", "--verbose", dest = "verbose",
                                     default=0)
 parser.add_option("-N", "--Nmax", dest = "Nmax",
                                     default=None)
+parser.add_option("-f", "--fakes", dest = "fakes", action="store_true")
 
 (options,args) = parser.parse_args()
 
@@ -76,7 +77,7 @@ for evt in tree:
     if options.verbose > 0 and Nevt_in%10 == 0:
         print("\nEvent {}:".format(Nevt_in))
 
-    reco_analysis, cutflow_stats = HTT_analysis_reco(evt, verbose = options.verbose, cutflow_stats = cutflow_stats)
+    reco_analysis, cutflow_stats = HTT_analysis_reco(evt, verbose = options.verbose, cutflow_stats = cutflow_stats, fakes=options.fakes)
     if reco_analysis != {}:
         passed_reco = True
         Nevt_out_reco += 1

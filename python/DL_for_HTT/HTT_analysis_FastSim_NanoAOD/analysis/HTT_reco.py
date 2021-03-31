@@ -23,7 +23,7 @@ def tauh_vs_jet_filter(evt, index, good_jets_list):
 
     return True
 
-def select_tauh_tt(evt, index):
+def select_tauh_tt(evt, index, fakes=False):
     pT = evt.GetLeaf("Tau_pt").GetValue(index)
     eta = evt.GetLeaf("Tau_eta").GetValue(index)
     dz = evt.GetLeaf("Tau_dz").GetValue(index)
@@ -37,10 +37,10 @@ def select_tauh_tt(evt, index):
         evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
         evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 2,
         evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 1,
-        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
+        (evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16 and not fakes) or (evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) > 0 and evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) < 16 and fakes),
         ])
 
-def select_tauh_mt(evt, index):
+def select_tauh_mt(evt, index, fakes=False):
     pT = evt.GetLeaf("Tau_pt").GetValue(index)
     eta = evt.GetLeaf("Tau_eta").GetValue(index)
     dz = evt.GetLeaf("Tau_dz").GetValue(index)
@@ -54,10 +54,10 @@ def select_tauh_mt(evt, index):
         evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
         evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 2,
         evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 8,
-        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
+        (evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16 and not fakes) or (evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) > 0 and evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) < 16 and fakes),
         ])
 
-def select_tauh_et(evt, index):
+def select_tauh_et(evt, index, fakes=False):
     pT = evt.GetLeaf("Tau_pt").GetValue(index)
     eta = evt.GetLeaf("Tau_eta").GetValue(index)
     dz = evt.GetLeaf("Tau_dz").GetValue(index)
@@ -71,7 +71,7 @@ def select_tauh_et(evt, index):
         evt.GetLeaf("Tau_decayMode").GetValue(index) in common_cuts.allowed_Tau_decayMode,
         evt.GetLeaf("Tau_idDeepTau2017v2p1VSe").GetValue(index) >= 32,
         evt.GetLeaf("Tau_idDeepTau2017v2p1VSmu").GetValue(index) >= 1,
-        evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16,
+        (evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) >= 16 and not fakes) or (evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) > 0 and evt.GetLeaf("Tau_idDeepTau2017v2p1VSjet").GetValue(index) < 16 and fakes),
         ])
 
 def select_muon_mt(evt, index):
@@ -238,16 +238,16 @@ def select_electron_third_lepton_veto(evt, index):
         evt.GetLeaf("Electron_pfRelIso03_all").GetValue(index) < common_cuts.cut_ele_third_lepton_veto_iso,
     ])
     
-def select_tauh(evt, tau_idx, channel, good_jets_list):
+def select_tauh(evt, tau_idx, channel, good_jets_list, fakes=False):
     jet_clean = tauh_vs_jet_filter(evt, tau_idx, good_jets_list)
-    if not jet_clean:
+    if not jet_clean and not fakes:
         return False
     if channel == "tt":
-        return select_tauh_tt(evt, tau_idx)
+        return select_tauh_tt(evt, tau_idx, fakes)
     elif channel == "mt":
-        return select_tauh_mt(evt, tau_idx)
+        return select_tauh_mt(evt, tau_idx, fakes)
     elif channel == "et":
-        return select_tauh_et(evt, tau_idx)
+        return select_tauh_et(evt, tau_idx, fakes)
 
 def select_muon(evt, muon_idx, channel):
     if channel == "mt":
@@ -314,7 +314,7 @@ def find_tau_DM(tau):
     DM = "{}prong{}pi0".format(Nprongs, Npi0s)
     return DM
 
-def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0, cutflow_stats = {}):
+def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], verbose = 0, cutflow_stats = {}, fakes=False):
 
     if not all([
             evt.GetLeaf("Flag_goodVertices").GetValue(0),
@@ -360,7 +360,7 @@ def HTT_analysis(evt, accepted_channels = ["tt", "mt", "et", "mm", "ee", "em"], 
         min_to_found = 2 if channel[0] == channel[1] else 1
         selections[channel] = {}
         if "t" in channel:
-            selections[channel]["Taus"] = [tau for tau in range(nTau) if select_tauh(evt, tau, channel, good_jets_list)]
+            selections[channel]["Taus"] = [tau for tau in range(nTau) if select_tauh(evt, tau, channel, good_jets_list, fakes)]
             if len(selections[channel]["Taus"]) < min_to_found:
                 possible_channels.remove(channel)
                 continue
