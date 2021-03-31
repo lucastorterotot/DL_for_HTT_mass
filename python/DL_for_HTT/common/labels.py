@@ -196,6 +196,7 @@ for key in ["Adam", "Adadelta", "SGD"]:
     }
 
 labels["Higgs_mass_gen"] = labels["GenHiggsMassGeV"]
+labels["predictions"] = labels["ModelPredGeV"]
 
 channel_str = {
     "tt" : r"$\tau_{\rm{h}}\tau_{\rm{h}}$",
