@@ -134,7 +134,7 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_la
         fig.tight_layout()
         fig.savefig("gen_vs_reco-{}{}{}.{}".format(prefix,var, "-en" if language=='en' else "", file_format))
 
-def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language = default_language,prefix = '', file_format = 'png', **kwargs):
+def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, language = default_language,prefix = '', file_format = 'png', min_resp=0.3, max_resp=2.0, **kwargs):
     channel = "tt"
 
     dR_max_gen = 0.1
@@ -235,9 +235,9 @@ def model_response_tau_filtered(df, channel, model_name, min_mass, max_mass, lan
                             
                             
         
-        model_response(df1, channel, model_name, min_mass, max_mass, language, prefix = prefix+"FilterBy"+filter)
+        model_response(df1, channel, model_name, min_mass, max_mass, language, prefix = prefix+"FilterBy"+filter, min_resp=min_resp, max_resp=max_resp)
 
-def model_response(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', file_format = 'png', **kwargs):
+def model_response(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', file_format = 'png', min_resp=0.3, max_resp=2.0, **kwargs):
     df1 = filter_channel(df, channel)
         
     medians_model = []
@@ -392,7 +392,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     
     plt.plot([min_mass, max_mass], [1,1], color='C3')    
 
-    plt.ylim(0,3)
+    plt.ylim(min_resp, max_resp)
     plt.xlim(min_mass, max_mass)
 
     ax.legend(loc='upper right')
@@ -401,7 +401,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     fig.savefig("model_response-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.xlim(min_mass, 200)
-    plt.xticks(np.arange(min_mass, 201, step=10))
+    plt.xticks(np.arange(min_mass, 201, step=20))
     fig.savefig("model_response_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.clf()
@@ -445,7 +445,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
 
     plt.xlim(min_mass, 200)
     plt.ylim(-100, 100)
-    plt.xticks(np.arange(min_mass, 201, step=10))
+    plt.xticks(np.arange(min_mass, 201, step=20))
     fig.savefig("model_response_diff_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.clf()
@@ -474,7 +474,7 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
 
     plt.plot([min_mass, max_mass], [1,1], color='C3')    
 
-    plt.ylim(0,3)
+    plt.ylim(0.3,2)
     plt.xlim(min_mass, max_mass)
 
     ax.legend(loc='upper right')
@@ -524,7 +524,7 @@ def predicted_vs_answers_histo(df, channel, model_name, min_mass, max_mass, lang
     fig.tight_layout()
     fig.savefig("predicted_vs_answers_histo_lowmass-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
             
-def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', cmap="ocean_r", file_format = 'png', **kwargs):
+def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language = default_language, prefix = '', cmap="ocean_r", file_format = 'png', min_resp=0.3, max_resp=2.0, **kwargs):
 
     df = filter_channel(df, channel=channel)
 
@@ -581,7 +581,7 @@ def predicted_vs_answers(df, channel, model_name, min_mass, max_mass, language =
         
     #plt.show()
     plt.xlim(min_mass, max_mass)
-    plt.ylim(0, 3)
+    plt.ylim(min_resp, max_resp)
 
     fig.tight_layout()
     fig.savefig("predicted_on_answers-{}{}{}.{}".format(prefix, model_name, "-en" if language=='en' else "", file_format))
@@ -608,7 +608,7 @@ def _variables_distribution(df, var, channel, data_category, model_name = None, 
     _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = False, file_format = file_format)
     _variable_distribution(df, var, channel, data_category, model_name = model_name, language = language, prefix = prefix, weighted = True, file_format = file_format)
 
-def _variable_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = '', weighted = False, density = False, file_format = 'png'):
+def _variable_distribution(df, var, channel, data_category, model_name = None, language = default_language, prefix = '', weighted = False, density = False, file_format = 'png', binning = None):
     plt.clf()
     fig, ax = plt.subplots()
     weights = None
@@ -620,11 +620,12 @@ def _variable_distribution(df, var, channel, data_category, model_name = None, l
     bin_width = 2
     min_value = df[var].min()
     max_value = df[var].max()
-    binning = np.arange(min_value, max_value, 10)
-    if len(binning) < 50:
-        binning = binning_defaul
-    if var == target:
-        binning = np.arange(0, 1001, 2) + 0.5
+    if binning is None:
+        binning = np.arange(min_value, max_value, 10)
+        if len(binning) < 50:
+            binning = binning_default
+        if var == target:
+            binning = np.arange(0, 1001, 2) + 0.5
     n, bins, patches = ax.hist(df[var], binning, weights = weights, log = (var in vars_with_y_log_scale), density = density)
     if var in labels:
         xlabel = labels[var][language]
@@ -640,7 +641,55 @@ def _variable_distribution(df, var, channel, data_category, model_name = None, l
     if var == "predictions":
         plt.savefig('distribution-{}-{}-{}-{}{}.{}'.format(channel, "-".join([var, "{}{}".format(prefix,model_name)]), weights_in_output_name, data_category, "-en" if language=='en' else "", file_format))
     else:
-        plt.savefig('distribution-{}-{}-{}-{}{}.{}'.format(channel, var, weights_in_output_name, data_category, "-en" if language=='en' else "", file_format))
+        plt.savefig('distribution-{}-{}-{}{}-{}{}.{}'.format(channel, var, prefix, weights_in_output_name, data_category, "-en" if language=='en' else "", file_format))
+
+def trues_distributions(df, channel, model_name = None, language = default_language, prefix = '', weighted = True, density = True, file_format = 'png', **kwargs):
+    for gen_mass in [400, 600, 700, 750, 800]:
+        df1 = df.loc[abs(df[target]-gen_mass) <= 5]
+        _variable_distribution(
+            df1,
+            "predictions",
+            channel,
+            "is_test",
+            model_name = model_name,
+            language = language,
+            prefix = "at_gen_mass_{}".format(str(gen_mass)),
+            weighted = weighted,
+            density = density,
+            file_format = file_format,
+            binning = np.linspace(0,1000,50),
+        )
+    for pred_mass in [400, 600, 700, 750, 800]:
+        df1 = df.loc[abs(df["predictions"]-pred_mass) <= 5]
+        _variable_distribution(
+            df1,
+            target,
+            channel,
+            "is_test",
+            model_name = model_name,
+            language = language,
+            prefix = "at_pred_mass_{}".format(str(pred_mass)),
+            weighted = weighted,
+            density = density,
+            file_format = file_format,
+            binning = np.linspace(0,1000,50),
+        )
+    for pred_mass in [400, 600, 700, 750, 800]:
+        df1 = df.loc[abs(df["predictions"]-pred_mass) <= 5]
+        df2 = df1.loc[df1["predictions"]-df1[target] < 800-df1["predictions"]]
+        _variable_distribution(
+            df2,
+            target,
+            channel,
+            "is_test",
+            model_name = model_name,
+            language = language,
+            prefix = "mirrored_cut_at_pred_mass_{}".format(str(pred_mass)),
+            weighted = weighted,
+            density = density,
+            file_format = file_format,
+            binning = np.linspace(0,1000,50),
+        )
 
 def feature_importance(model, inputs, model_name, prefix = '', file_format = 'png', **kwargs):
     plt.clf()
@@ -665,4 +714,5 @@ available_plots = {
     'gen_vs_reco' : gen_vs_reco,
     'model_response_tau_filtered' : model_response_tau_filtered,
     'predicted_vs_answers_histo' : predicted_vs_answers_histo,
+    'trues_distributions' : trues_distributions,
 }

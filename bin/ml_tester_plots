@@ -719,7 +719,16 @@ compare(
     binning = np.linspace(17.5,25,100),
     name = "DNN_optimizer",
 )
-
+compare(
+    variable = "full_1sig_width",
+    variable_exponent_factor = 2,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["optimizer", opt, opt] for opt in ["Adam", "Adadelta"]
+    ],
+    binning = np.linspace(20,55,100),
+    name = "DNN_optimizer",
+)
 compare(
     variable = "low_1sig_width",
     global_filters = CURRENT_MODEL_FILTERS,
@@ -732,39 +741,38 @@ compare(
 
 CURRENT_MODEL_FILTERS.append(["optimizer", "Adam"])
 
-compare(
-    variable = "full_mape",
-    variable_exponent_factor = 0,
-    global_filters = CURRENT_MODEL_FILTERS,
-    groups = [
-        ["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]
-    ],
-    binning = np.linspace(17,22,100),
-    name = "DNN_w_init_mode",
-)
+activations = list(set(df.loc[df.type == "DNN"]["activation"]))
+
+binnings_expo = {
+    "full_mape" : (np.linspace(17.5,20,50), 0),
+    "low_mape" : (np.linspace(16,24,50), 0),
+    "medium_mape" : (np.linspace(17,22,50), 0),
+    "high_mape" : (np.linspace(14,19,50), 0),
+    "full_1sig_width" : (np.linspace(28,38,50), 2),
+    "low_1sig_width" : (np.linspace(35,50,50), 2),
+    "medium_1sig_width" : (np.linspace(42,52,50), 2),
+    "high_1sig_width" : (np.linspace(27,40,50), 2),
+}
+groupings = {
+    "w_init_mode" : [["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]],
+    "N_layers" : [["Nlayers", k, "{} Nlayers".format(k)] for k in range (2, 6)],
+    "N_neurons" : [["Nneurons", k*100, "{} Nneurons".format(int(k*100))] for k in [2, 6, 10, 14]],
+    "activation" : [["activation", activation, activation] for activation in activations],
+}
+
+for var in binnings_expo:
+    for grouping in groupings:
+        compare(
+            variable = var,
+            variable_exponent_factor = binnings_expo[var][1],
+            global_filters = CURRENT_MODEL_FILTERS,
+            groups = groupings[grouping],
+            binning = binnings_expo[var][0],
+            name = "DNN_{}".format(grouping),
+        )
 
 #CURRENT_MODEL_FILTERS.append(["w_init_mode", "gu"])
 
-compare(
-    variable = "full_mape",
-    variable_exponent_factor = 0,
-    global_filters = CURRENT_MODEL_FILTERS,
-    groups = [
-        ["Nlayers", k, "{} Nlayers".format(k)] for k in range (2, 6)
-    ],
-    binning = np.linspace(17.5,20.5,100),
-    name = "DNN_N_layers",
-)
-compare(
-    variable = "full_mape",
-    variable_exponent_factor = 0,
-    global_filters = CURRENT_MODEL_FILTERS,
-    groups = [
-        ["Nneurons", k*100, "{} Nneurons".format(int(k*100))] for k in [2, 6, 10, 14]
-    ],
-    binning = np.linspace(17.5,20.5,100),
-    name = "DNN_N_neurons",
-)
 cmap_range = {
     "DNN_structures_all" : {
         "full_mape" : [17.75,18.25],
@@ -851,10 +859,8 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
         cmap_range = cmap_range["XGB_structures"][variable],
     )
 
-CURRENT_MODEL_FILTERS.append(["Nlayers", 3])
-CURRENT_MODEL_FILTERS.append(["Nneurons", 1000])
-
-activations = list(set(df.loc[df.type == "DNN"]["activation"]))
+#CURRENT_MODEL_FILTERS.append(["Nlayers", 3])
+#CURRENT_MODEL_FILTERS.append(["Nneurons", 1000])
 
 compare(
     variable = "full_mape",
@@ -863,7 +869,17 @@ compare(
     groups = [
         ["activation", activation, activation] for activation in activations
     ],
-    binning = np.linspace(17.5,20,100),
+    binning = np.linspace(17.5,20,50),
+    name = "DNN_activation",
+)
+compare(
+    variable = "low_1sig_width",
+    variable_exponent_factor = 2,
+    global_filters = CURRENT_MODEL_FILTERS,
+    groups = [
+        ["activation", activation, activation] for activation in activations
+    ],
+    binning = np.linspace(35,50,50),
     name = "DNN_activation",
 )
 
