@@ -82,6 +82,8 @@ def compare(
         stack = False,
         log = False,
         weights_key = "",
+        alpha = .3,
+        only_line = False
 ):
 
     local_df = df.loc[df["type"] != "unknown"]
@@ -114,13 +116,37 @@ def compare(
                 label = labels[group[2]][args.language]
                 label = label.replace(" (GeV)", "")
                 label = label.replace(" (GeV$^2$)", "")
-            n, bins, patches = ax.hist(
-                values,
-                binning,
-                label = label,
-                density = density,
-                histtype = "step", linewidth=1,
-            )
+            if only_line:
+                n, bins = np.histogram(
+                    values,
+                    binning,
+                    density = True
+                    )
+                bins_fct = .5*(bins[:-1]+bins[1:])
+                ax.plot(
+                    bins_fct,
+                    n,
+                    label = label
+                )
+            else:
+                if alpha == 0:
+                    n, bins, patches = ax.hist(
+                        values,
+                        binning,
+                        label = label,
+                        density = density,
+                    histtype = "step", linewidth=1,
+                    )
+                else:
+                    n, bins, patches = ax.hist(
+                        values,
+                        binning,
+                        label = label,
+                        density = density,
+                        histtype = "step", linewidth=1,
+                        fill = True,
+                        alpha = alpha
+                )
             maximum = max(n+[maximum])
     else:
         values_all = []
@@ -189,6 +215,8 @@ def compare(
         plt.xlim(binning[0], binning[-1])
     except:
         print("Not fixing xlims.")
+    if only_line:
+        plt.ylim(0, maximum*.35)
     fig.tight_layout()
     for ext in ["png", "pdf"]:
         plt.savefig("{}/{}-{}{}{}.{}".format(args.database_path, name, variable, "-ref" if args.show_reference else "", "-en" if args.language=='en' else "", ext))
@@ -334,6 +362,8 @@ compare(
     binning = np.linspace(10,60,100),
     name = "DNN_vs_XGB",
 )
+bin_mape = np.arange(15,35,.50)
+bin_1sig = np.arange(20,55,.50)
 compare(
     variable = "full_mape",
     variable_exponent_factor = 0,
@@ -342,7 +372,7 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(17,25,100),
+    binning = bin_mape,#np.linspace(17,25,100),
     name = "DNN_inputs",
 )
 compare(
@@ -353,7 +383,7 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(22,52,100),
+    binning = bin_1sig,#np.linspace(22,52,100),
     name = "DNN_inputs",
 )
 model_inputs_groups_names = [
@@ -389,7 +419,7 @@ compare(
     variable_exponent_factor = 0,
     global_filters = [["type", "DNN", "DNN"]],
     groups = model_inputs_groups,
-    binning = np.linspace(17,25,50),
+    binning = bin_mape,#np.linspace(17,25,50),
     name = "DNN_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
@@ -400,7 +430,7 @@ compare(
     variable_exponent_factor = 2,
     global_filters = [["type", "DNN", "DNN"]],
     groups = model_inputs_groups,
-    binning = np.linspace(22,52,50),
+    binning = bin_1sig,#np.linspace(22,52,50),
     name = "DNN_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
@@ -434,7 +464,7 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(17,35,100),
+    binning = bin_mape,#np.linspace(17,35,100),
     name = "XGB_inputs",
 )
 compare(
@@ -445,7 +475,7 @@ compare(
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "All inputs"],
         ["model_inputs", "PuppiMET_with_METcov_j1j2jr_Nnu_Npu", "Other inputs sets", "r"],
     ],
-    binning = np.linspace(15,45,100),
+    binning = bin_1sig,#np.linspace(15,45,100),
     name = "XGB_inputs",
 )
 compare(
@@ -454,7 +484,7 @@ compare(
     variable_exponent_factor = 0,
     global_filters = [["type", "XGB", "XGB"]],
     groups = model_inputs_groups,
-    binning = np.linspace(17,35,50),
+    binning = bin_mape,#np.linspace(17,35,50),
     name = "XGB_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
@@ -465,7 +495,7 @@ compare(
     variable_exponent_factor = 2,
     global_filters = [["type", "XGB", "XGB"]],
     groups = model_inputs_groups,
-    binning = np.linspace(15,45,50),
+    binning = bin_1sig,#np.linspace(15,45,50),
     name = "XGB_inputs_all",
     stack = True,
     weights_key = "model_inputs_weight",
@@ -748,15 +778,16 @@ CURRENT_MODEL_FILTERS.append(["optimizer", "Adam"])
 
 activations = list(set(df.loc[df.type == "DNN"]["activation"]))
 
+n_bins = 25
 binnings_expo = {
-    "full_mape" : (np.linspace(17.5,20,50), 0),
-    "low_mape" : (np.linspace(16,24,50), 0),
-    "medium_mape" : (np.linspace(17,22,50), 0),
-    "high_mape" : (np.linspace(14,19,50), 0),
-    "full_1sig_width" : (np.linspace(28,38,50), 2),
-    "low_1sig_width" : (np.linspace(35,50,50), 2),
-    "medium_1sig_width" : (np.linspace(42,52,50), 2),
-    "high_1sig_width" : (np.linspace(27,40,50), 2),
+    "full_mape" : (np.linspace(17.5,20,n_bins), 0),
+    "low_mape" : (np.linspace(16,24,n_bins), 0),
+    "medium_mape" : (np.linspace(17,22,n_bins), 0),
+    "high_mape" : (np.linspace(14,19,n_bins), 0),
+    "full_1sig_width" : (np.linspace(28,38,n_bins), 2),
+    "low_1sig_width" : (np.linspace(35,50,n_bins), 2),
+    "medium_1sig_width" : (np.linspace(42,52,n_bins), 2),
+    "high_1sig_width" : (np.linspace(27,40,n_bins), 2),
 }
 groupings = {
     "w_init_mode" : [["w_init_mode", wi, wi] for wi in ["gu", "gn", "u", "n"]],
@@ -774,6 +805,8 @@ for var in binnings_expo:
             groups = groupings[grouping],
             binning = binnings_expo[var][0],
             name = "DNN_{}".format(grouping),
+            alpha = 0,
+            only_line = True,
         )
 
 #CURRENT_MODEL_FILTERS.append(["w_init_mode", "gu"])
@@ -867,25 +900,25 @@ for variable in ["full_mape", "full_median_diff", "full_1sig_width", "full_1sig_
 #CURRENT_MODEL_FILTERS.append(["Nlayers", 3])
 #CURRENT_MODEL_FILTERS.append(["Nneurons", 1000])
 
-compare(
-    variable = "full_mape",
-    variable_exponent_factor = 0,
-    global_filters = CURRENT_MODEL_FILTERS,
-    groups = [
-        ["activation", activation, activation] for activation in activations
-    ],
-    binning = np.linspace(17.5,20,50),
-    name = "DNN_activation",
-)
-compare(
-    variable = "low_1sig_width",
-    variable_exponent_factor = 2,
-    global_filters = CURRENT_MODEL_FILTERS,
-    groups = [
-        ["activation", activation, activation] for activation in activations
-    ],
-    binning = np.linspace(35,50,50),
-    name = "DNN_activation",
-)
+# compare(
+#     variable = "full_mape",
+#     variable_exponent_factor = 0,
+#     global_filters = CURRENT_MODEL_FILTERS,
+#     groups = [
+#         ["activation", activation, activation] for activation in activations
+#     ],
+#     binning = np.linspace(17.5,20,50),
+#     name = "DNN_activation",
+# )
+# compare(
+#     variable = "low_1sig_width",
+#     variable_exponent_factor = 2,
+#     global_filters = CURRENT_MODEL_FILTERS,
+#     groups = [
+#         ["activation", activation, activation] for activation in activations
+#     ],
+#     binning = np.linspace(35,50,50),
+#     name = "DNN_activation",
+# )
 
 #import pdb; pdb.set_trace()
