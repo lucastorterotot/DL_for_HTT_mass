@@ -99,6 +99,10 @@ labels = {
         'fr' : "Réponse calibrée du modèle",
         'en' : "Calibrated Model Response",
     },
+    'relative_resolution' : {
+        'fr' : "Résolution relative (%)",
+        'en' : "Relative resolution (%)",
+    },
     'Nevents' : {
         'fr' : "Nombre d'événements",
         'en' : 'N events',

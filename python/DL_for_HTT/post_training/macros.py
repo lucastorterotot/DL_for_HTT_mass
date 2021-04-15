@@ -119,7 +119,7 @@ def gen_vs_reco(df, channel, model_name, min_mass, max_mass, language=default_la
             color = "green", alpha = .5, label = "$\pm1\sigma$",
         )
         ax.errorbar(
-            xpos, medians_model, xerr = xerr, #yerr = sigmas,
+            xpos, medians_model, # xerr = xerr, #yerr = sigmas,
             marker='.', markersize=4, linewidth=0, elinewidth=1,
             fmt=' ', capsize = 3, capthick = 0, color = "black", label = labels["median"][language],
         )
@@ -278,25 +278,25 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
         xpos.append((mHrange[1]+mHrange[0])/2)
         xerr.append((mHrange[1]-mHrange[0])/2)
 
-        # mTtots = np.r_[df2["mTtot_reco"]]
+        mTtots = np.r_[df2["PuppimTtot_reco"]]
         mHs = np.r_[df2[target]]
         values_model = predictions/mHs
         values_model_diff = predictions - mHs
-        # values_mTtot = mTtots/mHs
+        values_mTtot = mTtots/mHs
         
         values_model = [v for v in values_model]
         values_model_diff = [v for v in values_model_diff]
-        # values_mTtot = [v for v in values_mTtot]
+        values_mTtot = [v for v in values_mTtot]
         values_model.sort()
         values_model_diff.sort()
-        # values_mTtot.sort()
+        values_mTtot.sort()
 
         try:
             averages.append(np.mean(values_model))
             averages_diff.append(np.mean(values_model_diff))
             medians_model.append(values_model[int(len(values_model)/2)])
             medians_model_diff.append(values_model_diff[int(len(values_model_diff)/2)])
-            # medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
+            medians_mTtot.append(values_mTtot[int(len(values_mTtot)/2)])
         except:
             import pdb; pdb.set_trace()
 
@@ -304,15 +304,15 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
         below_model = [v for v in values_model if v <= medians_model[-1]]
         above_model_diff = [v for v in values_model_diff if v >= medians_model_diff[-1]]
         below_model_diff = [v for v in values_model_diff if v <= medians_model_diff[-1]]
-        # above_mTtot = [v for v in values_mTtot if v >= medians_mTtot[-1]]
-        # below_mTtot = [v for v in values_mTtot if v <= medians_mTtot[-1]]
+        above_mTtot = [v for v in values_mTtot if v >= medians_mTtot[-1]]
+        below_mTtot = [v for v in values_mTtot if v <= medians_mTtot[-1]]
 
         above_model.sort()
         below_model.sort(reverse = True)
         above_model_diff.sort()
         below_model_diff.sort(reverse = True)
-        # above_mTtot.sort()
-        # below_mTtot.sort(reverse = True)
+        above_mTtot.sort()
+        below_mTtot.sort(reverse = True)
 
         CL68s_model_up.append(above_model[int(0.68 * len(above_model))])
         CL68s_model_do.append(below_model[int(0.68 * len(below_model))])
@@ -322,10 +322,10 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
         CL68s_model_diff_do.append(below_model_diff[int(0.68 * len(below_model_diff))])
         CL95s_model_diff_up.append(above_model_diff[int(0.95 * len(above_model_diff))])
         CL95s_model_diff_do.append(below_model_diff[int(0.95 * len(below_model_diff))])
-        # CL68s_mTtot_up.append(above_mTtot[int(0.68 * len(above_mTtot))])
-        # CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
-        # CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
-        # CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
+        CL68s_mTtot_up.append(above_mTtot[int(0.68 * len(above_mTtot))])
+        CL68s_mTtot_do.append(below_mTtot[int(0.68 * len(below_mTtot))])
+        CL95s_mTtot_up.append(above_mTtot[int(0.95 * len(above_mTtot))])
+        CL95s_mTtot_do.append(below_mTtot[int(0.95 * len(below_mTtot))])
 
     if language == 'fr':
         locale.setlocale(locale.LC_NUMERIC, 'fr_FR.UTF-8')
@@ -348,17 +348,17 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
         color = "green", alpha = .5, label = "$\pm1\sigma$",
     )
     ax.errorbar(
-        xpos, medians_model, xerr = xerr, #yerr = sigmas,
+        xpos, medians_model, # xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "black", label = labels["median"][language],
     )
     ax.errorbar(
-        xpos, averages, xerr = xerr,
+        xpos, averages, # xerr = xerr,
         marker='+', markersize=5, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "C4", label = labels["average"][language],
     )
     # ax.errorbar(
-    #     xpos, medians_model, xerr = xerr, #yerr = sigmas,
+    #     xpos, medians_model, # xerr = xerr, #yerr = sigmas,
     #     marker='+', markersize=4, linewidth=.4, elinewidth=1,
     #     fmt=' ', capsize = 3, capthick = .4, color = "black", #label = "DNN",
     # )
@@ -423,12 +423,12 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
         color = "green", alpha = .5, label = "$\pm1\sigma$",
     )
     ax.errorbar(
-        xpos, medians_model_diff, xerr = xerr, #yerr = sigmas,
+        xpos, medians_model_diff, # xerr = xerr, #yerr = sigmas,
         marker='.', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "black", label = labels["median"][language],
     )
     ax.errorbar(
-        xpos, averages_diff, xerr = xerr,
+        xpos, averages_diff, # xerr = xerr,
         marker='+', markersize=4, linewidth=0, elinewidth=1,
         fmt=' ', capsize = 3, capthick = 0, color = "C4", label = labels["average"][language],
     )
@@ -459,6 +459,11 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     CL95s_model_up = [CL95s_model_up[k]/medians_model[k] for k in range(len(medians_model))]
     CL95s_model_do = [CL95s_model_do[k]/medians_model[k] for k in range(len(medians_model))]
     
+    CL68s_mTtot_up = [CL68s_mTtot_up[k]/medians_mTtot[k] for k in range(len(medians_mTtot))]
+    CL68s_mTtot_do = [CL68s_mTtot_do[k]/medians_mTtot[k] for k in range(len(medians_mTtot))]
+    CL95s_mTtot_up = [CL95s_mTtot_up[k]/medians_mTtot[k] for k in range(len(medians_mTtot))]
+    CL95s_mTtot_do = [CL95s_mTtot_do[k]/medians_mTtot[k] for k in range(len(medians_mTtot))]
+    
     ax.fill_between(
         xpos, CL95s_model_do, CL68s_model_do,
         color = "yellow", alpha = .5, label = "$\pm2\sigma$",
@@ -481,6 +486,34 @@ def model_response(df, channel, model_name, min_mass, max_mass, language = defau
     
     fig.tight_layout()
     fig.savefig("model_response_calibrated-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
+
+    plt.clf()
+    fig, ax = plt.subplots()
+
+    plt.xlabel(labels["GenHiggsMassGeV"][language])
+    plt.ylabel(labels["relative_resolution"][language])
+
+    relres_model_up = [100*.5*(CL68s_model_up[k] - CL68s_model_do[k]) for k in range(len(medians_model))]
+    relres_mTtot_up = [100*.5*(CL68s_mTtot_up[k] - CL68s_mTtot_do[k]) for k in range(len(medians_mTtot))]
+    
+    plt.plot(
+        xpos,
+        relres_model_up,
+        label = r"$m_{\rm ML}$"
+        )
+    plt.plot(
+        xpos,
+        relres_mTtot_up,
+        label = r"$m_{\rm T}^{\rm tot}$"
+        )
+
+    plt.ylim(15,50)
+    plt.xlim(min_mass, max_mass)
+
+    ax.legend()
+    
+    fig.tight_layout()
+    fig.savefig("model_relative_response-{}{}{}.{}".format(prefix,model_name, "-en" if language=='en' else "", file_format))
 
     plt.close('all')
 
