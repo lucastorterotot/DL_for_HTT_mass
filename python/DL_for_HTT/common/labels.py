@@ -12,16 +12,16 @@ labels = {
         'en' : "XGBoost",
     },
     'low' : {
-        'fr' : "basses masses",
-        'en' : "low masses",
+        'fr' : "basse masse",
+        'en' : "low mass",
     },
     'medium' : {
-        'fr' : "masses intermédiaires",
-        'en' : "medium masses",
+        'fr' : "moyenne masse",
+        'en' : "medium mass",
     },
     'high' : {
-        'fr' : "hautes masses",
-        'en' : "high masses",
+        'fr' : "haute masse",
+        'en' : "high mass",
     },
     'mse' : {
         'fr' : r"MSE (GeV$^2$)",
