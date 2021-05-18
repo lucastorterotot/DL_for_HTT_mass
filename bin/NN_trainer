@@ -34,6 +34,10 @@ parser.add_option("-i", "--model_inputs", dest = "model_inputs",
                   default = NN_default_settings.default_model_inputs_file)
 parser.add_option("-B", "--batch_size", dest = "batch_size",
                   default =  2048)
+parser.add_option("-r", "--regularizer", dest = "kernel_regularizer",
+                  default = None)
+parser.add_option("-d", "--dropout", dest = "dropout_rate",
+                  default = 0)
 
 (options,args) = parser.parse_args()
 
@@ -43,6 +47,7 @@ options.gpu = int(options.gpu)
 min_mass = float(options.min_mass)
 max_mass = float(options.max_mass)
 options.batch_size = int(options.batch_size)
+options.dropout_rate = float(options.dropout_rate)
 
 input_file = args[0]
 
@@ -67,7 +72,7 @@ from sklearn.preprocessing import StandardScaler
 from keras.models import Sequential
 from keras import layers, optimizers, regularizers
 from keras.layers import Flatten , Activation
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from keras.utils import multi_gpu_model
 
 import keras.backend.tensorflow_backend as tfback
@@ -380,8 +385,15 @@ def NN_make_train_predict(df, model_inputs, channel = "inclusive", Nlayers = opt
                 activation = activation,
                 kernel_constraint = max_norm(my_max_norm),
                 kernel_initializer = w_init_mode,
+                kernel_regularizer = options.kernel_regularizer,
             )
         )
+        if options.dropout_rate > 0 and options.dropout_rate < 1:
+            NN_model.add(
+                Dropout(
+                    options.dropout_rate,
+                )
+            )
             
     NN_model.add(Dense(1, activation="linear"))
     print(NN_model.summary())
