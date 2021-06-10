@@ -29,16 +29,6 @@ if options.Nmax is None:
     Nmax = tree.GetEntries()
 else:
     Nmax = min([int(options.Nmax), tree.GetEntries()])
-                        
-# def match(ptc1, ptc2, dR = .5):
-#     ''' Check that two particles instance can be linked to the same physic object.'''
-#     if ptc1.PID != ptc2.PID:
-#         return False
-#     # if abs((ptc1.PT - ptc2.PT)/ptc1.PT) > .1:
-#     #     return False
-#     if DR2(ptc1, ptc2)**.5 > dR:
-#         return False
-#     return True
 
 Nevt_in = 0
 Nevt_out_gen= 0
