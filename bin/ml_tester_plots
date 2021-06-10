@@ -8,7 +8,7 @@ import DL_for_HTT.post_training.utils as utils
 from DL_for_HTT.common.labels import labels
 
 from argparse import ArgumentParser
-usage = "usage: prog [options]"
+usage = "usage: prog [options]\n\nUse the perfs files to create comparison plots for the thesis. Helps to see which hyperparameters seem better than others."
 parser = ArgumentParser(usage=usage)
 parser.add_argument("--basedir", default="/data2/ltorterotot/ML/", type=str, help="Directory in which looking for perf files")
 parser.add_argument("--filters_to_match", default="trained,DeepTau,inclusive", type=str, help="Positive filterings, comma separated")

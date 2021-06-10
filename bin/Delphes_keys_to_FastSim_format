@@ -4,7 +4,7 @@
 import DL_for_HTT.common.NN_settings as NN_default_settings
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <input hdf5>"
+usage = "usage: %prog [options] <input hdf5>\n\nConverts variables names from Delphes to Fastsim"
 parser = OptionParser(usage=usage)
 # parser.add_option("-m", "--minmass", dest = "min_mass",
 #                   default = NN_default_settings.min_mass)

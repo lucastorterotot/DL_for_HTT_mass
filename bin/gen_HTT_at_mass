@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Default options values
 Higgs_mass=125
 N_events=100000
 tcl_cfg=$DL_for_HTT/Event_generation_with_Delphes/delphes_card_CMS.tcl
@@ -21,10 +22,12 @@ done
 HTT_gen_file_name=HTT_${Higgs_mass}_Delphes_N${N_events}.cmnd
 HTT_out_root_name=HTT_${Higgs_mass}_Delphes_N${N_events}.root
 
+# Create configuration files
 cp $DL_for_HTT/base_files_for_scripts/Higgs_to_tau_tau.cmnd ./$HTT_gen_file_name
 sed -i "s|NUMBEROFEVENTS|$N_events|g" ./$HTT_gen_file_name
 sed -i "s|h_mass_GeV|${Higgs_mass}.000|g" ./$HTT_gen_file_name
 
+# Run Delphes to get samples
 rm -f ./$HTT_out_root_name
 DelphesPythia8 $tcl_cfg ./$HTT_gen_file_name ./$HTT_out_root_name
 rm ./$HTT_gen_file_name

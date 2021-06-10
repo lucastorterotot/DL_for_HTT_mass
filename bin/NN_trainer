@@ -4,40 +4,55 @@
 import DL_for_HTT.common.NN_settings as NN_default_settings
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <input>"
+usage = "usage: %prog [options] <input>\n\nTrain and store a DNN."
 parser = OptionParser(usage=usage)
 parser.add_option("-o", "--output", dest = "output",
-                  default = "NN")
+                  default = "NN",
+                  help = "Prefix for the model file name, default = NN")
 parser.add_option("-L", "--Nlayers", dest = "Nlayers",
-                  default = NN_default_settings.Nlayers)
+                  default = NN_default_settings.Nlayers,
+                  help = "Number of hidden layers, default = {}".format(NN_default_settings.Nlayers))
 parser.add_option("-N", "--Nneurons", dest = "Nneurons",
-                  default = NN_default_settings.Nneurons)
+                  default = NN_default_settings.Nneurons,
+                  help = "Number of neurons per hidden layer, default = {}".format(NN_default_settings.Nneurons))
 parser.add_option("-g", "--gpu", dest = "gpu",
-                  default = 0)
+                  default = 0,
+                  help = "gpu index to use, default = 0")
 parser.add_option("-b", "--bottleneck", dest = "bottleneck",
-                  default =  False, action = 'store_true')
+                  default =  False, action = 'store_true'
+                  ,help = "Option to reduce the number of neurons per hidden layer smoothly before the output layer.")
 parser.add_option("-l", "--loss", dest = "loss",
                   default = NN_default_settings.loss)
 parser.add_option("-O", "--optimizer", dest = "optimizer",
-                  default = NN_default_settings.optimizer)
+                  default = NN_default_settings.optimizer,
+                  help = "Optimizer to use, default = {}".format(NN_default_settings.optimizer))
 parser.add_option("-w", "--w_init_mode", dest = "w_init_mode",
-                  default = NN_default_settings.w_init_mode)
+                  default = NN_default_settings.w_init_mode,
+                  help = "Weights initialisation mode, default = {}".format(NN_default_settings.w_init_mode))
 parser.add_option("-m", "--min_mass", dest = "min_mass",
-                  default = NN_default_settings.min_mass)
+                  default = NN_default_settings.min_mass,
+                  help = "Lower boundary for the training mass range, default = {}".format(NN_default_settings.min_mass))
 parser.add_option("-M", "--max_mass", dest = "max_mass",
-                  default = NN_default_settings.max_mass)
+                  default = NN_default_settings.max_mass,
+                  help = "Upper boundary for the training mass range, default = {}".format(NN_default_settings.max_mass))
 parser.add_option("-c", "--channels", dest = "channels",
-                  default = NN_default_settings.channels)
+                  default = NN_default_settings.channels,
+                  help = "Channels to train on, default = {}, available are inclusive tt mt et mm em ee lt ll".format(NN_default_settings.channels))
 parser.add_option("-a", "--activation", dest = "activation",
-                  default = NN_default_settings.activation)
+                  default = NN_default_settings.activation,
+                  help = "Activation function used for the neurons in hidden layers, default = {}".format(NN_default_settings.activation))
 parser.add_option("-i", "--model_inputs", dest = "model_inputs",
-                  default = NN_default_settings.default_model_inputs_file)
+                  default = NN_default_settings.default_model_inputs_file,
+                  help = "Name of the model inputs list, default = {}".format(NN_default_settings.default_model_inputs_file))
 parser.add_option("-B", "--batch_size", dest = "batch_size",
-                  default =  2048)
+                  default =  2048,
+                  help = "Batch size, default = 2048")
 parser.add_option("-r", "--regularizer", dest = "kernel_regularizer",
-                  default = None)
+                  default = None,
+                  help = "kernel regularizer to use, default is None. Could be L2 for instance.")
 parser.add_option("-d", "--dropout", dest = "dropout_rate",
-                  default = 0)
+                  default = 0,
+                  help = "Dropout rate after each hidden layer. Default is 0.")
 
 (options,args) = parser.parse_args()
 

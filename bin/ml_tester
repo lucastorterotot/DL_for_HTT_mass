@@ -9,22 +9,28 @@ import DL_for_HTT.post_training.utils as utils
 import DL_for_HTT.post_training.macros as macros
 
 from argparse import ArgumentParser
-usage = "usage: prog [options] <NN JSON file> <NN input file>"
+usage = "usage: prog [options] <NN JSON file> <NN input file>\n\nCreated perfs files storing some evaluation metrics scores for a model"
 parser = ArgumentParser(usage=usage)
 parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
 parser.add_argument("--events", required = True, type=str, help="h5 file containing events.")
 parser.add_argument("--prefix",
-                    default = '')
+                    default = '',
+                    help = "Additionnal prefix to use for the output plots.")
 parser.add_argument("--min_mass",
-                  default = NN_default_settings.min_mass)
+                    default = NN_default_settings.min_mass,
+                    help = "Lower boundary for the mass range, default = {}".format(NN_default_settings.min_mass))
 parser.add_argument("--max_mass",
-                  default = NN_default_settings.max_mass)
+                    default = NN_default_settings.max_mass,
+                    help = "Upper boundary for the mass range, default = {}".format(NN_default_settings.max_mass))
 parser.add_argument("--channel",
-                  default = "inclusive")
+                    default = "inclusive",
+                    help = "Channel to run on: inclusive, tt, mt, et, mm, em, ee, lt, ll")
 parser.add_argument("--subsample",
-                  default = 'test')
+                    default = 'test',
+                    help = "Subsample to use. Default = 'test'")
 parser.add_argument("--model_inputs",
-                    default = None)
+                    default = None,
+                    help = "Name of the model inputs. If not provided, the script will try to look for this information in the current directory.")
 
 args = parser.parse_args()
 
@@ -84,6 +90,7 @@ testing_parameters = {
     'subsample' : args.subsample,
 }
 
+# Store metric scores in a ASCII file name X.perfs (could have been named X.txt), X taken from the model X.json file
 os.system('echo "Tests results" > {}.perfs'.format(testing_parameters["model_name"]))
 median_diff_full = 0
 CL68_width_full = 0

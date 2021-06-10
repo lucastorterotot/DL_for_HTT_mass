@@ -4,11 +4,11 @@
 import os
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <perfs>"
+usage = "usage: %prog [options] <perfs files>\n\nAllows to select fex good models amoung a lot.\nFirst create perfs files with ml_tester."
 parser = OptionParser(usage=usage)
-parser.add_option("-t", "--top", dest = "top", type=float, default=10)
+parser.add_option("-t", "--top", dest = "top", type=float, default=10, help = "Top x percentage of models to keep at first step")
 parser.add_option("-o", "--output", dest = "output",
-                  default = None)
+                  default = None, help = "Suffix of the output file containing the list of selected models")
 
 (options,args) = parser.parse_args()
 
@@ -34,7 +34,7 @@ for key in classements:
         reverse = False,
         )
 
-print("Classements faits. Filtrage en cours ...")
+print("Rankings dones. Filtering...")
 
 N_models = len(args)
 

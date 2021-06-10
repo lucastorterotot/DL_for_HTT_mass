@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Merges two txt files containing table with same columns
+
 output_file=merged_txt_file.txt
 
 while getopts ":o:" opt

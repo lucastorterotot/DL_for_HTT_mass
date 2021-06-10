@@ -4,21 +4,27 @@
 import DL_for_HTT.common.NN_settings as NN_default_settings
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <input hdf5>"
+usage = "usage: %prog [options] <input hdf5>\n\nAdds transverse masses values and events weights for training in the h5 file."
 parser = OptionParser(usage=usage)
 parser.add_option("-m", "--minmass", dest = "min_mass",
+                  help = "Lower boundary for the training mass range, default = {}".format(NN_default_settings.min_mass),
                   default = NN_default_settings.min_mass)
 parser.add_option("-M", "--maxmass", dest = "max_mass",
+                  help = "Upper boundary for the training mass range, default = {}".format(NN_default_settings.max_mass),
                   default = NN_default_settings.max_mass)
 parser.add_option("-t", "--train_frac", dest = "train_frac",
+                  help = "Fraction of event to be used as training subsample, default = {}".format(NN_default_settings.train_frac),
                   default = NN_default_settings.train_frac)
 parser.add_option("-v", "--valid_frac", dest = "valid_frac",
+                  help = "Fraction of event to be used as validation subsample, default = {}".format(NN_default_settings.valid_frac),
                   default = NN_default_settings.valid_frac)
 parser.add_option("-r", "--random_seed", dest = "random_seed",
+                  help = "Random seed to be used for random event picking, default = {}".format(NN_default_settings.random_seed),
                   default = NN_default_settings.random_seed)
 
 (options,args) = parser.parse_args()
 
+# convert options into the correct type
 options.min_mass = float(options.min_mass)
 options.max_mass = float(options.max_mass)
 options.train_frac = float(options.train_frac)
@@ -128,6 +134,7 @@ for subsample in ["is_train", "is_valid", "is_test"]:
     # df.loc[(df[subsample] == 1) & (df["sample_weight"] > 2), ["sample_weight"]] = 2
     # df.loc[(df[subsample] == 1), ["sample_weight"]] *= 1./df.loc[(df[subsample] == 1), ["sample_weight"]].mean()
 
+# tune types to save disk space
 for k in df:
     if any([s in k for s in ["is_", "was_"]]):
         df[k] = df[k].astype('bool')

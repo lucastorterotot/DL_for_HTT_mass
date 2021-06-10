@@ -7,7 +7,7 @@ import DL_for_HTT.post_training.utils as utils
 import DL_for_HTT.plotting_samples.macros as macros
 
 from argparse import ArgumentParser
-usage = "usage: prog [options] <NN JSON file> <NN input file>"
+usage = "usage: prog [options] <NN JSON file> <NN input file>\n\nPlots the analysis selection efficiency as function of the Higgs mass"
 parser = ArgumentParser(usage=usage)
 #parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
 parser.add_argument("--events", required = True, type=str, help="h5 file containing events.")
@@ -88,6 +88,7 @@ if args.language not in available_languages:
 #         args.variables_list.add('mTtot_reco')
 #         args.variables_list.add('PuppimTtot_reco')
 
+# Fake the loading of a model to be able to use the common plotting macros
 loaded_model, model_type, model_name = None, None, "PuppimTtot_reco"
 
 df = utils.load_h5_file_and_predict(

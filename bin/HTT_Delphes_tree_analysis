@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <input root file> <output file name>"
+usage = "usage: %prog [options] <input root file> <output file name>\n\nRun a small HTT analysis on Delphes output"
 parser = OptionParser(usage=usage)
 parser.add_option("-v", "--verbose", dest = "verbose",
-                                    default=0)
+                  default=0)
 parser.add_option("-N", "--Nmax", dest = "Nmax",
-                                    default=None)
+                  help = "Maximum amount of events to process",
+                  default=None)
 
 (options,args) = parser.parse_args()
 
@@ -68,6 +69,7 @@ from DL_for_HTT.HTT_analysis_Delphes.analysis.HTT_reco import HTT_analysis as HT
 
 analysis_results = []
 
+# Loop over events
 N_to_store = 0
 for evt in tree:
     Nevt_in += 1
@@ -107,6 +109,7 @@ if N_to_store == 0:
     import sys
     sys.exit()
 
+# Store output
 data = {}
 for analysis_result in analysis_results:
     for ana in analysis_result:

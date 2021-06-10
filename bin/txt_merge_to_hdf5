@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from optparse import OptionParser
-usage = "usage: %prog [options] <input txt file> <output file name>"
+usage = "usage: %prog [options] <input txt file> <output file name>\n\nTakes a txt file and convert it to a h5 file"
 parser = OptionParser(usage=usage)
 parser.add_option("-d", "--delimiter", dest = "delimiter",
                   default=" ")
@@ -29,6 +29,7 @@ if len(dfs) > 1:
         print(df2)
         df.append(df2, ignore_index=True)
 
+# Tune data type to save disk space
 for k in df:
     if df[k].dtype == 'float64':
         df[k] = df[k].astype('float32')

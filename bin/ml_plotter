@@ -7,50 +7,66 @@ import DL_for_HTT.post_training.utils as utils
 import DL_for_HTT.post_training.macros as macros
 
 from argparse import ArgumentParser
-usage = "usage: prog [options] <NN JSON file> <NN input file>"
+usage = "usage: prog [options] <NN JSON file> <NN input file>\n\nPlot models responses, variables distributions, etc."
 parser = ArgumentParser(usage=usage)
 parser.add_argument("--model", required = True, type=str, help="json file from model saving.")
 parser.add_argument("--events", required = True, type=str, help="h5 file containing events.")
 parser.add_argument("--pdf", action="store_true", help="Produce pdf plots instead of png.")
 parser.add_argument("--prefix",
-                    default = '')
+                    default = '',
+                    help = "Additionnal prefix to use for the output plots.")
 parser.add_argument("--min_mass",
-                  default = NN_default_settings.min_mass)
+                    default = NN_default_settings.min_mass,
+                    help = "Lower boundary for the mass range, default = {}".format(NN_default_settings.min_mass))
 parser.add_argument("--max_mass",
-                  default = NN_default_settings.max_mass)
+                    default = NN_default_settings.max_mass,
+                    help = "Upper boundary for the mass range, default = {}".format(NN_default_settings.max_mass))
 parser.add_argument("--channel",
-                  default = "inclusive")
+                    default = "inclusive",
+                    help = "Channel to run on: inclusive, tt, mt, et, mm, em, ee, lt, ll")
 parser.add_argument("--plots",
-                    default = 'model_response,predicted_vs_answers,feature_importance')
+                    default = 'model_response,predicted_vs_answers,feature_importance',
+                    help = "Plots to process. For available plots, see the macro.py module.")
 parser.add_argument("--subsample",
-                  default = 'test')
+                    default = 'test',
+                    help = "Subsample to use. Default = 'test'")
 parser.add_argument("--variables_list",
-                    default = 'default')
+                    default = 'default',
+                    help = "List of variables to plot the distribution of, if this kind of plot if requested.")
 parser.add_argument("--model_inputs",
-                    default = None)
+                    default = None,
+                    help = "Name of the model inputs list. If not provided, the script will try to look for this information in the current directory.")
 parser.add_argument("--language",
-                    default = "fr")
+                    default = "fr",
+                    help = "Language to use for the plots. Default is french.")
 parser.add_argument("--interactive",
-                    action="store_true")
+                    action="store_true",
+                    help = "Activates a pdb.set_trace() before plotting starts for debug purposes.")
 parser.add_argument("--min_resp",
-                    default = 0.3)
+                    default = 0.3,
+                    help = "Lower y axis boundary for response plots.")
 parser.add_argument("--max_resp",
-                    default = 2.0)
+                    default = 2.0,
+                    help = "Upper y axis boundary for response plots.")
+parser.add_argument("--plot_relres_model_ref_1TeV", default = False, action='store_true',
+                    help = "Adds the B'' model relative resolution of the plot to ease comparisons")
 
 args = parser.parse_args()
 
+# Set the argument types and format
 args.min_mass = float(args.min_mass)
 args.max_mass = float(args.max_mass)
 args.min_resp = float(args.min_resp)
 args.max_resp = float(args.max_resp)
-
 if args.language == "eng":
     args.language = "en"
 
+# Check if requested language is available
 available_languages = ["fr", "en"]
 if args.language not in available_languages:
     raise NotImplementedError ("Language {} not available. Possibles are: {}".format(args.language, ", ".join(available_languages)))
 
+# Prepare the model loading
 if args.model_inputs == None and args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
     import sys
     sys.path.append(args.model.rstrip(args.model.split('/')[-1]))
@@ -62,12 +78,14 @@ elif args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
 else:
     model_inputs = []
 
+# Check which plots to proceed
 if args.plots == 'all':
     args.plots = [k for k in macros.available_plots.keys()]
 else:
     args.plots = list(set(args.plots.split(',')))
     #args.plots = [p for p in args.plots if p in macros.available_plots.keys()]
 
+# Build the variables list
 if args.variables_list == 'default':
     args.variables_list = 'target,predictions'
 args.variables_list = set(args.variables_list.split(','))
@@ -81,6 +99,7 @@ if 'model_inputs' in args.variables_list :
     args.variables_list.remove('model_inputs')
     args.variables_list = args.variables_list.union(model_inputs)
 
+# Load the model or fake it
 if args.model not in ["None", "mTtot_reco", "PuppimTtot_reco"]:
     loaded_model, model_type, model_name = utils.load_model_from_json(args.model)
 else:
@@ -103,6 +122,7 @@ df = utils.load_h5_file_and_predict(
     target = NN_default_settings.target,
 )
 
+# Filter the dataframe
 if args.subsample == 'all':
     df_filtered = df.loc[(df['is_train']==1) | (df['is_valid']==1) | (df['is_test']==1)]
 elif args.subsample in ['train', 'valid', 'test']:
