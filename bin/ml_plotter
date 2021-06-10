@@ -154,6 +154,7 @@ plotting_parameters = {
     'subsample' : args.subsample,
     'language' : args.language,
     'file_format' : "pdf" if args.pdf else "png",
+    'plot_relres_model_ref_1TeV' : args.plot_relres_model_ref_1TeV
 }
 
 if args.interactive:

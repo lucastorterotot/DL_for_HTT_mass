@@ -11,6 +11,10 @@ labels = {
         'fr' : "XGBoost",
         'en' : "XGBoost",
     },
+    'full' : {
+        'fr' : "toute masse",
+        'en' : "any mass",
+    },
     'low' : {
         'fr' : "basse masse",
         'en' : "low mass",
@@ -34,6 +38,10 @@ labels = {
     'mape' : {
         'fr' : "MAPE",
         'en' : "MAPE",
+    },
+    'NPUshift' : {
+        'fr' : r"Variation de $N_{{\rm PU}}$",
+        'en' : r"$N_{{\rm PU}}$ shift",
     },
     'All inputs' : {
         'fr' : "Toutes",
